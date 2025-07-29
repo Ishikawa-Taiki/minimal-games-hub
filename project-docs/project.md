@@ -10,6 +10,7 @@
 - next.config.js に `output: 'export'` を指定し静的出力
 - GitHub Pages に `main` ブランチの静的HTMLをホスト
 - GitHub Actions による自動デプロイ（push → ホスト反映）
+- Node.js v18.18.0 以上（`.nvmrc`で指定）
 - スマホ／PCレスポンシブ設計
 - 各ゲームは `/games/{slug}/` に配置し、直接アクセス可能で完全動作
 
