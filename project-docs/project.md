@@ -41,6 +41,8 @@ MEGH/
 ├ .eslintrc.json ← Lint設定 
 ├ .nojekyll ← Jekyll回避（必要なら） 
 ├ README.md ← 構想・制約・但し書き含む説明
+├ project-docs/
+│ └ development-guide.md ← 開発ガイド
 
 
 ## ⚖️ 商標・権利・目的について
