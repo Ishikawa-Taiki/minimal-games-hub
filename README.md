@@ -1,6 +1,6 @@
 # Minimal Games Hub
 
-[![ja](https://img.shields.io/badge/lang-ja-blue.svg)](./GEMINI/SETUP_LOG.md)
+[![ja](https://img.shields.io/badge/lang-ja-blue.svg)](./docs/project-info/setup-log.md)
 
 これは、人間とAIの対話を通じて開発される、ミニマルなWebゲームのプラットフォームです。
 
@@ -13,8 +13,8 @@
 このリポジトリのコードは、[GoogleのGemini](https://gemini.google.com/)との対話を通じて生成・変更されています。
 
 -   **開発スタイル:** 人間が「監督」「レビュアー」として方針を示し、AIが「実装者」としてコーディング、テスト、ドキュメント作成を行います。
--   **目的:** AI駆動開発の実践的なワークフローを模索し、その過程と成果を公開すること。
--   **ルールブック:** 私たち（人間とAI）が従うルールやプロジェクトの憲法は、すべて[`GEMINI/`](./GEMINI/)ディレクトリに記録されています。興味のある方はご覧ください。
+-   **目的:** AI駆動開発の実践的なワークフローを模索し、その過程と成果を公開します。
+-   **ルールブック:** 私たち（人間とAI）が従うルールやプロジェクトの憲法は、すべて[`docs/`](./docs/)ディレクトリに記録されています。興味のある方はご覧ください。
 
 ## 🎮 開発者向け情報 (For Developers)
 
@@ -41,7 +41,7 @@
     ```bash
     npm run dev
     ```
-    [http://localhost:3000](http://localhost:3000) で開発中のアプリケーションを確認できます。
+    [https://ishikawa-taiki.github.io/minimal-games-hub/](https://ishikawa-taiki.github.io/minimal-games-hub/) で公開中のアプリケーションを確認できます。
 
 より詳細な技術情報や規約については、[`docs/ai-workflow/2-technical-guide.md`](./docs/ai-workflow/2-technical-guide.md)を参照してください。
 
