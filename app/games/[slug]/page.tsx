@@ -1,7 +1,7 @@
 import GameLoader from './GameLoader';
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -9,8 +9,9 @@ export async function generateStaticParams() {
   return [{ slug: 'sample-game' }, { slug: 'tictactoe' }];
 }
 
-export default function GamePage({ params }: PageProps) {
-  const { slug } = params;
+export default async function GamePage({ params }: PageProps) {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
   return (
     <div>
