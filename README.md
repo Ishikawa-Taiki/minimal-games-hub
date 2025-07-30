@@ -43,7 +43,7 @@
     ```
     [http://localhost:3000](http://localhost:3000) で開発中のアプリケーションを確認できます。
 
-より詳細な技術情報や規約については、[`GEMINI/2_TECHNICAL_GUIDE.md`](./GEMINI/2_TECHNICAL_GUIDE.md)を参照してください。
+より詳細な技術情報や規約については、[`docs/ai-workflow/2-technical-guide.md`](./docs/ai-workflow/2-technical-guide.md)を参照してください。
 
 ## ⚖️ 注意事項（権利について）
 
