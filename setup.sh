@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Check if nvm is installed
-if [ -z "$NVM_DIR" ]; then
-  echo "nvm is not installed. Please install it from https://github.com/nvm-sh/nvm"
-  exit 1
+# Check if nodenv is installed
+if ! command -v nodenv &> /dev/null
+then
+    echo "nodenv could not be found. Please install it."
+    exit 1
 fi
 
-# Install and use the correct node version
-nvm install
-nvm use
+# Install the correct node version
+nodenv install
 
 # Install dependencies
 npm install
