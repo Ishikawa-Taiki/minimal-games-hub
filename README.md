@@ -1,42 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Minimal Games Hub
 
-## Getting Started
+[![ja](https://img.shields.io/badge/lang-ja-blue.svg)](./GEMINI/SETUP_LOG.md)
 
-First, run the development server:
+これは、人間とAIの対話を通じて開発される、ミニマルなWebゲームのプラットフォームです。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**[ゲームをプレイする！](https://ishikawa-taiki.github.io/minimal-games-hub/)**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✨ このプロジェクトについて: AI駆動開発モデル
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+このリポジトリのコードは、[GoogleのGemini](https://gemini.google.com/)との対話を通じて生成・変更されています。
 
-## Learn More
+-   **開発スタイル:** 人間が「監督」「レビュアー」として方針を示し、AIが「実装者」としてコーディング、テスト、ドキュメント作成を行います。
+-   **目的:** AI駆動開発の実践的なワークフローを模索し、その過程と成果を公開すること。
+-   **ルールブック:** 私たち（人間とAI）が従うルールやプロジェクトの憲法は、すべて[`GEMINI/`](./GEMINI/)ディレクトリに記録されています。興味のある方はご覧ください。
 
-To learn more about Next.js, take a look at the following resources:
+## 🎮 開発者向け情報 (For Developers)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 環境構築
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1.  **リポジトリをクローン:**
+    ```bash
+    git clone https://github.com/Ishikawa-Taiki/minimal-games-hub.git
+    cd minimal-games-hub
+    ```
 
-## Deploy on Vercel
+2.  **Node.jsのセットアップ:**
+    本プロジェクトは`nodenv`によるバージョン管理を行っています。
+    ```bash
+    nodenv install
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3.  **依存関係のインストール:**
+    ```bash
+    npm install
+    ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4.  **開発サーバーの起動:**
+    ```bash
+    npm run dev
+    ```
+    [http://localhost:3000](http://localhost:3000) で開発中のアプリケーションを確認できます。
 
-## 注意事項
+より詳細な技術情報や規約については、[`GEMINI/2_TECHNICAL_GUIDE.md`](./GEMINI/2_TECHNICAL_GUIDE.md)を参照してください。
 
-本プロジェクトは私的・家族向け利用を目的として構築された静的ゲーム集サイトです。営利目的ではなく、第三者の著作権や商標権を侵害する意図は一切ありません。市販商品名やブランド、企業名などの使用は避け、すべて独自の創作名称や一般名称によって構成されています。
+## ⚖️ 注意事項（権利について）
 
-内容はGitHub Pagesでパブリックにホストされますが、教育目的ではなく特定家庭向けの構成であることをご理解ください。
+本プロジェクトは、制作者の家族向けの私的利用を主な目的として構築された静的ゲーム集サイトです。営利目的ではなく、第三者の著作権や商標権を侵害する意図は一切ありません。
+
+使用されているゲームの名称、ルール、素材は、すべて独自の創作名称または一般名称によって構成されています。内容はGitHub Pagesで公開されていますが、特定の家庭向けの個人的なプロジェクトであることをご理解ください。
