@@ -14,36 +14,17 @@
 
 -   **開発スタイル:** 人間が「監督」「レビュアー」として方針を示し、AIが「実装者」としてコーディング、テスト、ドキュメント作成を行います。
 -   **目的:** AI駆動開発の実践的なワークフローを模索し、その過程と成果を公開します。
--   **ルールブック:** 私たち（人間とAI）が従うルールやプロジェクトの憲法は、すべて[`docs/`](./docs/)ディレクトリに記録されています。興味のある方はご覧ください。
+-   **ルールブック:** 私たち（人間とAI）が従うルールやプロジェクトの憲法は、すべて[`docs/index.md`](./docs/index.md)（ドキュメントの目次）に記録されています。興味のある方はご覧ください。
 
 ## 🎮 開発者向け情報 (For Developers)
 
-### 環境構築
+### 環境構築と実行
 
-1.  **リポジトリをクローン:**
-    ```bash
-    git clone https://github.com/Ishikawa-Taiki/minimal-games-hub.git
-    cd minimal-games-hub
-    ```
+開発環境のセットアップとアプリケーションの実行方法は、以下の技術ガイドにすべて記載されています。
 
-2.  **Node.jsのセットアップ:**
-    本プロジェクトは`nodenv`によるバージョン管理を行っています。
-    ```bash
-    nodenv install
-    ```
+-   **[技術ガイド (TECHNICAL GUIDE)](./docs/ai-workflow/2-technical-guide.md)**
 
-3.  **依存関係のインストール:**
-    ```bash
-    npm install
-    ```
-
-4.  **開発サーバーの起動:**
-    ```bash
-    npm run dev
-    ```
-    [https://ishikawa-taiki.github.io/minimal-games-hub/](https://ishikawa-taiki.github.io/minimal-games-hub/) で公開中のアプリケーションを確認できます。
-
-より詳細な技術情報や規約については、[`docs/ai-workflow/2-technical-guide.md`](./docs/ai-workflow/2-technical-guide.md)を参照してください。
+ローカルで開発サーバーを起動すると、`http://localhost:3000` で開発中のアプリケーションを確認できます。
 
 ## ⚖️ 注意事項（権利について）
 
