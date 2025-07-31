@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
 
-const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'minimal-games-hub';
+// 'npm run build'時は'production'、'npm run dev'時は'development'になる
+const isProd = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
   output: 'export',
-  basePath: `/${repo}`,
-  assetPrefix: `/${repo}/`,
+  // 本番ビルド時（GitHub Pagesデプロイ時）のみ、リポジトリ名をパスに含める
+  basePath: isProd ? '/minimal-games-hub' : undefined,
+  assetPrefix: isProd ? '/minimal-games-hub/' : undefined,
   /* config options here */
 };
 
