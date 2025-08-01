@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import Link from 'next/link';
 import { GameManifest } from '@/types/game';
 import MarkdownViewer from '@/app/components/MarkdownViewer';
 
@@ -36,9 +37,9 @@ export default async function RulesPage({ params }: RulesPageProps) {
       <h1 className="text-3xl font-bold mb-4">{gameName} Rules</h1>
       <MarkdownViewer content={rulesContent} />
       <div className="mt-8">
-        <a href={`/games/${slug}`} className="text-blue-500 hover:underline">
+        <Link href={`/games/${slug}`} className="text-blue-500 hover:underline">
           Back to Game
-        </a>
+        </Link>
       </div>
     </div>
   );
