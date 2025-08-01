@@ -4,7 +4,7 @@ import { GameManifest } from '@/types/game';
 import GameClientPage from './GameClientPage';
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -27,7 +27,8 @@ async function getGameData(slug: string) {
 }
 
 export default async function GamePage({ params }: PageProps) {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   const { manifest, rulesContent } = await getGameData(slug);
 
   return <GameClientPage manifest={manifest} rulesContent={rulesContent} slug={slug} />;
