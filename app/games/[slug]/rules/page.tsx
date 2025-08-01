@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { GameManifest } from '@/types/game';
-import GameClientPage from './GameClientPage';
+import MarkdownViewer from '@/app/components/MarkdownViewer';
 
-interface PageProps {
+interface RulesPageProps {
   params: { slug: string };
 }
 
@@ -16,19 +16,29 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getGameData(slug: string) {
+async function getRulesContent(slug: string) {
   const manifestPath = path.join(process.cwd(), 'games', slug, 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as GameManifest;
 
   const rulesPath = path.join(process.cwd(), manifest.rulesFile.replace(/^\//, ''));
   const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
 
-  return { manifest, rulesContent };
+  return { gameName: manifest.name, rulesContent };
 }
 
-export default async function GamePage({ params }: PageProps) {
+export default async function RulesPage({ params }: RulesPageProps) {
   const { slug } = params;
-  const { manifest, rulesContent } = await getGameData(slug);
+  const { gameName, rulesContent } = await getRulesContent(slug);
 
-  return <GameClientPage manifest={manifest} rulesContent={rulesContent} slug={slug} />;
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">{gameName} Rules</h1>
+      <MarkdownViewer content={rulesContent} />
+      <div className="mt-8">
+        <a href={`/games/${slug}`} className="text-blue-500 hover:underline">
+          Back to Game
+        </a>
+      </div>
+    </div>
+  );
 }

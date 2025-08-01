@@ -1,9 +1,6 @@
 {
   "name": "Tic-Tac-Toe",
-  "short_name": "Tic-Tac-Toe",
-  "description": "A simple Tic-Tac-Toe game.",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#fff",
-  "theme_color": "#fff"
+  "path": "/games/tictactoe",
+  "rulesFile": "/games/tictactoe/rules.md",
+  "specFile": "/games/tictactoe/spec.md"
 }
