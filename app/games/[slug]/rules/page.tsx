@@ -4,7 +4,7 @@ import { GameManifest } from '@/types/game';
 import MarkdownViewer from '@/app/components/MarkdownViewer';
 
 interface RulesPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -27,7 +27,8 @@ async function getRulesContent(slug: string) {
 }
 
 export default async function RulesPage({ params }: RulesPageProps) {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   const { gameName, rulesContent } = await getRulesContent(slug);
 
   return (
