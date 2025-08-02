@@ -48,7 +48,28 @@ npm run build
 ## 3. 技術スタック
 -   **フレームワーク:** Next.js
 -   **言語:** TypeScript
--   **スタイリング:** Tailwind CSS (`globals.css` と PostCSS経由)
+-   **スタイリング:** Tailwind CSS (現状維持)
+
+### スタイリングの更新履歴
+
+#### Emotion導入の試みと断念 (2025年8月2日)
+
+Tailwind CSSからの移行としてEmotionの導入を試みましたが、Next.js App Router (v15.4.4) とReact 19 (v19.1.0)、Emotion 11 (`@emotion/react`, `@emotion/styled`) の組み合わせにおいて、ビルド時に `TypeError: f.createContext is not a function` エラーが継続的に発生し、導入を断念しました。
+
+**エラーの根本原因:**
+このエラーは、Reactの `createContext` がサーバーサイドのコンポーネント環境で正しく初期化されないことに起因します。Next.js App Routerはデフォルトでサーバーコンポーネントとして動作し、Emotion 11はReact 19の内部的な変更に完全には対応しきれていないため、この問題が発生しました。
+
+**試行した解決策:**
+*   EmotionのSSR推奨パターンである「Registry」パターンの導入 (`app/registry.tsx` の作成と `app/layout.tsx` での利用)。
+*   Emotionを使用する全てのコンポーネントへの `"use client";` ディレクティブの追加。
+*   `tsconfig.json` および `next.config.ts` のEmotion関連設定の有効化。
+*   Reactのバージョンを18にダウングレード。
+
+**結論:**
+上記の試行にもかかわらずエラーが解消されなかったため、Emotion 11とNext.js App Router + React 19の組み合わせは、現状では安定して動作させることが極めて困難であると判断しました。Emotion 12でReact 19への完全な互換性が期待されていますが、リリース時期は未定です。
+
+**今後の対応:**
+本プロジェクトにおけるEmotionの導入は一時的に断念し、既存のTailwind CSSベースの環境を維持します。Emotion 12のリリースやNext.jsのアップデート状況を注視し、将来的に再検討する課題とします。
 -   **Node.jsバージョン管理:** `nodenv` (`.node-version` ファイルを参照)
 -   **リンティング & フォーマット:** `eslint.config.mjs` に定義されたルールに準拠します。
 
