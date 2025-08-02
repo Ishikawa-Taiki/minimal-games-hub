@@ -25,3 +25,16 @@
     -   プロジェクトのサポート対象環境を定義し、`docs/ai-workflow/2-technical-guide.md`に追記。主要ブラウザの最新2バージョン（Chrome, Firefox, Edge, Safari）と、iOS 12以降のSafari、Android 9以降のChromeをサポート対象とした。開発の主軸がGoogle Chromeであることを明記。
     -   `app/games/[slug]/GameClientPage.tsx` および `app/games/[slug]/page.tsx` から未使用の`rulesContent`プロパティを削除し、ビルドエラーを解消。
     -   開発サーバーを起動し、ブラウザでの動作確認を実施。問題がないことを確認。
+
+---
+
+## 2025-08-02
+
+-   **タスク:** Node.jsバージョンの更新
+-   **ブランチ:** `chore/update-node-version`
+-   **作業概要:**
+    -   プロジェクトのNode.jsバージョンを `18.18.0` から `20.18.1` に更新。
+    -   `.node-version` および `.github/workflows/deploy.yml` のバージョン指定を修正。
+    -   `package-lock.json` を再生成し、依存関係を更新。
+    -   `npm run build` と `npm run lint` を実行し、動作に問題がないことを確認。
+    -   変更の経緯と内容を `docs/project-info/setup-log.md` に記録。
