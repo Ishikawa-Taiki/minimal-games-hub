@@ -119,7 +119,7 @@ const Reversi: React.FC = () => {
     const whiteScore = board.flat().filter(c => c === 'WHITE').length;
     setScores({ BLACK: blackScore, WHITE: whiteScore });
 
-    if (gameState !== 'GAME_over' && blackScore + whiteScore === 64) {
+    if (gameState !== 'GAME_OVER' && blackScore + whiteScore === 64) {
         setGameState('GAME_OVER');
         return;
     }
