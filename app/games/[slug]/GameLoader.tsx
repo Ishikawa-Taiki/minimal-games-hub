@@ -11,6 +11,9 @@ const getGameComponent = (slug: string) => {
   if (slug === 'tictactoe') {
     return dynamic(() => import('../../../games/tictactoe/index'), { ssr: false });
   }
+  if (slug === 'reversi') {
+    return dynamic(() => import('../../../games/reversi/index'), { ssr: false });
+  }
   // Add other games here
   return null;
 };
