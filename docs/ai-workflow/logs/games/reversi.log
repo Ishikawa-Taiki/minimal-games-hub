@@ -1,0 +1,13 @@
+## 2025-08-02
+
+- **ゴール:** 新しいゲーム『リバーシ』の初期実装を行う。
+- **作業サマリー:**
+    - `feature/reversi` ブランチを作成。
+    - リバーシの基本ファイル群 (`index.tsx`, `manifest.json`, `rules.md`, `spec.md`) を作成。
+    - `GameLoader.tsx` を更新し、リバーシを動的に読み込むように修正。
+    - 404エラー、表示崩れなどの問題を特定し、修正。
+    - スタイリングに関する問題を解決するため、インラインスタイルを採用し、その方針を `technical-guide.md` に明記。
+- **成果物:**
+    - `games/reversi/` ディレクトリ以下の全ファイル。
+    - `app/games/[slug]/GameLoader.tsx` の更新。
+    - `docs/ai-workflow/2-technical-guide.md` の更新。
