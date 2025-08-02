@@ -7,11 +7,10 @@ import GameLayout from '@/app/components/GameLayout';
 
 interface GameClientPageProps {
   manifest: GameManifest;
-  rulesContent: string; // rulesContent を追加
   slug: string;
 }
 
-const GameClientPage = memo(function GameClientPage({ manifest, rulesContent, slug }: GameClientPageProps) {
+const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
   return (
     <GameLayout gameName={manifest.name} slug={slug}>
       <GameLoader slug={slug} />

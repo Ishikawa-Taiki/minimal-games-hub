@@ -29,7 +29,7 @@ async function getGameData(slug: string) {
 export default async function GamePage({ params }: PageProps) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  const { manifest, rulesContent } = await getGameData(slug);
+  const { manifest } = await getGameData(slug);
 
-  return <GameClientPage manifest={manifest} rulesContent={rulesContent} slug={slug} />;
+  return <GameClientPage manifest={manifest} slug={slug} />;
 }
