@@ -1,7 +1,0 @@
-{
-  "name": "三目並べ",
-  "description": "シンプルな〇×ゲームです。",
-  "path": "/games/tictactoe",
-  "rulesFile": "/games/tictactoe/rules.md",
-  "specFile": "/games/tictactoe/spec.md"
-}
