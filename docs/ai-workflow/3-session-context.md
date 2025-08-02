@@ -3,7 +3,7 @@
 ## 現在のタスク
 - **ブランチ:** `feature/update-supported-environments`
 - **ゴール:** プロジェクトのサポート対象環境を定義し、`technical-guide.md`に追記する。また、古いバージョンをサポートしない理由を`setup-log.md`に記録する。
-- **ステータス:** 進行中
+- **ステータス:** 完了
 
 ## 直近のタスク履歴 (サマリー)
 - `fix/tictactoe-link`ブランチにて、GitHub Pagesでのリンク切れ問題を修正。
