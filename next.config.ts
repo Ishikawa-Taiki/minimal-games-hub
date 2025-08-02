@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   basePath: isProd ? '/minimal-games-hub' : undefined,
   assetPrefix: isProd ? '/minimal-games-hub/' : undefined,
   /* config options here */
+  compiler: {
+    emotion: true,
+  },
 };
 
 export default nextConfig;
