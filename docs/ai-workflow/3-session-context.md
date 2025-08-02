@@ -15,9 +15,10 @@
 - サードパーティライセンスの冒頭に免責事項を追加。
 - フッターの表示崩れを修正し、リポジトリURLを更新。
 - 著作権表示の年を2025年に更新。
+- `docs/ai-workflow/2-technical-guide.md` にライセンス更新ガイドラインを追記。
 
 ## 未解決の課題
-- `docs/ai-workflow/2-technical-guide.md` へのライセンス更新ガイドラインの追記。
+(なし)
 
 ## 重要なドキュメントへのポインタ
 - **人間向けガイド:** `docs/project-info/human-guide.md`
