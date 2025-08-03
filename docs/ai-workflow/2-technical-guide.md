@@ -122,7 +122,9 @@ npm run build
 
 `manifest.json` は、ゲームのメタデータを定義するファイルです。`types/game.ts` で定義された `GameManifest` 型に準拠する必要があります。
 
--   `name` (string): ゲームの正式名称。
+-   `name` (string): ゲームの正式名称（内部的な識別子、英語表記を推奨）。
+-   `displayName` (string): ユーザーインターフェースに表示するゲーム名（日本語、親しみやすい表現）。
+-   `shortDescription` (string): トップページなどで表示する、ゲームの簡潔な説明文。
 -   `path` (string): ゲームページへのパス (例: `/games/tictactoe`)。
 -   `rulesFile` (string): `rules.md` へのパス。
 -   `specActionFile` (string): `spec-action.md` へのパス。

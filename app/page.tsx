@@ -4,7 +4,8 @@ import path from 'path';
 
 interface GameManifest {
   name: string;
-  description: string;
+  displayName: string;
+  shortDescription: string;
 }
 
 async function getGames() {
@@ -52,10 +53,10 @@ export default async function HomePage() {
               className="block rounded-lg border border-gray-200 bg-white p-6 shadow-md transition-transform transform hover:scale-105 dark:border-gray-700 dark:bg-gray-800"
             >
               <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-                {game.name}
+                {game.displayName}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                {game.description}
+                {game.shortDescription}
               </p>
             </Link>
           ))}

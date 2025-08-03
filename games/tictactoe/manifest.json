@@ -1,6 +1,7 @@
 {
-  "name": "三目並べ",
-  "description": "シンプルな〇×ゲームです。",
+  "name": "Tic-Tac-Toe",
+  "displayName": "○×ゲーム",
+  "shortDescription": "3x3の盤面で「○」と「×」を交互に配置し、縦・横・斜めのいずれか一列に自分のマークを3つ揃えることを目指すシンプルなボードゲームです。",
   "path": "/games/tictactoe",
   "rulesFile": "/games/tictactoe/rules.md",
   "specActionFile": "/games/tictactoe/spec-action.md",

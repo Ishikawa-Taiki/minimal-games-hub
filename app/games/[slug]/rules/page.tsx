@@ -17,25 +17,43 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getRulesContent(slug: string) {
+async function getDocContents(slug: string) {
   const manifestPath = path.join(process.cwd(), 'games', slug, 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as GameManifest;
 
   const rulesPath = path.join(process.cwd(), manifest.rulesFile.replace(/^\//, ''));
   const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
 
-  return { gameName: manifest.name, rulesContent };
+  const specActionPath = path.join(process.cwd(), manifest.specActionFile.replace(/^\//, ''));
+  const specActionContent = fs.readFileSync(specActionPath, 'utf-8');
+
+  const specDisplayPath = path.join(process.cwd(), manifest.specDisplayFile.replace(/^\//, ''));
+  const specDisplayContent = fs.readFileSync(specDisplayPath, 'utf-8');
+
+  const combinedContent = `
+${rulesContent}
+
+---
+
+${specActionContent}
+
+---
+
+${specDisplayContent}
+`;
+
+  return { gameName: manifest.displayName, combinedContent };
 }
 
 export default async function RulesPage({ params }: RulesPageProps) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  const { gameName, rulesContent } = await getRulesContent(slug);
+  const { gameName, combinedContent } = await getDocContents(slug);
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">{gameName} Rules</h1>
-      <MarkdownViewer content={rulesContent} />
+      <h1 className="text-3xl font-bold mb-4">{gameName} ドキュメント</h1>
+      <MarkdownViewer content={combinedContent} />
       <div className="mt-8">
         <Link href={`/games/${slug}`} className="text-blue-500 hover:underline">
           Back to Game
