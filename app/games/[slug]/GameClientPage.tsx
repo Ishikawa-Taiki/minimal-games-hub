@@ -12,7 +12,10 @@ interface GameClientPageProps {
 
 const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
   return (
-    <GameLayout gameName={manifest.name} slug={slug}>
+    <GameLayout 
+      gameName={manifest.name} 
+      slug={slug}
+    >
       <GameLoader slug={slug} />
     </GameLayout>
   );

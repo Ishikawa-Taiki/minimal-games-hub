@@ -20,10 +20,7 @@ async function getGameData(slug: string) {
   const manifestPath = path.join(process.cwd(), 'games', slug, 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as GameManifest;
 
-  const rulesPath = path.join(process.cwd(), manifest.rulesFile.replace(/^\//, ''));
-  const rulesContent = fs.readFileSync(rulesPath, 'utf-8');
-
-  return { manifest, rulesContent };
+  return { manifest };
 }
 
 export default async function GamePage({ params }: PageProps) {
