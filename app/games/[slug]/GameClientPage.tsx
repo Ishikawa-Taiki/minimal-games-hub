@@ -8,11 +8,20 @@ import GameLayout from '@/app/components/GameLayout';
 interface GameClientPageProps {
   manifest: GameManifest;
   slug: string;
+  rulesFile: string;
+  specActionFile: string;
+  specDisplayFile: string;
 }
 
-const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
+const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesFile, specActionFile, specDisplayFile }: GameClientPageProps) {
   return (
-    <GameLayout gameName={manifest.name} slug={slug}>
+    <GameLayout 
+      gameName={manifest.name} 
+      slug={slug}
+      rulesFile={rulesFile}
+      specActionFile={specActionFile}
+      specDisplayFile={specDisplayFile}
+    >
       <GameLoader slug={slug} />
     </GameLayout>
   );
