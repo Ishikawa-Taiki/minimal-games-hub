@@ -3,5 +3,6 @@
   "description": "相手の石を挟んでひっくり返す古典的なボードゲームです。",
   "path": "/games/reversi",
   "rulesFile": "/games/reversi/rules.md",
-  "specFile": "/games/reversi/spec.md"
+  "specActionFile": "/games/reversi/spec-action.md",
+  "specDisplayFile": "/games/reversi/spec-display.md"
 }
