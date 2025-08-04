@@ -6,15 +6,28 @@ import {
   GameState,
   createInitialState,
   handleCellClick as handleCellClickCore,
-  getValidMoves,
 } from './core';
+
+// 駒のアイコンコンポーネント
+const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (
+  <div
+    style={{
+      ...styles.discIcon,
+      backgroundColor: player === 'BLACK' ? 'black' : 'white',
+      ...style,
+    }}
+  />
+);
 
 const Reversi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
+    setFlippingCells([]);
+    setIsFlipping(false);
   }, []);
 
   useEffect(() => {
@@ -23,7 +36,9 @@ const Reversi: React.FC = () => {
 
   const handleCellClick = async (r: number, c: number) => {
     const stonesToFlip = gameState.validMoves.get(`${r},${c}`);
-    if (gameState.gameStatus === 'GAME_OVER' || !stonesToFlip) return;
+    if (gameState.gameStatus === 'GAME_OVER' || !stonesToFlip || isFlipping) return;
+
+    setIsFlipping(true);
 
     // Place the stone immediately without waiting for logic
     const newBoard = gameState.board.map(row => [...row]);
@@ -46,6 +61,7 @@ const Reversi: React.FC = () => {
     if (newState) {
       setGameState(newState);
     }
+    setIsFlipping(false);
   };
 
   const getWinner = (): Player | 'DRAW' | null => {
@@ -56,16 +72,28 @@ const Reversi: React.FC = () => {
   };
 
   const winner = getWinner();
+  const isBlackWinning = gameState.scores.BLACK > gameState.scores.WHITE;
+  const isWhiteWinning = gameState.scores.WHITE > gameState.scores.BLACK;
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>リバーシ</h1>
       <div style={styles.scoreBoard}>
-        <div style={{ ...styles.score, ...(gameState.currentPlayer === 'BLACK' ? styles.currentPlayerHighlightBlack : {}) }}>
-          黒: {gameState.scores.BLACK}
+        <div style={styles.score}>
+          <DiscIcon player="BLACK" />
+          <span style={isBlackWinning ? styles.winningScore : {}}>
+            {gameState.scores.BLACK}
+          </span>
         </div>
-        <div style={{ ...styles.score, ...(gameState.currentPlayer === 'WHITE' ? styles.currentPlayerHighlightWhite : {}) }}>
-          白: {gameState.scores.WHITE}
+        <div style={styles.turnIndicator}>
+          <DiscIcon player={gameState.currentPlayer} style={styles.turnIndicatorDisc} />
+          <span>のばん</span>
+        </div>
+        <div style={styles.score}>
+          <DiscIcon player="WHITE" />
+          <span style={isWhiteWinning ? styles.winningScore : {}}>
+            {gameState.scores.WHITE}
+          </span>
         </div>
       </div>
       <div style={styles.board}>
@@ -98,14 +126,27 @@ const Reversi: React.FC = () => {
           })
         )}
       </div>
-      {gameState.gameStatus === 'SKIPPED' && <div style={styles.skippedMessage}>{gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'}はパスしました。</div>}
+      <button onClick={initializeGame} style={styles.resetButtonLarge}>
+        はじめからやりなおす
+      </button>
+      {gameState.gameStatus === 'SKIPPED' && (
+        <div style={styles.skippedMessage}>
+          <DiscIcon player={gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
+          <span>はパスしました。</span>
+        </div>
+      )}
       {winner && (
         <div style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
             <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
-            <p style={styles.winnerText}>
-              {winner === 'DRAW' ? '引き分け' : `${winner === 'BLACK' ? '黒' : '白'}の勝ち!`}
-            </p>
+            <div style={styles.winnerText}>
+              {winner === 'DRAW' ? '引き分け' : (
+                <>
+                  <DiscIcon player={winner} />
+                  <span>の勝ち!</span>
+                </>
+              )}
+            </div>
             <button onClick={initializeGame} style={styles.resetButton}>
               もう一度プレイ
             </button>
@@ -133,21 +174,30 @@ const styles: { [key: string]: CSSProperties } = {
   scoreBoard: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     width: '100%',
     maxWidth: '28rem',
     marginBottom: '1rem'
   },
   score: {
-    padding: '0.5rem',
-    borderRadius: '0.25rem'
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
   },
-  currentPlayerHighlightBlack: {
-    backgroundColor: '#4299e1',
-    color: 'white'
+  winningScore: {
+    color: '#f56565', // Red color for winning score
   },
-  currentPlayerHighlightWhite: {
-    backgroundColor: '#f56565',
-    color: 'white'
+  turnIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+  },
+  turnIndicatorDisc: {
+    width: '1.2rem',
+    height: '1.2rem',
+    marginRight: '0.4rem',
   },
   board: {
     display: 'grid',
@@ -176,6 +226,13 @@ const styles: { [key: string]: CSSProperties } = {
     transition: 'transform 0.3s',
     transformStyle: 'preserve-3d'
   },
+  discIcon: {
+    width: '1.5rem',
+    height: '1.5rem',
+    borderRadius: '9999px',
+    marginRight: '0.5rem',
+    border: '1px solid #ccc',
+  },
   moveHint: {
     position: 'absolute',
     color: 'rgba(255, 255, 255, 0.7)',
@@ -185,7 +242,9 @@ const styles: { [key: string]: CSSProperties } = {
   skippedMessage: {
     marginTop: '1rem',
     fontSize: '1.125rem',
-    fontWeight: '600'
+    fontWeight: '600',
+    display: 'flex',
+    alignItems: 'center',
   },
   gameOverOverlay: {
     position: 'absolute',
@@ -210,7 +269,10 @@ const styles: { [key: string]: CSSProperties } = {
     marginBottom: '1rem'
   },
   winnerText: {
-    fontSize: '1.25rem'
+    fontSize: '1.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resetButton: {
     marginTop: '1rem',
@@ -218,6 +280,17 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: '#4299e1',
     color: 'white',
     borderRadius: '0.25rem'
+  },
+  resetButtonLarge: {
+    margin: '1rem 0',
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#4299e1',
+    color: 'white',
+    borderRadius: '0.375rem',
+    fontSize: '1.125rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    border: 'none',
   }
 };
 
