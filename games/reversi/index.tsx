@@ -19,28 +19,56 @@ const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player,
   />
 );
 
+type HintLevel = 'none' | 'placeable' | 'full';
+
 const Reversi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [hintLevel, setHintLevel] = useState<HintLevel>('full'); // Default to full for dev
+  const [selectedHintCell, setSelectedHintCell] = useState<[number, number] | null>(null);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
     setFlippingCells([]);
     setIsFlipping(false);
+    setHintLevel('none');
+    setSelectedHintCell(null);
   }, []);
 
   useEffect(() => {
     initializeGame();
   }, [initializeGame]);
 
+  const toggleHintLevel = () => {
+    setHintLevel(prev => {
+      if (prev === 'none') return 'placeable';
+      if (prev === 'placeable') return 'full';
+      return 'none';
+    });
+    setSelectedHintCell(null); // Reset selection when changing hint level
+  };
+
   const handleCellClick = async (r: number, c: number) => {
-    const stonesToFlip = gameState.validMoves.get(`${r},${c}`);
-    if (gameState.gameStatus === 'GAME_OVER' || !stonesToFlip || isFlipping) return;
+    const moveKey = `${r},${c}`;
+    const stonesToFlip = gameState.validMoves.get(moveKey);
+    if (gameState.gameStatus === 'GAME_OVER' || isFlipping || !stonesToFlip) return;
+
+    // Full hint mode logic
+    if (hintLevel === 'full') {
+      if (selectedHintCell && selectedHintCell[0] === r && selectedHintCell[1] === c) {
+        // Second tap on the same cell: execute the move
+        setSelectedHintCell(null);
+      } else {
+        // First tap or tap on a different cell: just highlight
+        setSelectedHintCell([r, c]);
+        return; // Don't execute the move yet
+      }
+    }
 
     setIsFlipping(true);
 
-    // Place the stone immediately without waiting for logic
+    // Place the stone immediately
     const newBoard = gameState.board.map(row => [...row]);
     newBoard[r][c] = gameState.currentPlayer;
     setGameState(prevState => ({ ...prevState, board: newBoard }));
@@ -49,7 +77,7 @@ const Reversi: React.FC = () => {
     for (let i = 0; i < stonesToFlip.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 100));
         setFlippingCells(prev => [...prev, stonesToFlip[i]]);
-        await new Promise(resolve => setTimeout(resolve, 150)); // Duration of flip animation
+        await new Promise(resolve => setTimeout(resolve, 150));
         
         const [fr, fc] = stonesToFlip[i];
         newBoard[fr][fc] = gameState.currentPlayer;
@@ -75,6 +103,42 @@ const Reversi: React.FC = () => {
   const isBlackWinning = gameState.scores.BLACK > gameState.scores.WHITE;
   const isWhiteWinning = gameState.scores.WHITE > gameState.scores.BLACK;
 
+  const getHintButtonText = () => {
+    if (hintLevel === 'none') return 'ヒントなし';
+    if (hintLevel === 'placeable') return 'おけるばしょ';
+    return 'ぜんぶヒント';
+  };
+
+  const getHintButtonStyle = (): CSSProperties => {
+    const baseStyle = styles.hintButton;
+    if (hintLevel === 'none') return { ...baseStyle, ...styles.hintButtonNone };
+    if (hintLevel === 'placeable') return { ...baseStyle, ...styles.hintButtonPlaceable };
+    return { ...baseStyle, ...styles.hintButtonFull };
+  };
+
+  const getCellStyle = (r: number, c: number): CSSProperties => {
+    const style: CSSProperties = { ...styles.cellContainer };
+    const cellContent = gameState.board[r][c];
+    const opponent = gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK';
+
+    if (hintLevel === 'full' && selectedHintCell) {
+      const [selectedR, selectedC] = selectedHintCell;
+      const moveKey = `${selectedR},${selectedC}`;
+      const stonesToFlip = gameState.validMoves.get(moveKey);
+
+      if (r === selectedR && c === selectedC) {
+        style.border = styles.selectedHintPreviewCell.border;
+      }
+
+      if (stonesToFlip?.some(([fr, fc]) => fr === r && fc === c)) {
+        style.backgroundColor = styles.highlightedCell.backgroundColor;
+      } else if (cellContent === opponent) {
+        style.backgroundColor = styles.dimmedCell.backgroundColor;
+      }
+    }
+    return style;
+  };
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>リバーシ</h1>
@@ -96,6 +160,7 @@ const Reversi: React.FC = () => {
           </span>
         </div>
       </div>
+      
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {
@@ -104,7 +169,7 @@ const Reversi: React.FC = () => {
             return (
               <div
                 key={`${r}-${c}`}
-                style={styles.cellContainer}
+                style={getCellStyle(r, c)}
                 onClick={() => handleCellClick(r, c)}
               >
                 {cell && (
@@ -116,19 +181,30 @@ const Reversi: React.FC = () => {
                    }}
                  />
                 )}
-                {moveInfo && (
-                  <span style={styles.moveHint}>
-                    {moveInfo.length}
-                  </span>
+                {hintLevel !== 'none' && moveInfo && (
+                  <>
+                    {hintLevel === 'placeable' && <div style={styles.placeableHint} />}
+                    {hintLevel === 'full' && 
+                      <span style={styles.moveHint}>
+                        {moveInfo.length}
+                      </span>
+                    }
+                  </>
                 )}
               </div>
             );
           })
         )}
       </div>
-      <button onClick={initializeGame} style={styles.resetButtonLarge}>
-        はじめからやりなおす
-      </button>
+
+      <div style={styles.buttonGroup}>
+        <button onClick={initializeGame} style={styles.resetButtonLarge}>
+          はじめから<br />やりなおす
+        </button>
+        <button onClick={toggleHintLevel} style={getHintButtonStyle()}>
+          おしえて！<br />({getHintButtonText()})
+        </button>
+      </div>
       {gameState.gameStatus === 'SKIPPED' && (
         <div style={styles.skippedMessage}>
           <DiscIcon player={gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
@@ -164,7 +240,9 @@ const styles: { [key: string]: CSSProperties } = {
     alignItems: 'center',
     padding: '1rem',
     backgroundColor: '#f7fafc',
-    minHeight: '100vh'
+    minHeight: '100vh',
+    userSelect: 'none', // Disable text selection
+    WebkitUserSelect: 'none', // For Safari
   },
   title: {
     fontSize: '2.25rem',
@@ -217,7 +295,9 @@ const styles: { [key: string]: CSSProperties } = {
     borderRadius: '0.125rem',
     cursor: 'pointer',
     position: 'relative',
-    perspective: '1000px'
+    perspective: '1000px',
+    transition: 'background-color 0.2s, border 0.2s',
+    border: '2px solid transparent',
   },
   disc: {
     width: '83.3333%',
@@ -291,6 +371,53 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 'bold',
     cursor: 'pointer',
     border: 'none',
+    lineHeight: 1.2,
+  },
+  hintButton: {
+    margin: '1rem 0 1rem 0.5rem',
+    padding: '0.5rem 1rem',
+    borderRadius: '0.375rem',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    border: 'none',
+    minWidth: '140px', // Prevent width change
+    transition: 'background-color 0.3s',
+    lineHeight: 1.2,
+  },
+  hintButtonNone: {
+    backgroundColor: '#a0aec0', // Gray
+    color: 'white',
+  },
+  hintButtonPlaceable: {
+    backgroundColor: '#4299e1', // Blue
+    color: 'white',
+  },
+  hintButtonFull: {
+    backgroundColor: '#f6ad55', // Orange
+    color: 'white',
+  },
+  buttonGroup: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: '1rem 0',
+  },
+  placeableHint: {
+    width: '50%',
+    height: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    borderRadius: '9999px',
+    position: 'absolute',
+  },
+  highlightedCell: {
+    backgroundColor: '#f472b6', // Bright Pink
+  },
+  dimmedCell: {
+    backgroundColor: '#4a5568', // Darker Green-Gray
+  },
+  selectedHintPreviewCell: {
+    border: '2px solid #ec4899', // Hot Pink border
   }
 };
 
