@@ -8,17 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "test:ui": "vitest --ui"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "test:ui": "vitest --ui",
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
       "vitest related --run",
-      "bash -c \"npm run lint\"",
+      "npm run lint -- --max-warnings=0",
       "bash -c \"npm run build\""
     ]
   },
