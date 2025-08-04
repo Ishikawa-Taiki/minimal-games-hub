@@ -22,9 +22,12 @@ const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player,
 const Reversi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
+  const [isFlipping, setIsFlipping] = useState(false);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
+    setFlippingCells([]);
+    setIsFlipping(false);
   }, []);
 
   useEffect(() => {
@@ -33,7 +36,9 @@ const Reversi: React.FC = () => {
 
   const handleCellClick = async (r: number, c: number) => {
     const stonesToFlip = gameState.validMoves.get(`${r},${c}`);
-    if (gameState.gameStatus === 'GAME_OVER' || !stonesToFlip) return;
+    if (gameState.gameStatus === 'GAME_OVER' || !stonesToFlip || isFlipping) return;
+
+    setIsFlipping(true);
 
     // Place the stone immediately without waiting for logic
     const newBoard = gameState.board.map(row => [...row]);
@@ -56,6 +61,7 @@ const Reversi: React.FC = () => {
     if (newState) {
       setGameState(newState);
     }
+    setIsFlipping(false);
   };
 
   const getWinner = (): Player | 'DRAW' | null => {
@@ -120,6 +126,9 @@ const Reversi: React.FC = () => {
           })
         )}
       </div>
+      <button onClick={initializeGame} style={styles.resetButtonLarge}>
+        はじめからやりなおす
+      </button>
       {gameState.gameStatus === 'SKIPPED' && (
         <div style={styles.skippedMessage}>
           <DiscIcon player={gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
@@ -271,6 +280,17 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: '#4299e1',
     color: 'white',
     borderRadius: '0.25rem'
+  },
+  resetButtonLarge: {
+    margin: '1rem 0',
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#4299e1',
+    color: 'white',
+    borderRadius: '0.375rem',
+    fontSize: '1.125rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    border: 'none',
   }
 };
 
