@@ -20,6 +20,7 @@ const LINES_TO_CHECK = [
 ];
 
 export function createInitialState(): GameState {
+  const unusedVar = "hello"; // リンティングエラーを発生させるための未使用変数
   return {
     board: [
       [null, null, null],
