@@ -11,6 +11,13 @@
     "test:ui": "vitest --ui",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "vitest related --run",
+      "npm run lint -- --max-warnings=0",
+      "bash -c \"npm run build\""
+    ]
+  },
   "dependencies": {
     "autoprefixer": "^10.4.21",
     "next": "15.4.4",
