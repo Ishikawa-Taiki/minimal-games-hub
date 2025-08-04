@@ -17,7 +17,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "vitest related --run"
+      "vitest related --run",
+      "bash -c \"npm run build\""
     ]
   },
   "dependencies": {

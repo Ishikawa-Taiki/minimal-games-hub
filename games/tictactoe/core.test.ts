@@ -8,7 +8,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     gameState = createInitialState();
   });
 
-  it('should initialize the game correctly', () => {
+  it('ゲームが正しく初期化されることを確認', () => {
     expect(gameState.board.flat().every(cell => cell === null)).toBe(true);
     expect(gameState.currentPlayer).toBe('O');
     expect(gameState.winner).toBe(null);
@@ -16,21 +16,21 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(gameState.winningLines).toBe(null);
   });
 
-  it('should allow a valid move', () => {
+  it('有効な手番が許可されることを確認', () => {
     const newGameState = handleCellClick(gameState, 0, 0);
     expect(newGameState.board[0][0]).toBe('O');
     expect(newGameState.currentPlayer).toBe('X');
     expect(newGameState.winner).toBe(null);
   });
 
-  it('should not allow a move on an occupied cell', () => {
+  it('既に駒が置かれているマスには移動できないことを確認', () => {
     let state = handleCellClick(gameState, 0, 0);
     const originalState = { ...state };
     state = handleCellClick(state, 0, 0); // Try to move on the same cell
     expect(state).toBeNull(); // State should be null for invalid move
   });
 
-  it('should not allow a move after the game has ended', () => {
+  it('ゲーム終了後には移動できないことを確認', () => {
     // Simulate a winning scenario for Player O
     let state = createInitialState();
     state = handleCellClick(state, 0, 0); // O
@@ -45,7 +45,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(finalState).toBeNull(); // State should be null for invalid move
   });
 
-  it('should detect a winner horizontally', () => {
+  it('横方向の勝者を検出することを確認', () => {
     let state = createInitialState();
     state = handleCellClick(state, 0, 0); // O
     state = handleCellClick(state, 1, 0); // X
@@ -56,7 +56,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(state.winningLines).toEqual([[0, 1, 2]]);
   });
 
-  it('should detect a winner vertically', () => {
+  it('縦方向の勝者を検出することを確認', () => {
     let state = createInitialState();
     state = handleCellClick(state, 0, 0); // O
     state = handleCellClick(state, 0, 1); // X
@@ -67,7 +67,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(state.winningLines).toEqual([[0, 3, 6]]);
   });
 
-  it('should detect a winner diagonally (top-left to bottom-right)', () => {
+  it('斜め方向（左上から右下）の勝者を検出することを確認', () => {
     let state = createInitialState();
     state = handleCellClick(state, 0, 0); // O
     state = handleCellClick(state, 0, 1); // X
@@ -78,7 +78,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(state.winningLines).toEqual([[0, 4, 8]]);
   });
 
-  it('should detect a winner diagonally (top-right to bottom-left)', () => {
+  it('斜め方向（右上から左下）の勝者を検出することを確認', () => {
     let state = createInitialState();
     state = handleCellClick(state, 0, 2); // O
     state = handleCellClick(state, 0, 0); // X
@@ -89,7 +89,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(state.winningLines).toEqual([[2, 4, 6]]);
   });
 
-  it('should detect a draw', () => {
+  it('引き分けを検出することを確認', () => {
     let state = createInitialState();
     // Manually set up a draw board state
     state.board = [
@@ -120,7 +120,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(isDrawAfterDraw).toBe(true);
   });
 
-  it('should detect a winning line for the next player (reach)', () => {
+  it('次のプレイヤーのリーチを検出することを確認', () => {
     let state = createInitialState();
     state = handleCellClick(state, 0, 0); // O
     state = handleCellClick(state, 1, 0); // X

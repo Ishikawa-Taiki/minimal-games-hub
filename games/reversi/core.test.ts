@@ -8,7 +8,7 @@ describe('Reversi Core Logic', () => {
     gameState = createInitialState();
   });
 
-  it('should initialize the game correctly', () => {
+  it('ゲームが正しく初期化されることを確認', () => {
     expect(gameState.board[3][3]).toBe('WHITE');
     expect(gameState.board[3][4]).toBe('BLACK');
     expect(gameState.board[4][3]).toBe('BLACK');
@@ -20,7 +20,7 @@ describe('Reversi Core Logic', () => {
     expect(gameState.validMoves.size).toBeGreaterThan(0);
   });
 
-  it('should allow a valid move and flip pieces', () => {
+  it('有効な手番が許可され、石がひっくり返ることを確認', () => {
     // Initial valid moves for Black: [2,3], [3,2], [4,5], [5,4]
     const newGameState = handleCellClick(gameState, 3, 2); // Black places at (3,2)
 
@@ -33,13 +33,14 @@ describe('Reversi Core Logic', () => {
     expect(newGameState.validMoves.size).toBeGreaterThan(0);
   });
 
-  it('should not allow an invalid move', () => {
+  it('無効な手番が許可されないことを確認', () => {
     const originalState = { ...gameState };
     const newGameState = handleCellClick(gameState, 0, 0); // Invalid move
     expect(newGameState).toBeNull();
   });
 
-    it('should handle a pass scenario', () => {
+    // パスが発生するシナリオを処理することを確認
+  it('パスが発生するシナリオを処理することを確認', () => {
     let state: GameState = {
       board: [
         [null, null, null, null, null, null, null, null],
@@ -71,7 +72,8 @@ describe('Reversi Core Logic', () => {
     expect(stateAfterBlackMove.gameStatus).toBe('SKIPPED');
   });
 
-  it('should detect game over when board is full', () => {
+  // 盤面がすべて埋まったときにゲームが終了することを確認
+  it('盤面がすべて埋まったときにゲームが終了することを確認', () => {
     let state = createInitialState();
     // For simplicity, let's manually fill the board for this test
     for (let r = 0; r < 8; r++) {
@@ -85,7 +87,8 @@ describe('Reversi Core Logic', () => {
     expect(state.gameStatus).toBe('GAME_OVER');
   });
 
-    it('should detect game over when no valid moves for both players', () => {
+    // 両プレイヤーともに有効な手がない場合にゲームが終了することを確認
+  it('両プレイヤーともに有効な手がない場合にゲームが終了することを確認', () => {
     let state: GameState = {
       board: [
         [null, null, null, null, null, null, null, null],
@@ -114,7 +117,8 @@ describe('Reversi Core Logic', () => {
     expect(stateAfterBlackPass.gameStatus).toBe('GAME_OVER');
   });
 
-  it('should determine the winner correctly', () => {
+  // 勝者が正しく決定されることを確認
+  it('勝者が正しく決定されることを確認', () => {
     let state = createInitialState();
     // Simulate a game where Black wins
     state.scores.BLACK = 30;
