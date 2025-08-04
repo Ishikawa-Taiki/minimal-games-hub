@@ -8,19 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "test:ui": "vitest --ui"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "vitest related --run",
-      "bash -c \"npm run lint\"",
-      "bash -c \"npm run build\""
-    ]
+    "test:ui": "vitest --ui",
+    "prepare": "husky"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
