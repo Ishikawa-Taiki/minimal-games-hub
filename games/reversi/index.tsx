@@ -6,6 +6,7 @@ import {
   GameState,
   createInitialState,
   handleCellClick as handleCellClickCore,
+  Board, // Import Board type
 } from './core';
 
 // 駒のアイコンコンポーネント
@@ -31,6 +32,11 @@ const Reversi: React.FC = () => {
   const [hintLevel, setHintLevel] = useState<HintLevel>('full'); // Default to full for dev
   const [selectedHintCell, setSelectedHintCell] = useState<[number, number] | null>(null);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
+  const [visualBoard, setVisualBoard] = useState<Board>(gameState.board);
+
+  useEffect(() => {
+    setVisualBoard(gameState.board);
+  }, [gameState.board]);
 
   const initializeGame = useCallback(() => {
     const initialState = createInitialState();
@@ -75,6 +81,13 @@ const Reversi: React.FC = () => {
 
     setIsFlipping(true);
 
+    // Place the stone immediately on visualBoard
+    setVisualBoard(prevBoard => {
+      const newBoard = prevBoard.map(row => [...row]);
+      newBoard[r][c] = gameState.currentPlayer;
+      return newBoard;
+    });
+
     // Animate flipping
     for (let i = 0; i < stonesToFlip.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -82,12 +95,10 @@ const Reversi: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 150));
         
         const [fr, fc] = stonesToFlip[i];
-        setGameStateHistory(prevHistory => {
-          const newHistory = [...prevHistory];
-          const currentBoard = newHistory[currentHistoryIndex].board.map(row => [...row]);
-          currentBoard[fr][fc] = gameState.currentPlayer;
-          newHistory[currentHistoryIndex] = { ...newHistory[currentHistoryIndex], board: currentBoard };
-          return newHistory;
+        setVisualBoard(prevBoard => {
+          const newBoard = prevBoard.map(row => [...row]);
+          newBoard[fr][fc] = gameState.currentPlayer;
+          return newBoard;
         });
         setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
     }
@@ -100,6 +111,7 @@ const Reversi: React.FC = () => {
         return newHistory;
       });
       setCurrentHistoryIndex(prevIndex => prevIndex + 1);
+      setVisualBoard(newState.board); // Sync visualBoard with actual game state after move
     }
     setIsFlipping(false);
   };
@@ -179,7 +191,7 @@ const Reversi: React.FC = () => {
       </div>
       
       <div style={styles.board}>
-        {gameState.board.map((row, r) =>
+        {visualBoard.map((row, r) =>
           row.map((cell, c) => {
             const isFlipping = flippingCells.some(([fr, fc]) => fr === r && fc === c);
             const moveInfo = gameState.validMoves.get(`${r},${c}`);
@@ -236,14 +248,14 @@ const Reversi: React.FC = () => {
           disabled={currentHistoryIndex === 0}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
-          最初へ
+          はじめ
         </button>
         <button 
           onClick={() => setCurrentHistoryIndex(prev => Math.max(0, prev - 1))}
           disabled={currentHistoryIndex === 0}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
-          前の手
+          もどる
         </button>
         <span style={styles.historyText}>
           {currentHistoryIndex + 1} / {gameStateHistory.length}
@@ -253,14 +265,14 @@ const Reversi: React.FC = () => {
           disabled={currentHistoryIndex === gameStateHistory.length - 1}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
-          次の手
+          すすむ
         </button>
         <button 
           onClick={() => setCurrentHistoryIndex(gameStateHistory.length - 1)}
           disabled={currentHistoryIndex === gameStateHistory.length - 1}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
-          最後へ
+          さいご
         </button>
       </div>
 
