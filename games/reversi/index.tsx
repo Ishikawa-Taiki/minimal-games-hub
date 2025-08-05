@@ -27,6 +27,7 @@ const Reversi: React.FC = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [hintLevel, setHintLevel] = useState<HintLevel>('full'); // Default to full for dev
   const [selectedHintCell, setSelectedHintCell] = useState<[number, number] | null>(null);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
@@ -34,6 +35,7 @@ const Reversi: React.FC = () => {
     setIsFlipping(false);
     setHintLevel('none');
     setSelectedHintCell(null);
+    setShowResetConfirmModal(false); // Close modal on game init
   }, []);
 
   useEffect(() => {
@@ -121,6 +123,11 @@ const Reversi: React.FC = () => {
     const cellContent = gameState.board[r][c];
     const opponent = gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK';
 
+    // Highlight placeable cells when hint is active
+    if (hintLevel !== 'none' && gameState.validMoves.has(`${r},${c}`)) {
+      style.backgroundColor = '#68d391'; // A slightly different green for placeable cells
+    }
+
     if (hintLevel === 'full' && selectedHintCell) {
       const [selectedR, selectedC] = selectedHintCell;
       const moveKey = `${selectedR},${selectedC}`;
@@ -183,7 +190,14 @@ const Reversi: React.FC = () => {
                 )}
                 {hintLevel !== 'none' && moveInfo && (
                   <>
-                    {hintLevel === 'placeable' && <div style={styles.placeableHint} />}
+                    {hintLevel === 'placeable' && 
+                      <div 
+                        style={{
+                          ...styles.placeableHint,
+                          backgroundColor: gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
+                        }}
+                      />
+                    }
                     {hintLevel === 'full' && 
                       <span style={styles.moveHint}>
                         {moveInfo.length}
@@ -198,7 +212,7 @@ const Reversi: React.FC = () => {
       </div>
 
       <div style={styles.buttonGroup}>
-        <button onClick={initializeGame} style={styles.resetButtonLarge}>
+        <button onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
           はじめから<br />やりなおす
         </button>
         <button onClick={toggleHintLevel} style={getHintButtonStyle()}>
@@ -211,6 +225,23 @@ const Reversi: React.FC = () => {
           <span>はパスしました。</span>
         </div>
       )}
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirmModal && (
+        <div style={styles.gameOverOverlay}>
+          <div style={styles.gameOverModal}>
+            <h2 style={styles.gameOverTitle}>ゲームをリセットしますか？</h2>
+            <p style={{ marginBottom: '1rem' }}>現在のゲームは失われます。</p>
+            <button onClick={initializeGame} style={{ ...styles.resetButton, marginRight: '1rem' }}>
+              はい
+            </button>
+            <button onClick={() => setShowResetConfirmModal(false)} style={styles.resetButton}>
+              いいえ
+            </button>
+          </div>
+        </div>
+      )}
+
       {winner && (
         <div style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
@@ -364,7 +395,7 @@ const styles: { [key: string]: CSSProperties } = {
   resetButtonLarge: {
     margin: '1rem 0',
     padding: '0.75rem 1.5rem',
-    backgroundColor: '#4299e1',
+    backgroundColor: '#e53e3e', // Red color
     color: 'white',
     borderRadius: '0.375rem',
     fontSize: '1.125rem',
@@ -372,6 +403,11 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: 'pointer',
     border: 'none',
     lineHeight: 1.2,
+    minWidth: '140px', // Consistent width
+    minHeight: '60px', // Consistent height
+    display: 'flex', // Use flex to center content
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   hintButton: {
     margin: '1rem 0 1rem 0.5rem',
@@ -381,9 +417,13 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 'bold',
     cursor: 'pointer',
     border: 'none',
-    minWidth: '140px', // Prevent width change
+    minWidth: '140px', // Consistent width
+    minHeight: '60px', // Consistent height
     transition: 'background-color 0.3s',
     lineHeight: 1.2,
+    display: 'flex', // Use flex to center content
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   hintButtonNone: {
     backgroundColor: '#a0aec0', // Gray
@@ -406,7 +446,6 @@ const styles: { [key: string]: CSSProperties } = {
   placeableHint: {
     width: '50%',
     height: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: '9999px',
     position: 'absolute',
   },
