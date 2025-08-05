@@ -80,7 +80,16 @@ const Reversi: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         setFlippingCells(prev => [...prev, stonesToFlip[i]]);
         await new Promise(resolve => setTimeout(resolve, 150));
-        setFlippingCells(prev => prev.filter(cell => cell[0] !== stonesToFlip[i][0] || cell[1] !== stonesToFlip[i][1]));
+        
+        const [fr, fc] = stonesToFlip[i];
+        setGameStateHistory(prevHistory => {
+          const newHistory = [...prevHistory];
+          const currentBoard = newHistory[currentHistoryIndex].board.map(row => [...row]);
+          currentBoard[fr][fc] = gameState.currentPlayer;
+          newHistory[currentHistoryIndex] = { ...newHistory[currentHistoryIndex], board: currentBoard };
+          return newHistory;
+        });
+        setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
     }
 
     const newState = handleCellClickCore(gameState, r, c);
