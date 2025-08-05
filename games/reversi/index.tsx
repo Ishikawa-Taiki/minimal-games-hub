@@ -22,7 +22,10 @@ const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player,
 type HintLevel = 'none' | 'placeable' | 'full';
 
 const Reversi: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [gameStateHistory, setGameStateHistory] = useState<GameState[]>([createInitialState()]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
+  const gameState = gameStateHistory[currentHistoryIndex];
+
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [hintLevel, setHintLevel] = useState<HintLevel>('full'); // Default to full for dev
@@ -30,7 +33,9 @@ const Reversi: React.FC = () => {
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
 
   const initializeGame = useCallback(() => {
-    setGameState(createInitialState());
+    const initialState = createInitialState();
+    setGameStateHistory([initialState]);
+    setCurrentHistoryIndex(0); // Start at the actual initial game state
     setFlippingCells([]);
     setIsFlipping(false);
     setHintLevel('none');
@@ -70,26 +75,22 @@ const Reversi: React.FC = () => {
 
     setIsFlipping(true);
 
-    // Place the stone immediately
-    const newBoard = gameState.board.map(row => [...row]);
-    newBoard[r][c] = gameState.currentPlayer;
-    setGameState(prevState => ({ ...prevState, board: newBoard }));
-
     // Animate flipping
     for (let i = 0; i < stonesToFlip.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 100));
         setFlippingCells(prev => [...prev, stonesToFlip[i]]);
         await new Promise(resolve => setTimeout(resolve, 150));
-        
-        const [fr, fc] = stonesToFlip[i];
-        newBoard[fr][fc] = gameState.currentPlayer;
-        setGameState(prevState => ({ ...prevState, board: newBoard.map(row => [...row])}));
-        setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
+        setFlippingCells(prev => prev.filter(cell => cell[0] !== stonesToFlip[i][0] || cell[1] !== stonesToFlip[i][1]));
     }
 
     const newState = handleCellClickCore(gameState, r, c);
     if (newState) {
-      setGameState(newState);
+      setGameStateHistory(prevHistory => {
+        const newHistory = prevHistory.slice(0, currentHistoryIndex + 1);
+        newHistory.push(newState);
+        return newHistory;
+      });
+      setCurrentHistoryIndex(prevIndex => prevIndex + 1);
     }
     setIsFlipping(false);
   };
@@ -219,6 +220,41 @@ const Reversi: React.FC = () => {
           おしえて！<br />({getHintButtonText()})
         </button>
       </div>
+
+      <div style={styles.historyControls}>
+        <button 
+          onClick={() => setCurrentHistoryIndex(0)}
+          disabled={currentHistoryIndex === 0}
+          style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+        >
+          最初へ
+        </button>
+        <button 
+          onClick={() => setCurrentHistoryIndex(prev => Math.max(0, prev - 1))}
+          disabled={currentHistoryIndex === 0}
+          style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+        >
+          前の手
+        </button>
+        <span style={styles.historyText}>
+          {currentHistoryIndex + 1} / {gameStateHistory.length}
+        </span>
+        <button 
+          onClick={() => setCurrentHistoryIndex(prev => Math.min(gameStateHistory.length - 1, prev + 1))}
+          disabled={currentHistoryIndex === gameStateHistory.length - 1}
+          style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+        >
+          次の手
+        </button>
+        <button 
+          onClick={() => setCurrentHistoryIndex(gameStateHistory.length - 1)}
+          disabled={currentHistoryIndex === gameStateHistory.length - 1}
+          style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+        >
+          最後へ
+        </button>
+      </div>
+
       {gameState.gameStatus === 'SKIPPED' && (
         <div style={styles.skippedMessage}>
           <DiscIcon player={gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
@@ -457,7 +493,30 @@ const styles: { [key: string]: CSSProperties } = {
   },
   selectedHintPreviewCell: {
     border: '2px solid #ec4899', // Hot Pink border
-  }
+  },
+  historyControls: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '1rem',
+    marginBottom: '1rem',
+  },
+  historyButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#63b3ed',
+    color: 'white',
+    borderRadius: '0.25rem',
+    border: 'none',
+    cursor: 'pointer',
+    margin: '0 0.25rem',
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+  },
+  historyText: {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    margin: '0 0.5rem',
+  },
 };
 
 export default Reversi;
