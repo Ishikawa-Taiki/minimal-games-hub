@@ -15,7 +15,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "vitest related --run",
-      "npm run lint -- --max-warnings=0",
+      "npm run lint -- --max-warnings=0 --file",
       "bash -c \"npm run build\""
     ]
   },

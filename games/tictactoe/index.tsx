@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, CSSProperties } from 'react';
+import React, { useState, CSSProperties } from 'react';
 import {
   Player,
   GameState,
@@ -10,6 +10,7 @@ import {
 
 const TicTacToe = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [showHints, setShowHints] = useState(false);
 
   const handleClick = (row: number, col: number) => {
     const newState = handleCellClick(gameState, row, col);
@@ -41,10 +42,13 @@ const TicTacToe = () => {
   const getCellBackgroundColor = (index: number): string => {
     if (gameState.winningLines && gameState.winningLines.some(line => line.includes(index))) {
       return styles.winningCell.backgroundColor as string;
-    } else if (isBothPlayersReaching(index)) {
-      return styles.bothReachingCell.backgroundColor as string;
-    } else if (gameState.reachingLines.some(rl => rl.index === index)) {
-      return styles.reachingCell.backgroundColor as string;
+    }
+    if (showHints) {
+      if (isBothPlayersReaching(index)) {
+        return styles.bothReachingCell.backgroundColor as string;
+      } else if (gameState.reachingLines.some(rl => rl.index === index)) {
+        return styles.reachingCell.backgroundColor as string;
+      }
     }
     return styles.cell.backgroundColor as string;
   };
@@ -74,7 +78,7 @@ const TicTacToe = () => {
               disabled={!!cell || !!gameState.winner || gameState.isDraw}
             >
               {cell ? cell : (
-                reachingPlayerMark && !isBothPlayersReaching(index) && (
+                showHints && reachingPlayerMark && !isBothPlayersReaching(index) && (
                   <span style={styles.faintMark}>
                     {reachingPlayerMark}
                   </span>
@@ -85,12 +89,20 @@ const TicTacToe = () => {
         })}
       </div>
       <p style={styles.status}>{getStatus()}</p>
-      <button
-        style={styles.resetButton}
-        onClick={handleReset}
-      >
-        ゲームをリセット
-      </button>
+      <div>
+        <button
+          style={styles.resetButton}
+          onClick={handleReset}
+        >
+          ゲームをリセット
+        </button>
+        <button
+          style={styles.toggleButton}
+          onClick={() => setShowHints(!showHints)}
+        >
+          ヒント: {showHints ? 'ON' : 'OFF'}
+        </button>
+      </div>
     </div>
   );
 };
@@ -152,6 +164,16 @@ const styles: { [key: string]: CSSProperties } = {
     marginTop: '1rem',
     padding: '0.5rem 1rem',
     backgroundColor: '#3b82f6',
+    color: 'white',
+    borderRadius: '0.25rem',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  toggleButton: {
+    marginTop: '1rem',
+    marginLeft: '1rem',
+    padding: '0.5rem 1rem',
+    backgroundColor: '#6b7280',
     color: 'white',
     borderRadius: '0.25rem',
     border: 'none',
