@@ -154,3 +154,16 @@
     -   CIのライセンスチェックエラーに対応するため、`public/licenses.txt` を再生成。
     -   `scripts/license-update.js` を修正し、プラットフォーム固有の製品版オプション依存関係のライセンスも網羅的に含めるように変更。
     -   `package.json` の `license-update` コマンドを `--production` オプションに戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+
+---
+
+## 2025-08-09
+
+-   **タスク:** ライセンス表記の最終確認とCIの安定化
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `public/licenses.txt` のCIエラーがプラットフォーム固有のバイナリに起因することを確認。
+    -   `scripts/license-update.js` を修正し、`license-checker --all` オプションで取得したライセンス情報に加えて、既知のプラットフォーム固有の製品版オプション依存関係のライセンスを明示的に含めるように変更。
+    -   `package.json` の `license-update` コマンドを `npx license-checker --production --json` に戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+    -   `public/licenses.txt` を再生成し、網羅的かつ一貫した内容であることを確認。
+    -   `public/licenses.txt` にGPL/AGPLライセンスが含まれていないことを確認。LGPLライセンスは含まれるが、製品版ビルドの性質上許容される範囲であることを確認。
