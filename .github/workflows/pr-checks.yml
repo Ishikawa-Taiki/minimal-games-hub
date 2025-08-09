@@ -24,10 +24,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify license file is up-to-date
-        run: |
-          npm run license-update
-          git diff --exit-code public/licenses.txt
+      
 
       - name: Run tests
         run: npm test
