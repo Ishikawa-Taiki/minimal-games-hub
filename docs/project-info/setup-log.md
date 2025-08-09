@@ -391,3 +391,50 @@ AI開発支援ツール利用時の開発ワークフローを改善するため
   - `package.json`の可読性と保守性を高く保つ。
   - スクリプト自体も、JSON内の文字列としてではなく、通常のJavaScriptファイルとして管理できるため、開発やデバッグが容易になる。
 - **今後の指針:** 将来的に同様の補助スクリプトが必要になった場合も、`scripts`ディレクトリに集約して管理する。
+
+## 2025年8月9日
+
+-   **タスク:** ワークフロー改善とライセンス管理の自動化
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `package.json` の可読性・保守性向上のため、`scripts` ディレクトリを導入し、複雑なスクリプトを分離。
+    -   ライセンス更新ロジックを `scripts/license-update.js` に移動し、`npm run license-update` コマンドとして集約。
+    -   `npm install` 後の `postinstall` フックでライセンス更新を自動化するよう設定。
+    -   CI (`.github/workflows/pr-checks.yml`) にライセンスファイルの一貫性チェックを追加し、更新忘れを防止。
+    -   上記アーキテクチャ変更の意思決定を `docs/project-info/setup-log.md` に記録。
+    -   `docs/ai-workflow/2-technical-guide.md` のライセンス更新ルールを新しい自動生成方式に更新。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** 最終ドキュメント更新とライセンスファイル修正
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `docs/ai-workflow/3-session-context.md` と `docs/ai-workflow/logs/system.log` の更新漏れを修正。
+    -   CIのライセンスチェックエラーに対応するため、`public/licenses.txt` を再生成。
+    -   `scripts/license-update.js` を修正し、プラットフォーム固有の製品版オプション依存関係のライセンスも網羅的に含めるように変更。
+    -   `package.json` の `license-update` コマンドを `--production` オプションに戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** ライセンス表記の最終確認とCIの安定化
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `public/licenses.txt` のCIエラーがプラットフォーム固有のバイナリに起因することを確認。
+    -   `scripts/license-update.js` を修正し、`license-checker --all` オプションで取得したライセンス情報に加えて、既知のプラットフォーム固有の製品版オプション依存関係のライセンスを明示的に含めるように変更。
+    -   `package.json` の `license-update` コマンドを `npx license-checker --production --json` に戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+    -   `public/licenses.txt` を再生成し、網羅的かつ一貫した内容であることを確認。
+    -   `public/licenses.txt` にGPL/AGPLライセンスが含まれていないことを確認。LGPLライセンスは含まれるが、製品版ビルドの性質上許容される範囲であることを確認。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** ライセンス表記に関する最終見解の記録
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `public/licenses.txt` に含まれるLGPLライセンスに関する詳細な見解を`docs/project-info/setup-log.md`に記録。
+    -   LGPLが「弱いコピーレフト」ライセンスであること、製品版ビルドの性質上許容される範囲であること、透明性が確保されていることを明記。
