@@ -28,6 +28,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@google/gemini-cli": "^0.1.18",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
