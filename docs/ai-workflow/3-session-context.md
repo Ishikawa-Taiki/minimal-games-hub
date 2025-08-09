@@ -1,16 +1,15 @@
 # セッションコンテキスト (更新済み)
 
 ## 現在のタスク
-- **ブランチ:** `feature/codespaces-support`
-- **ゴール:** Github CodeSpaces上でスマホから開発できるようにする
+- **ブランチ:** `feat/issue-52`
+- **ゴール:** Github Issue 52 に対する対応
 - **ステータス:** 完了
 
 ## 直近のタスク履歴 (サマリー)
-- Github Codespacesでの開発環境を構築。
-- `.devcontainer/devcontainer.json` を追加し、環境構築を自動化。
-- 開発サーバーが外部からアクセスできるように `package.json` を修正。
-- `@google/gemini-cli` をプロジェクトの `devDependencies` に追加し、`npm run gemini` で実行可能に。
-- `setup.sh` を簡素化。
+- pre-commitフックを廃止し、pre-pushフックへ移行。
+- `lint-staged`を削除し、`license-checker`を導入。
+- ライセンスファイルの自動生成とCI連携を実装。
+- 複雑なスクリプトを`scripts`ディレクトリに分離。
 
 ## 未解決の課題
 (なし)
