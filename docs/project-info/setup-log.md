@@ -343,3 +343,98 @@ rulesページからゲームのルール、動作仕様、表示仕様をまと
     - **初期案:** `npm install -g @google/gemini-cli` を `postCreateCommand` に追加する案が挙がった。
     - **問題点:** グローバルインストールは、プロジェクトで管理されているNode.jsバージョンとの不整合や、依存関係の不明瞭化を招く可能性がある。
     - **最終決定:** `@google/gemini-cli` をプロジェクトの `devDependencies` として `package.json` に追加する方針を採択。これにより、`npm install` だけでCLIもインストールされ、`npm run gemini` (または `npx gemini`) でバージョン管理されたCLIを実行できるようになった。この方法は、環境の再現性と依存関係管理の観点から優れていると判断。
+
+---
+
+**日付:** 2025年8月9日
+**ブランチ:** `feat/issue-52`
+
+## 目的
+AI開発支援ツール利用時の開発ワークフローを改善するため、コミット時の品質チェックを廃止し、プッシュ前のチェックに移行する。
+
+## 議論と意思決定の過程
+
+### 1. pre-commitフックの問題点
+- **課題:** AI開発支援ツール（Jules）の利用時、コミットごとに実行されるpre-commitフック（`lint-staged`）が開発ワークフローの妨げとなっていた。
+  - AIが内部的に生成する一時的なコミットに対してもチェックが実行されるため、処理に時間がかかり、ツールのタイムアウトを引き起こしていた。
+
+### 2. ワークフローの変更
+- **議論:** 当初、pre-commitで実行していた処理を単純にpre-pushに移行する案が検討された。しかし、`lint-staged`はステージングされたファイルを対象とするため、プッシュ前のフックで実行するには不適切であると判断された。
+- **決定:** 開発効率を優先し、品質チェックのタイミングをコミット時からプッシュ前に変更することを決定。
+  - pre-commitフック (`.husky/pre-commit`) を廃止。
+  - pre-pushフック (`.husky/pre-push`) で、プロジェクト全体を対象とした`npm run lint`、`npm run test`、`npm run build`を実行する構成に変更。
+- **効果:** この変更により、ローカルでの開発自由度（特にAIツール利用時）を確保しつつ、リモートリポジトリに反映されるコードの品質は維持される。
+
+### 3. 関連ドキュメントの更新
+- **課題:** 上記ワークフローの変更に伴い、`docs/ai-workflow/2-technical-guide.md`に記載されている品質保証に関する記述が古くなった。
+- **対応:** `technical-guide.md`の該当箇所を更新し、新しいpre-pushフックの動作を反映させた。
+
+---
+
+**日付:** 2025年8月9日
+**ブランチ:** `feat/issue-52` (追記)
+
+## 目的
+`package.json`の肥大化と可読性低下を防ぐため、複雑なビルド関連コマンドを外部スクリプトファイルとして管理するアーキテクチャを導入する。
+
+## 議論と意思決定の過程
+
+### 1. `package.json`内スクリプトの複雑化
+- **課題:** `license-update`コマンドを`package.json`に直接記述したところ、エスケープ処理が複雑になり、JSONフォーマットが壊れて`npm install`が失敗する問題が発生した。
+- **議論:** `package.json`の`scripts`は、本来シンプルなコマンドを記述する場所であり、複数行にわたる複雑なロジックを埋め込むべきではない。保守性も著しく低下する。
+
+### 2. `scripts`ディレクトリの導入
+- **決定:** プロジェクトルートに`scripts`ディレクトリを新設し、ビルドや環境構築に関連する複雑な補助スクリプトは、そこにJavaScriptファイルとして格納する方針を決定。
+  - `license-update`のロジックを`scripts/license-update.js`に移動。
+  - `package.json`の`license-update`スクリプトは、`node scripts/license-update.js`というシンプルな呼び出しに変更。
+- **効果:**
+  - `package.json`の可読性と保守性を高く保つ。
+  - スクリプト自体も、JSON内の文字列としてではなく、通常のJavaScriptファイルとして管理できるため、開発やデバッグが容易になる。
+- **今後の指針:** 将来的に同様の補助スクリプトが必要になった場合も、`scripts`ディレクトリに集約して管理する。
+
+## 2025年8月9日
+
+-   **タスク:** ワークフロー改善とライセンス管理の自動化
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `package.json` の可読性・保守性向上のため、`scripts` ディレクトリを導入し、複雑なスクリプトを分離。
+    -   ライセンス更新ロジックを `scripts/license-update.js` に移動し、`npm run license-update` コマンドとして集約。
+    -   `npm install` 後の `postinstall` フックでライセンス更新を自動化するよう設定。
+    -   CI (`.github/workflows/pr-checks.yml`) にライセンスファイルの一貫性チェックを追加し、更新忘れを防止。
+    -   上記アーキテクチャ変更の意思決定を `docs/project-info/setup-log.md` に記録。
+    -   `docs/ai-workflow/2-technical-guide.md` のライセンス更新ルールを新しい自動生成方式に更新。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** 最終ドキュメント更新とライセンスファイル修正
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `docs/ai-workflow/3-session-context.md` と `docs/ai-workflow/logs/system.log` の更新漏れを修正。
+    -   CIのライセンスチェックエラーに対応するため、`public/licenses.txt` を再生成。
+    -   `scripts/license-update.js` を修正し、プラットフォーム固有の製品版オプション依存関係のライセンスも網羅的に含めるように変更。
+    -   `package.json` の `license-update` コマンドを `--production` オプションに戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** ライセンス表記の最終確認とCIの安定化
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `public/licenses.txt` のCIエラーがプラットフォーム固有のバイナリに起因することを確認。
+    -   `scripts/license-update.js` を修正し、`license-checker --all` オプションで取得したライセンス情報に加えて、既知のプラットフォーム固有の製品版オプション依存関係のライセンスを明示的に含めるように変更。
+    -   `package.json` の `license-update` コマンドを `npx license-checker --production --json` に戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
+    -   `public/licenses.txt` を再生成し、網羅的かつ一貫した内容であることを確認。
+    -   `public/licenses.txt` にGPL/AGPLライセンスが含まれていないことを確認。LGPLライセンスは含まれるが、製品版ビルドの性質上許容される範囲であることを確認。
+
+---
+
+## 2025年8月9日
+
+-   **タスク:** ライセンス表記に関する最終見解の記録
+-   **ブランチ:** `feat/issue-52`
+-   **作業概要:**
+    -   `public/licenses.txt` に含まれるLGPLライセンスに関する詳細な見解を`docs/project-info/setup-log.md`に記録。
+    -   LGPLが「弱いコピーレフト」ライセンスであること、製品版ビルドの性質上許容される範囲であること、透明性が確保されていることを明記。

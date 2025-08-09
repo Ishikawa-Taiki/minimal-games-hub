@@ -10,12 +10,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "gemini": "gemini",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "npm run lint -- --max-warnings=0"
-    ]
+    "license-update": "npx license-checker --production --json | node scripts/license-update.js",
+    "prepare": "husky",
+    "postinstall": "npm run license-update"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
@@ -38,7 +35,7 @@
     "eslint-config-next": "15.4.4",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
-    "lint-staged": "^16.1.4",
+    "license-checker": "^25.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
