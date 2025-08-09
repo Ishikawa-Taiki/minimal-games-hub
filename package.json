@@ -10,8 +10,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "gemini": "gemini",
-    "license-update": "npx license-checker --production --json | node -e 'const data = JSON.parse(require(\"fs\").readFileSync(0, \"utf-8\")); const header = `This file contains the licenses for the libraries used in this project.\n\n`; const out = Object.keys(data).map(key => { const pkg = data[key]; return `================================================================================\n\nPackage: ${key}\nLicense: ${pkg.licenses}\nRepository: ${pkg.repository}\n\n${pkg.licenseText || \"(License text not found.)\"}`; }).join(\"\n\n"); console.log(header + out);' > public/licenses.txt",
-    "prepare": "husky"
+    "license-update": "npx license-checker --production --json | node scripts/license-update.js",
+    "prepare": "husky",
+    "postinstall": "npm run license-update"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
