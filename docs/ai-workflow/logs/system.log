@@ -167,3 +167,15 @@
     -   `package.json` の `license-update` コマンドを `npx license-checker --production --json` に戻し、開発依存関係のライセンスが `public/licenses.txt` に含まれないように修正。
     -   `public/licenses.txt` を再生成し、網羅的かつ一貫した内容であることを確認。
     -   `public/licenses.txt` にGPL/AGPLライセンスが含まれていないことを確認。LGPLライセンスは含まれるが、製品版ビルドの性質上許容される範囲であることを確認。
+
+---
+
+## 2025年8月9日 (Issue #44)
+
+-   **タスク:** PlaywrightによるE2Eテストの初期導入
+-   **ブランチ:** (不明)
+-   **作業概要:**
+    -   Playwrightをプロジェクトに導入し、リバーシを対象としたE2Eテストを初めて実装。
+    -   `vitest.config.ts` に `exclude: ['tests/**']` を追加し、VitestがPlaywrightのテストファイルを誤って実行する問題を解決。
+    -   CI環境でのみ `basePath` を無効にする設定を `next.config.ts` に追加し、テストサーバーでの404エラーを回避。
+    -   CI/CDパイプラインにE2Eテストの実行ステップを組み込み。
