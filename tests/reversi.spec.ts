@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, describe } from '@playwright/test';
 
 /**
  * 指定されたセルの駒のプレイヤー（色）を取得します。
