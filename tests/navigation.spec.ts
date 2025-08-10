@@ -13,9 +13,12 @@ test.describe('ホームページのナビゲーション', () => {
     // next.config.ts の trailingSlash: true の設定に基づき、URLの末尾には / がつく
     await expect(page).toHaveURL('/games/reversi/');
 
-    // 4. 遷移後のページにゲームのタイトルが表示されていることを確認
-    // GameLayout.tsx内のh1タグを想定
-    await expect(page.locator('h1')).toHaveText('リバーシ');
+    // 4. ページが完全に読み込まれるのを待つ
+    await page.waitForLoadState('networkidle');
+
+    // 5. 遷移後のページにゲームのタイトルが表示されていることを確認
+    // GameLoaderによって動的に読み込まれるコンポーネント内のh1タグを想定
+    await expect(page.getByRole('heading', { name: 'リバーシ' })).toBeVisible();
   });
 
   test('トップページから○×ゲームのページに正しく遷移できる', async ({ page }) => {
@@ -29,7 +32,10 @@ test.describe('ホームページのナビゲーション', () => {
     // 3. URLが正しく変更されたことを確認
     await expect(page).toHaveURL('/games/tictactoe/');
 
-    // 4. 遷移後のページにゲームのタイトルが表示されていることを確認
-    await expect(page.locator('h1')).toHaveText('○×ゲーム');
+    // 4. ページが完全に読み込まれるのを待つ
+    await page.waitForLoadState('networkidle');
+
+    // 5. 遷移後のページにゲームのタイトルが表示されていることを確認
+    await expect(page.getByRole('heading', { name: '○×ゲーム' })).toBeVisible();
   });
 });
