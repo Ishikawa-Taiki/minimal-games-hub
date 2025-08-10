@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/minimal-games-hub/(.*)",
-      "destination": "/$1"
-    }
-  ]
-}
