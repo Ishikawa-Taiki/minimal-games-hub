@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "e2e": "npx playwright test",
     "gemini": "gemini",
     "license-update": "npx license-checker --production --json | node scripts/license-update.js",
     "prepare": "husky",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@google/gemini-cli": "^0.1.18",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
@@ -36,8 +38,12 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "license-checker": "^25.0.1",
+    "serve": "^14.2.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@playwright/test": "^1.54.2"
   }
 }
