@@ -174,17 +174,17 @@ const Reversi: React.FC = () => {
       <div style={styles.scoreBoard}>
         <div style={styles.score}>
           <DiscIcon player="BLACK" />
-          <span style={isBlackWinning ? styles.winningScore : {}}>
+          <span data-testid="score-black" style={isBlackWinning ? styles.winningScore : {}}>
             {gameState.scores.BLACK}
           </span>
         </div>
-        <div style={styles.turnIndicator}>
+        <div data-testid="turn-indicator" style={styles.turnIndicator}>
           <DiscIcon player={gameState.currentPlayer} style={styles.turnIndicatorDisc} />
           <span>のばん</span>
         </div>
         <div style={styles.score}>
           <DiscIcon player="WHITE" />
-          <span style={isWhiteWinning ? styles.winningScore : {}}>
+          <span data-testid="score-white" style={isWhiteWinning ? styles.winningScore : {}}>
             {gameState.scores.WHITE}
           </span>
         </div>
@@ -198,6 +198,7 @@ const Reversi: React.FC = () => {
             return (
               <div
                 key={`${r}-${c}`}
+                data-testid={`cell-${r}-${c}`}
                 style={getCellStyle(r, c)}
                 onClick={() => handleCellClick(r, c)}
               >
@@ -234,16 +235,17 @@ const Reversi: React.FC = () => {
       </div>
 
       <div style={styles.buttonGroup}>
-        <button onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
+        <button data-testid="reset-button" onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
           はじめから<br />やりなおす
         </button>
-        <button onClick={toggleHintLevel} style={getHintButtonStyle()}>
+        <button data-testid="hint-button" onClick={toggleHintLevel} style={getHintButtonStyle()}>
           おしえて！<br />({getHintButtonText()})
         </button>
       </div>
 
       <div style={styles.historyControls}>
         <button 
+          data-testid="history-first-button"
           onClick={() => setCurrentHistoryIndex(0)}
           disabled={currentHistoryIndex === 0}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
@@ -251,16 +253,18 @@ const Reversi: React.FC = () => {
           はじめ
         </button>
         <button 
+          data-testid="history-back-button"
           onClick={() => setCurrentHistoryIndex(prev => Math.max(0, prev - 1))}
           disabled={currentHistoryIndex === 0}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           もどる
         </button>
-        <span style={styles.historyText}>
+        <span data-testid="history-counter" style={styles.historyText}>
           {currentHistoryIndex + 1} / {gameStateHistory.length}
         </span>
         <button 
+          data-testid="history-forward-button"
           onClick={() => setCurrentHistoryIndex(prev => Math.min(gameStateHistory.length - 1, prev + 1))}
           disabled={currentHistoryIndex === gameStateHistory.length - 1}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
@@ -268,6 +272,7 @@ const Reversi: React.FC = () => {
           すすむ
         </button>
         <button 
+          data-testid="history-last-button"
           onClick={() => setCurrentHistoryIndex(gameStateHistory.length - 1)}
           disabled={currentHistoryIndex === gameStateHistory.length - 1}
           style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
@@ -285,11 +290,11 @@ const Reversi: React.FC = () => {
 
       {/* Reset Confirmation Modal */}
       {showResetConfirmModal && (
-        <div style={styles.gameOverOverlay}>
+        <div data-testid="reset-confirm-modal" style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
             <h2 style={styles.gameOverTitle}>ゲームをリセットしますか？</h2>
             <p style={{ marginBottom: '1rem' }}>現在のゲームは失われます。</p>
-            <button onClick={initializeGame} style={{ ...styles.resetButton, marginRight: '1rem' }}>
+            <button data-testid="confirm-reset-button" onClick={initializeGame} style={{ ...styles.resetButton, marginRight: '1rem' }}>
               はい
             </button>
             <button onClick={() => setShowResetConfirmModal(false)} style={styles.resetButton}>
@@ -300,10 +305,10 @@ const Reversi: React.FC = () => {
       )}
 
       {winner && (
-        <div style={styles.gameOverOverlay}>
+        <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
             <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
-            <div style={styles.winnerText}>
+            <div data-testid="winner-message" style={styles.winnerText}>
               {winner === 'DRAW' ? '引き分け' : (
                 <>
                   <DiscIcon player={winner} />
@@ -311,7 +316,7 @@ const Reversi: React.FC = () => {
                 </>
               )}
             </div>
-            <button onClick={initializeGame} style={styles.resetButton}>
+            <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
               もう一度プレイ
             </button>
           </div>
