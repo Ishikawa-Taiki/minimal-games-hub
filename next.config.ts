@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   output: 'export',
   // 本番ビルド時（GitHub Pagesデプロイ時）のみ、リポジトリ名をパスに含める
   // CI環境ではテストのためにbasePathを無効化する
-  basePath: isProd && !process.env.CI ? '/minimal-games-hub' : undefined,
-  assetPrefix: isProd && !process.env.CI ? '/minimal-games-hub/' : undefined,
+  basePath: isProd ? '/minimal-games-hub' : undefined,
+  assetPrefix: isProd ? '/minimal-games-hub/' : undefined,
   trailingSlash: true,
   /* config options here */
 };
