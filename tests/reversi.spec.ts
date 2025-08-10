@@ -27,7 +27,8 @@ const getCellDiscPlayer = async (page: Page, r: number, c: number): Promise<'BLA
 
 test.describe('リバーシゲームの表示仕様', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/games/reversi');
+    // isProdがtrueの場合、basePathが設定されるため、CI環境ではパスのプレフィックスが必要
+    await page.goto('/minimal-games-hub/games/reversi');
     // spec-display.md 1, 2: 初期状態でスコアが表示されるのを待つ
     await expect(page.getByTestId('score-black')).toHaveText('2');
     await expect(page.getByTestId('score-white')).toHaveText('2');
