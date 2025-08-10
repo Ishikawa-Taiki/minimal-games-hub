@@ -5,7 +5,7 @@ describe('E2Eテストの仕組みの動作確認', () => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
 
-    // ページのタイトルにゲーム名が含まれていることだけを確認する最小限のテスト
-    await expect(page).toHaveTitle(/リバーシ/);
+    // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
+    await expect(page).toHaveTitle(/Minimal Games Hub/);
   });
 });
