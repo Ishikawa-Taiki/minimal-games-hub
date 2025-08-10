@@ -4,6 +4,10 @@ import Link from 'next/link';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+  <head>
+    <title>Minimal Games Hub</title>
+    <meta name="description" content="A simple hub for minimal browser games." />
+  </head>
       <body>
         {children}
         <footer className="bg-gray-800 text-white p-4 mt-8">
