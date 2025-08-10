@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:e2e": "npx playwright test",
+    "e2e": "npx playwright test",
     "gemini": "gemini",
     "license-update": "npx license-checker --production --json | node scripts/license-update.js",
     "prepare": "husky",
