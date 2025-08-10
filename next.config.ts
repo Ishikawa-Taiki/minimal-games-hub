@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // CI環境ではテストのためにbasePathを無効化する
   basePath: isProd && !process.env.CI ? '/minimal-games-hub' : undefined,
   assetPrefix: isProd && !process.env.CI ? '/minimal-games-hub/' : undefined,
+  trailingSlash: true,
   /* config options here */
 };
 
