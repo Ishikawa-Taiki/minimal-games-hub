@@ -18,10 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'python3 -m http.server 3000 --directory out',
+    command: 'npx serve out -p 3000',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
   },
 });
