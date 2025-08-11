@@ -158,7 +158,7 @@ AIは、人間への質問を生成する際、以下の原則を遵守しなけ
 
 ---
 
-#### `docs/human-developer-guide.md` (人間向けガイド)
+#### `docs/rules/human-developer-guide.md` (人間向けガイド)
 
 -   **目的:** 人間がAIとの協業をスムーズに進めるための手引書。
 -   **人間の責務:**
