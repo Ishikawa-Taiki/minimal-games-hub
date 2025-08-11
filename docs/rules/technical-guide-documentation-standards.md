@@ -168,7 +168,7 @@ AIは、人間への質問を生成する際、以下の原則を遵守しなけ
 
 ---
 
-#### `docs/project-manifest.md` (憲法)
+#### `docs/rules/project-manifest.md` (憲法)
 
 -   **目的:** プロジェクトの不変の基本理念。
 -   **人間の責務:**
