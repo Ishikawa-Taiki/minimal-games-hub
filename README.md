@@ -22,7 +22,7 @@
 
 開発環境のセットアップとアプリケーションの実行方法は、以下の技術ガイドにすべて記載されています。
 
--   **[技術ガイド (TECHNICAL GUIDE)](./docs/ai-workflow/2-technical-guide.md)**
+-   **[技術ガイド (TECHNICAL GUIDE)](./docs/index.md)****
 
 ローカルで開発サーバーを起動すると、`http://localhost:3000` で開発中のアプリケーションを確認できます。
 

@@ -158,7 +158,7 @@ AIは、人間への質問を生成する際、以下の原則を遵守しなけ
 
 ---
 
-#### `docs/project-info/human-guide.md` (人間向けガイド)
+#### `docs/human-developer-guide.md` (人間向けガイド)
 
 -   **目的:** 人間がAIとの協業をスムーズに進めるための手引書。
 -   **人間の責務:**
@@ -168,7 +168,7 @@ AIは、人間への質問を生成する際、以下の原則を遵守しなけ
 
 ---
 
-#### `docs/ai-workflow/1-project-manifest.md` (憲法)
+#### `docs/project-manifest.md` (憲法)
 
 -   **目的:** プロジェクトの不変の基本理念。
 -   **人間の責務:**
@@ -178,7 +178,7 @@ AIは、人間への質問を生成する際、以下の原則を遵守しなけ
 
 ---
 
-#### `docs/ai-workflow/2-technical-guide.md` (技術ガイド)
+#### 技術ガイド (`docs/technical-guide-*.md`)
 
 -   **目的:** AIと人間の協業ワークフローを定義する「法律」。
 -   **人間の責務:**
