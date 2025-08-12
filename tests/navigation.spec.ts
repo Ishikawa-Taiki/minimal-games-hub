@@ -6,7 +6,7 @@ test.describe('ホームページのナビゲーション', () => {
     await page.goto('/');
 
     // 2. "リバーシ" という表示名のゲームリンクを探してクリック
-    const reversiLink = page.locator('a', { hasText: 'リバーシ' });
+    const reversiLink = page.locator('a[href="/games/reversi/"]');
     await reversiLink.click();
 
     // 3. URLが正しく変更されたことを確認

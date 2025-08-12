@@ -14,6 +14,9 @@ const getGameComponent = (slug: string) => {
   if (slug === 'reversi') {
     return dynamic(() => import('../../../games/reversi/index'), { ssr: false });
   }
+  if (slug === 'hasami-shogi') {
+    return dynamic(() => import('../../../games/hasami-shogi/index'), { ssr: false });
+  }
   // Add other games here
   return null;
 };
