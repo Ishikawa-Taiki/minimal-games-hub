@@ -88,30 +88,86 @@ function getCapturesOnLine(line: CellState[], player: Player): number[] {
   return Array.from(capturedIndices);
 }
 
+function checkSurroundingCapture(board: Board, r: number, c: number, capturingPlayer: Player): boolean {
+    const boardSize = board.length;
+    const opponent = getOpponent(capturingPlayer);
+    if (board[r][c] !== opponent) return false;
+
+    const isCorner = (r === 0 || r === boardSize - 1) && (c === 0 || c === boardSize - 1);
+    const isEdge = !isCorner && (r === 0 || r === boardSize - 1 || c === 0 || c === boardSize - 1);
+
+    if (isCorner) {
+        const needs: [number, number][] = [];
+        if (r === 0 && c === 0) needs.push([0, 1], [1, 0]);
+        else if (r === 0 && c === boardSize - 1) needs.push([0, boardSize - 2], [1, boardSize - 1]);
+        else if (r === boardSize - 1 && c === 0) needs.push([boardSize - 1, 1], [boardSize - 2, 0]);
+        else if (r === boardSize - 1 && c === boardSize - 1) needs.push([boardSize - 1, boardSize - 2], [boardSize - 2, boardSize - 1]);
+
+        return needs.length > 0 && needs.every(([nr, nc]) => board[nr]?.[nc] === capturingPlayer);
+    }
+
+    if (isEdge) {
+        const needs: [number, number][] = [];
+        if (r === 0) needs.push([0, c - 1], [0, c + 1], [1, c]);
+        else if (r === boardSize - 1) needs.push([boardSize - 1, c - 1], [boardSize - 1, c + 1], [boardSize - 2, c]);
+        else if (c === 0) needs.push([r - 1, 0], [r + 1, 0], [r, 1]);
+        else if (c === boardSize - 1) needs.push([r - 1, boardSize - 1], [r + 1, boardSize - 1], [r, boardSize - 2]);
+
+        return needs.length > 0 && needs.every(([nr, nc]) => board[nr]?.[nc] === capturingPlayer);
+    }
+
+    return false;
+}
+
+function getAllCaptures(board: Board, player: Player): [number, number][] {
+  const opponent = getOpponent(player);
+  const capturedPieces: [number, number][] = [];
+  const boardSize = board.length;
+
+  // 1. Standard "sandwich" capture
+  for (let r = 0; r < boardSize; r++) {
+    const row = board[r];
+    const hCaptures = getCapturesOnLine(row, player);
+    hCaptures.forEach(c => {
+        if(board[r][c] === opponent) {
+            capturedPieces.push([r, c]);
+        }
+    });
+  }
+  for (let c = 0; c < boardSize; c++) {
+    const col = board.map(row => row[c]);
+    const vCaptures = getCapturesOnLine(col, player);
+    vCaptures.forEach(r => {
+        if(board[r][c] === opponent) {
+            capturedPieces.push([r, c]);
+        }
+    });
+  }
+
+  // 2. Edge and Corner captures
+  for (let r = 0; r < boardSize; r++) {
+    for (let c = 0; c < boardSize; c++) {
+      if (board[r][c] === opponent) {
+        if (checkSurroundingCapture(board, r, c, player)) {
+          capturedPieces.push([r, c]);
+        }
+      }
+    }
+  }
+
+  const uniqueCaptureStrings = new Set(capturedPieces.map(p => `${p[0]},${p[1]}`));
+  return Array.from(uniqueCaptureStrings).map(s => s.split(',').map(Number) as [number, number]);
+}
+
 function simulateMove(board: Board, player: Player, fromR: number, fromC: number, toR: number, toC: number): { newBoard: Board, captured: [number, number][] } {
   const tempBoard = board.map(row => [...row]);
   tempBoard[toR][toC] = player;
   tempBoard[fromR][fromC] = null;
-  const captured: [number, number][] = [];
 
-  // Horizontal capture check
-  const row = tempBoard[toR];
-  const hCaptures = getCapturesOnLine(row, player);
-  hCaptures.forEach(c => {
-    if (tempBoard[toR][c] !== null) {
-      captured.push([toR, c]);
-      tempBoard[toR][c] = null;
-    }
-  });
+  const captured = getAllCaptures(tempBoard, player);
 
-  // Vertical capture check
-  const col = tempBoard.map(r => r[toC]);
-  const vCaptures = getCapturesOnLine(col, player);
-  vCaptures.forEach(r => {
-    if (tempBoard[r][toC] !== null) {
-      captured.push([r, toC]);
-      tempBoard[r][toC] = null;
-    }
+  captured.forEach(([r, c]) => {
+    tempBoard[r][c] = null;
   });
 
   return { newBoard: tempBoard, captured };
@@ -140,15 +196,20 @@ function isMoveUnsafe(board: Board, player: Player, fromR: number, fromC: number
   return false;
 }
 
-function checkWinCondition(board: Board): Player | null {
-  let p1Pieces = 0;
-  let p2Pieces = 0;
-  board.forEach(row => row.forEach(cell => {
-    if (cell === 'PLAYER1') p1Pieces++;
-    else if (cell === 'PLAYER2') p2Pieces++;
-  }));
-  if (p2Pieces <= 1) return 'PLAYER1';
-  if (p1Pieces <= 1) return 'PLAYER2';
+function checkWinCondition(capturedPieces: { PLAYER1: number; PLAYER2: number; }): Player | null {
+  // `capturedPieces.PLAYER1` means the number of PLAYER1's pieces that were captured.
+  const p1PiecesCaptured = capturedPieces.PLAYER1;
+  const p2PiecesCaptured = capturedPieces.PLAYER2;
+
+  // Player 2 wins if they capture 5 of Player 1's pieces.
+  if (p1PiecesCaptured >= 5) return 'PLAYER2';
+  // Player 1 wins if they capture 5 of Player 2's pieces.
+  if (p2PiecesCaptured >= 5) return 'PLAYER1';
+
+  // 3-piece difference rule.
+  if (p2PiecesCaptured - p1PiecesCaptured >= 3) return 'PLAYER1';
+  if (p1PiecesCaptured - p2PiecesCaptured >= 3) return 'PLAYER2';
+
   return null;
 }
 
@@ -182,10 +243,11 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
     if (moveData) {
       const { newBoard, captured } = simulateMove(board, currentPlayer, selectedPiece.r, selectedPiece.c, r, c);
       const newCapturedCount = { ...currentState.capturedPieces };
+      // If P1 moves, they capture P2's pieces, so increment count of captured P2 pieces.
       if (currentPlayer === 'PLAYER1') newCapturedCount.PLAYER2 += captured.length;
       else newCapturedCount.PLAYER1 += captured.length;
 
-      const winner = checkWinCondition(newBoard);
+      const winner = checkWinCondition(newCapturedCount);
       return {
         ...currentState,
         board: newBoard,
