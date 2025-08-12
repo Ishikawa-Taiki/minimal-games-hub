@@ -90,14 +90,32 @@ describe('はさみ将棋コアロジック', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
     board[6][2] = 'PLAYER1'; // Stationary
     board[6][3] = 'PLAYER2'; // The only remaining piece
-    board[8][5] = 'PLAYER1'; // Moving piece
+    board[8][4] = 'PLAYER1'; // Moving piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
     state.capturedPieces.PLAYER2 = 8;
 
-    state = handleCellClick(state, 8, 5);
-    const nextState = handleCellClick(state, 6, 5);
+    state = handleCellClick(state, 8, 4);
+    const nextState = handleCellClick(state, 6, 4);
 
     expect(nextState.gameStatus).toBe('GAME_OVER');
     expect(nextState.winner).toBe('PLAYER1');
+  });
+
+  it('isMoveUnsafeエッジケース：相手の駒の間に移動するが、相手は動けないので安全', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    // O P O のような状況で、Pの隣に移動するケース
+    board[7][0] = 'PLAYER2';
+    board[7][2] = 'PLAYER2';
+    board[8][1] = 'PLAYER1'; // The piece to move
+
+    let state: GameState = { ...createInitialState(), board };
+    // Select P1 at (8,1)
+    state = handleCellClick(state, 8, 1);
+
+    // The move for P1 to (7,1) lands it between two P2 pieces.
+    // However, the P2 pieces cannot capture it because they cannot move into the P1's spot.
+    // Therefore, the move should be considered SAFE.
+    const moveData = state.validMoves.get('7,1');
+    expect(moveData?.isUnsafe).toBe(false);
   });
 });

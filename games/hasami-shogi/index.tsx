@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, CSSProperties } from 'react';
+import React, { useState, useCallback, CSSProperties, useMemo } from 'react';
 import {
   Player,
   GameState,
@@ -8,15 +8,27 @@ import {
   handleCellClick as handleCellClickCore,
 } from './core';
 
-// Piece component with player-specific styling
+// Piece component for the game board
 const Piece: React.FC<{ player: Player }> = ({ player }) => {
   const pieceStyle: CSSProperties = {
     ...styles.piece,
     transform: player === 'PLAYER2' ? 'rotate(180deg)' : 'none',
-    color: player === 'PLAYER2' ? '#e53e3e' : '#000000', // Red for Player 2
+    color: player === 'PLAYER2' ? '#e53e3e' : '#000000',
   };
-  return <div style={pieceStyle}>歩</div>;
+  const char = player === 'PLAYER1' ? '歩' : 'と';
+  return <div style={pieceStyle}>{char}</div>;
 };
+
+// Piece component for the UI indicators (no rotation)
+const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
+  const pieceStyle: CSSProperties = {
+    ...styles.piece,
+    color: player === 'PLAYER2' ? '#e53e3e' : '#000000',
+  };
+  const char = player === 'PLAYER1' ? '歩' : 'と';
+  return <div style={pieceStyle}>{char}</div>;
+};
+
 
 const HasamiShogi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
@@ -36,30 +48,36 @@ const HasamiShogi: React.FC = () => {
     setHintLevel(prev => prev === 'on' ? 'off' : 'on');
   };
 
+  const remainingPieces = useMemo(() => {
+    let p1 = 0;
+    let p2 = 0;
+    gameState.board.forEach(row => row.forEach(cell => {
+      if (cell === 'PLAYER1') p1++;
+      else if (cell === 'PLAYER2') p2++;
+    }));
+    return { PLAYER1: p1, PLAYER2: p2 };
+  }, [gameState.board]);
+
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cell };
     const { board, selectedPiece, validMoves } = gameState;
     const moveKey = `${r},${c}`;
 
-    // Style for selected piece
     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
-      style.backgroundColor = '#f6e05e'; // Yellow
+      style.backgroundColor = '#f6e05e'; // Yellow for selected
     }
 
-    // Hint-related styling
     if (hintLevel === 'on' && selectedPiece) {
       const moveData = validMoves.get(moveKey);
       if (moveData) {
-        // Style for valid move destinations
-        style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red for unsafe, Green for safe
+        style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red/Green
       }
     }
 
-    // Style for pieces that will be captured by a hovered move
-    if (hoveredMove) {
+    if (hintLevel === 'on' && hoveredMove) {
       const moveData = validMoves.get(hoveredMove);
       if (moveData?.captures.some(([capR, capC]) => capR === r && capC === c)) {
-        style.backgroundColor = '#a4cafe'; // Light blue
+        style.backgroundColor = '#a4cafe'; // Light blue for capture target
       }
     }
 
@@ -67,21 +85,26 @@ const HasamiShogi: React.FC = () => {
   };
 
   const winner = gameState.winner;
+  const turnText = gameState.currentPlayer === 'PLAYER1'
+    ? '歩のばん'
+    : <span style={{display: 'inline-flex', alignItems: 'center'}}>
+        <span style={{color: '#e53e3e'}}>と</span>のばん
+      </span>;
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>はさみ将棋</h1>
       <div style={styles.infoPanel}>
         <div style={styles.score}>
-          <Piece player="PLAYER1" />
-          <span>: {gameState.capturedPieces.PLAYER2}</span>
+          <IndicatorPiece player="PLAYER1" />
+          <span>: {remainingPieces.PLAYER1}</span>
         </div>
         <div style={styles.turnIndicator}>
-          {winner ? 'ゲーム終了' : `ターン: ${gameState.currentPlayer === 'PLAYER1' ? 'あなた' : '相手'}`}
+          {winner ? 'ゲーム終了' : turnText}
         </div>
         <div style={styles.score}>
-          <Piece player="PLAYER2" />
-          <span>: {gameState.capturedPieces.PLAYER1}</span>
+          <IndicatorPiece player="PLAYER2" />
+          <span>: {remainingPieces.PLAYER2}</span>
         </div>
       </div>
 
@@ -95,7 +118,7 @@ const HasamiShogi: React.FC = () => {
                 data-testid={`cell-${r}-${c}`}
                 style={getCellStyle(r, c)}
                 onClick={() => onCellClick(r, c)}
-                onMouseEnter={() => setHoveredMove(moveKey)}
+                onMouseEnter={() => { if (gameState.validMoves.has(moveKey)) setHoveredMove(moveKey); }}
                 onMouseLeave={() => setHoveredMove(null)}
               >
                 {cell && <Piece player={cell} />}
@@ -123,7 +146,10 @@ const HasamiShogi: React.FC = () => {
           <div style={styles.gameOverModal}>
             <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
             <div data-testid="winner-message" style={styles.winnerText}>
-              <Piece player={winner} />
+              {winner === 'PLAYER1'
+                 ? <IndicatorPiece player="PLAYER1" />
+                 : <IndicatorPiece player="PLAYER2" />
+              }
               <span>の勝ち!</span>
             </div>
             <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
@@ -160,9 +186,11 @@ const styles: { [key: string]: CSSProperties } = {
   score: {
     display: 'flex',
     alignItems: 'center',
+    fontSize: '1.5rem',
   },
   turnIndicator: {
     fontWeight: 'bold',
+    fontSize: '1.5rem',
   },
   board: {
     display: 'grid',
@@ -187,6 +215,10 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: '24px',
     fontWeight: 'bold',
     userSelect: 'none',
+    lineHeight: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonGroup: {
     display: 'flex',
