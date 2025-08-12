@@ -2,12 +2,18 @@ export type Player = 'PLAYER1' | 'PLAYER2';
 export type CellState = Player | null;
 export type Board = CellState[][];
 
+export interface Move {
+  captures: [number, number][];
+  isUnsafe: boolean;
+}
+
 export interface GameState {
   board: Board;
   currentPlayer: Player;
   gameStatus: 'PLAYING' | 'GAME_OVER';
   winner: Player | null;
   selectedPiece: { r: number; c: number } | null;
+  validMoves: Map<string, Move>;
   capturedPieces: {
     PLAYER1: number;
     PLAYER2: number;
@@ -16,191 +22,171 @@ export interface GameState {
 
 const BOARD_SIZE = 9;
 
-/**
- * Creates the initial state for a new game of Hasami Shogi.
- */
 export function createInitialState(): GameState {
   const board: Board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
-
-  // Place Player 1's pieces on the top row
   for (let c = 0; c < BOARD_SIZE; c++) {
-    board[0][c] = 'PLAYER1';
+    board[0][c] = 'PLAYER2';
+    board[BOARD_SIZE - 1][c] = 'PLAYER1';
   }
-
-  // Place Player 2's pieces on the bottom row
-  for (let c = 0; c < BOARD_SIZE; c++) {
-    board[BOARD_SIZE - 1][c] = 'PLAYER2';
-  }
-
   return {
     board,
     currentPlayer: 'PLAYER1',
     gameStatus: 'PLAYING',
     winner: null,
     selectedPiece: null,
-    capturedPieces: {
-      PLAYER1: 0,
-      PLAYER2: 0,
-    },
+    validMoves: new Map(),
+    capturedPieces: { PLAYER1: 0, PLAYER2: 0 },
   };
 }
 
-/**
- * Gets the opponent of the current player.
- */
 function getOpponent(player: Player): Player {
   return player === 'PLAYER1' ? 'PLAYER2' : 'PLAYER1';
 }
 
-/**
- * Checks if a move from (fromR, fromC) to (toR, toC) is valid.
- * A move is valid if it's along a row or column with no pieces in between.
- */
-export function isValidMove(board: Board, fromR: number, fromC: number, toR: number, toC: number): boolean {
-  if (board[toR][toC] !== null) {
-    return false; // Cannot move to an occupied square
-  }
-
-  if (fromR === toR) { // Horizontal move
+function isPathClear(board: Board, fromR: number, fromC: number, toR: number, toC: number): boolean {
+  if (board[toR][toC] !== null) return false;
+  if (fromR === toR) {
     const step = toC > fromC ? 1 : -1;
     for (let c = fromC + step; c !== toC; c += step) {
-      if (board[fromR][c] !== null) {
-        return false; // Path is blocked
-      }
+      if (board[fromR][c] !== null) return false;
     }
     return true;
-  } else if (fromC === toC) { // Vertical move
+  } else if (fromC === toC) {
     const step = toR > fromR ? 1 : -1;
     for (let r = fromR + step; r !== toR; r += step) {
-      if (board[r][fromC] !== null) {
-        return false; // Path is blocked
-      }
+      if (board[r][fromC] !== null) return false;
     }
     return true;
   }
-
-  return false; // Not a valid horizontal or vertical move
+  return false;
 }
 
 /**
- * Checks for and removes captured pieces after a move.
+ * Scans a single line (row or column) and returns the indices of captured pieces.
  */
-function checkAndCapture(board: Board, player: Player, r: number, c: number): { newBoard: Board; capturedCount: number } {
+function getCapturesOnLine(line: CellState[], player: Player): number[] {
   const opponent = getOpponent(player);
-  let capturedCount = 0;
-  const newBoard = board.map(row => [...row]);
+  const capturedIndices: number[] = [];
+  const friendlyIndices = line.map((p, i) => p === player ? i : -1).filter(i => i !== -1);
 
-  // Directions: [dr, dc]
-  const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
-  for (const [dr, dc] of DIRS) {
-    const piecesToCapture: [number, number][] = [];
-    let nr = r + dr;
-    let nc = c + dc;
-
-    // Scan for a line of opponent pieces
-    while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && newBoard[nr][nc] === opponent) {
-      piecesToCapture.push([nr, nc]);
-      nr += dr;
-      nc += dc;
-    }
-
-    // If the line is terminated by one of the current player's pieces, capture them
-    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && newBoard[nr][nc] === player) {
-      for (const [pr, pc] of piecesToCapture) {
-        newBoard[pr][pc] = null;
-        capturedCount++;
+  for (let i = 0; i < friendlyIndices.length - 1; i++) {
+    const start = friendlyIndices[i];
+    const end = friendlyIndices[i + 1];
+    if (end > start + 1) {
+      const between = line.slice(start + 1, end);
+      if (between.length > 0 && between.every(p => p === opponent)) {
+        for (let j = start + 1; j < end; j++) {
+          capturedIndices.push(j);
+        }
       }
     }
   }
-
-  return { newBoard, capturedCount };
+  return capturedIndices;
 }
 
-/**
- * Checks if a player has won the game.
- * A player wins if the opponent has 1 or fewer pieces.
- */
-function checkWinCondition(board: Board): Player | null {
-  let player1Pieces = 0;
-  let player2Pieces = 0;
+function simulateMove(board: Board, player: Player, fromR: number, fromC: number, toR: number, toC: number): { newBoard: Board, captured: [number, number][] } {
+  const tempBoard = board.map(row => [...row]);
+  tempBoard[toR][toC] = player;
+  tempBoard[fromR][fromC] = null;
+  const captured: [number, number][] = [];
+
+  // Horizontal capture check
+  const row = tempBoard[toR];
+  const hCaptures = getCapturesOnLine(row, player);
+  hCaptures.forEach(c => {
+    if (tempBoard[toR][c] !== null) {
+      captured.push([toR, c]);
+      tempBoard[toR][c] = null;
+    }
+  });
+
+  // Vertical capture check
+  const col = tempBoard.map(r => r[toC]);
+  const vCaptures = getCapturesOnLine(col, player);
+  vCaptures.forEach(r => {
+    if (tempBoard[r][toC] !== null) {
+      captured.push([r, toC]);
+      tempBoard[r][toC] = null;
+    }
+  });
+
+  return { newBoard: tempBoard, captured };
+}
+
+function isMoveUnsafe(board: Board, player: Player, fromR: number, fromC: number, toR: number, toC: number): boolean {
+  const { newBoard } = simulateMove(board, player, fromR, fromC, toR, toC);
+  const opponent = getOpponent(player);
+
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
-      if (board[r][c] === 'PLAYER1') {
-        player1Pieces++;
-      } else if (board[r][c] === 'PLAYER2') {
-        player2Pieces++;
+      if (newBoard[r][c] === opponent) {
+        for (let nr = 0; nr < BOARD_SIZE; nr++) {
+          for (let nc = 0; nc < BOARD_SIZE; nc++) {
+            if (isPathClear(newBoard, r, c, nr, nc)) {
+              const { captured } = simulateMove(newBoard, opponent, r, c, nr, nc);
+              if (captured.some(([cr, cc]) => cr === toR && cc === toC)) {
+                return true;
+              }
+            }
+          }
+        }
       }
     }
   }
+  return false;
+}
 
-  if (player2Pieces <= 1) return 'PLAYER1';
-  if (player1Pieces <= 1) return 'PLAYER2';
+function checkWinCondition(board: Board): Player | null {
+  let p1Pieces = 0;
+  let p2Pieces = 0;
+  board.forEach(row => row.forEach(cell => {
+    if (cell === 'PLAYER1') p1Pieces++;
+    else if (cell === 'PLAYER2') p2Pieces++;
+  }));
+  if (p2Pieces <= 1) return 'PLAYER1';
+  if (p1Pieces <= 1) return 'PLAYER2';
   return null;
 }
 
-
-/**
- * Handles a click on a cell, managing piece selection, movement, and capturing.
- */
 export function handleCellClick(currentState: GameState, r: number, c: number): GameState {
-  const { board, currentPlayer, gameStatus, selectedPiece, capturedPieces } = currentState;
+  const { board, currentPlayer, gameStatus, selectedPiece } = currentState;
+  if (gameStatus === 'GAME_OVER') return currentState;
 
-  if (gameStatus === 'GAME_OVER') {
-    return currentState;
-  }
-
-  // Case 1: No piece is selected, try to select one.
-  if (!selectedPiece) {
-    if (board[r][c] === currentPlayer) {
-      return { ...currentState, selectedPiece: { r, c } };
-    }
-    return currentState; // Clicked on empty or opponent's piece
-  }
-
-  // Case 2: A piece is selected.
-  // If clicking the same piece, deselect it.
-  if (selectedPiece.r === r && selectedPiece.c === c) {
-    return { ...currentState, selectedPiece: null };
-  }
-
-  // If clicking another of your own pieces, switch selection.
   if (board[r][c] === currentPlayer) {
-    return { ...currentState, selectedPiece: { r, c } };
-  }
-
-  // Try to move the selected piece to the clicked cell (r, c).
-  if (isValidMove(board, selectedPiece.r, selectedPiece.c, r, c)) {
-    // Create a new board with the moved piece
-    const newBoard = board.map(row => [...row]);
-    newBoard[r][c] = currentPlayer;
-    newBoard[selectedPiece.r][selectedPiece.c] = null;
-
-    // Check for captures
-    const { newBoard: boardAfterCapture, capturedCount } = checkAndCapture(newBoard, currentPlayer, r, c);
-
-    const newCapturedPieces = { ...capturedPieces };
-    if (currentPlayer === 'PLAYER1') {
-      newCapturedPieces.PLAYER2 += capturedCount;
-    } else {
-      newCapturedPieces.PLAYER1 += capturedCount;
+    const validMoves = new Map<string, Move>();
+    for (let toR = 0; toR < BOARD_SIZE; toR++) {
+      for (let toC = 0; toC < BOARD_SIZE; toC++) {
+        if (isPathClear(board, r, c, toR, toC)) {
+          const { captured } = simulateMove(board, currentPlayer, r, c, toR, toC);
+          const unsafe = isMoveUnsafe(board, currentPlayer, r, c, toR, toC);
+          validMoves.set(`${toR},${toC}`, { captures: captured, isUnsafe: unsafe });
+        }
+      }
     }
-
-    // Check for win condition
-    const winner = checkWinCondition(boardAfterCapture);
-    const newGameStatus = winner ? 'GAME_OVER' : 'PLAYING';
-
-    return {
-      ...currentState,
-      board: boardAfterCapture,
-      currentPlayer: getOpponent(currentPlayer),
-      selectedPiece: null,
-      gameStatus: newGameStatus,
-      winner,
-      capturedPieces: newCapturedPieces,
-    };
+    return { ...currentState, selectedPiece: { r, c }, validMoves };
   }
 
-  // If the move is invalid, deselect the piece for a better user experience.
-  return { ...currentState, selectedPiece: null };
+  if (selectedPiece) {
+    const moveData = currentState.validMoves.get(`${r},${c}`);
+    if (moveData) {
+      const { newBoard, captured } = simulateMove(board, currentPlayer, selectedPiece.r, selectedPiece.c, r, c);
+      const newCapturedCount = { ...currentState.capturedPieces };
+      if (currentPlayer === 'PLAYER1') newCapturedCount.PLAYER2 += captured.length;
+      else newCapturedCount.PLAYER1 += captured.length;
+
+      const winner = checkWinCondition(newBoard);
+      return {
+        ...currentState,
+        board: newBoard,
+        currentPlayer: getOpponent(currentPlayer),
+        selectedPiece: null,
+        validMoves: new Map(),
+        gameStatus: winner ? 'GAME_OVER' : 'PLAYING',
+        winner,
+        capturedPieces: newCapturedCount,
+      };
+    }
+  }
+
+  return { ...currentState, selectedPiece: null, validMoves: new Map() };
 }

@@ -1,50 +1,68 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, CSSProperties } from 'react';
+import React, { useState, useCallback, CSSProperties } from 'react';
 import {
   Player,
   GameState,
   createInitialState,
   handleCellClick as handleCellClickCore,
-  isValidMove,
 } from './core';
 
-// Piece component
+// Piece component with player-specific styling
 const Piece: React.FC<{ player: Player }> = ({ player }) => {
   const pieceStyle: CSSProperties = {
     ...styles.piece,
     transform: player === 'PLAYER2' ? 'rotate(180deg)' : 'none',
+    color: player === 'PLAYER2' ? '#e53e3e' : '#000000', // Red for Player 2
   };
   return <div style={pieceStyle}>歩</div>;
 };
 
 const HasamiShogi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [hintLevel, setHintLevel] = useState<'on' | 'off'>('off');
+  const [hoveredMove, setHoveredMove] = useState<string | null>(null);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
   }, []);
-
-  useEffect(() => {
-    initializeGame();
-  }, [initializeGame]);
 
   const onCellClick = (r: number, c: number) => {
     const newState = handleCellClickCore(gameState, r, c);
     setGameState(newState);
   };
 
+  const toggleHintLevel = () => {
+    setHintLevel(prev => prev === 'on' ? 'off' : 'on');
+  };
+
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cell };
-    const { board, selectedPiece, currentPlayer } = gameState;
+    const { board, selectedPiece, validMoves } = gameState;
+    const moveKey = `${r},${c}`;
 
-    if (selectedPiece) {
-      if (selectedPiece.r === r && selectedPiece.c === c) {
-        style.backgroundColor = '#f6e05e'; // Yellow for selected piece
-      } else if (isValidMove(board, selectedPiece.r, selectedPiece.c, r, c)) {
-        style.backgroundColor = '#9ae6b4'; // Green for valid moves
+    // Style for selected piece
+    if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
+      style.backgroundColor = '#f6e05e'; // Yellow
+    }
+
+    // Hint-related styling
+    if (hintLevel === 'on' && selectedPiece) {
+      const moveData = validMoves.get(moveKey);
+      if (moveData) {
+        // Style for valid move destinations
+        style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red for unsafe, Green for safe
       }
     }
+
+    // Style for pieces that will be captured by a hovered move
+    if (hoveredMove) {
+      const moveData = validMoves.get(hoveredMove);
+      if (moveData?.captures.some(([capR, capC]) => capR === r && capC === c)) {
+        style.backgroundColor = '#a4cafe'; // Light blue
+      }
+    }
+
     return style;
   };
 
@@ -59,7 +77,7 @@ const HasamiShogi: React.FC = () => {
           <span>: {gameState.capturedPieces.PLAYER2}</span>
         </div>
         <div style={styles.turnIndicator}>
-          {winner ? 'ゲーム終了' : `ターン: ${gameState.currentPlayer === 'PLAYER1' ? '先手' : '後手'}`}
+          {winner ? 'ゲーム終了' : `ターン: ${gameState.currentPlayer === 'PLAYER1' ? 'あなた' : '相手'}`}
         </div>
         <div style={styles.score}>
           <Piece player="PLAYER2" />
@@ -69,22 +87,36 @@ const HasamiShogi: React.FC = () => {
 
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
-          row.map((cell, c) => (
-            <div
-              key={`${r}-${c}`}
-              data-testid={`cell-${r}-${c}`}
-              style={getCellStyle(r, c)}
-              onClick={() => onCellClick(r, c)}
-            >
-              {cell && <Piece player={cell} />}
-            </div>
-          ))
+          row.map((cell, c) => {
+            const moveKey = `${r},${c}`;
+            return (
+              <div
+                key={moveKey}
+                data-testid={`cell-${r}-${c}`}
+                style={getCellStyle(r, c)}
+                onClick={() => onCellClick(r, c)}
+                onMouseEnter={() => setHoveredMove(moveKey)}
+                onMouseLeave={() => setHoveredMove(null)}
+              >
+                {cell && <Piece player={cell} />}
+              </div>
+            );
+          })
         )}
       </div>
 
-      <button data-testid="reset-button" onClick={initializeGame} style={styles.resetButton}>
-        はじめから
-      </button>
+      <div style={styles.buttonGroup}>
+        <button data-testid="reset-button" onClick={initializeGame} style={styles.resetButton}>
+          はじめから
+        </button>
+        <button
+          data-testid="hint-button"
+          onClick={toggleHintLevel}
+          style={{...styles.resetButton, backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'}}
+        >
+          ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
+        </button>
+      </div>
 
       {winner && (
         <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
@@ -120,6 +152,7 @@ const styles: { [key: string]: CSSProperties } = {
   infoPanel: {
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'center',
     width: '360px',
     marginBottom: '1rem',
     fontSize: '1.2rem',
@@ -155,8 +188,12 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 'bold',
     userSelect: 'none',
   },
-  resetButton: {
+  buttonGroup: {
+    display: 'flex',
+    gap: '1rem',
     marginTop: '1.5rem',
+  },
+  resetButton: {
     padding: '0.75rem 1.5rem',
     fontSize: '1.1rem',
     backgroundColor: '#8b4513',
@@ -166,7 +203,7 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: 'pointer',
   },
   gameOverOverlay: {
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
@@ -175,6 +212,7 @@ const styles: { [key: string]: CSSProperties } = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
   gameOverModal: {
     backgroundColor: 'white',
