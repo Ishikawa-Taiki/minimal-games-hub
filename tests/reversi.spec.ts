@@ -1,11 +1,88 @@
-import { test, expect, describe } from '@playwright/test';
+import { test, expect, describe, beforeEach } from '@playwright/test';
 
-describe('E2Eテストの仕組みの動作確認', () => {
-  test('リバーシのページが正しく読み込まれ、タイトルが表示される', async ({ page }) => {
+describe('リバーシゲームのE2Eテスト', () => {
+  beforeEach(async ({ page }) => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
+  });
 
-    // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
-    await expect(page).toHaveTitle(/Minimal Games Hub/);
+  test('初期状態の盤面が正しく表示される', async ({ page }) => {
+    // 盤面のセルの数を検証
+    await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
+
+    // 初期配置の駒を確認
+    await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(page.locator('[data-testid="cell-3-4"] > div').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cell-3-4"] > div').first()).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+    await expect(page.locator('[data-testid="cell-4-3"] > div').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cell-4-3"] > div').first()).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+    await expect(page.locator('[data-testid="cell-4-4"] > div').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cell-4-4"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+
+    // スコアの初期状態を検証
+    await expect(page.locator('[data-testid="score-black"]')).toHaveText('2');
+    await expect(page.locator('[data-testid="score-white"]')).toHaveText('2');
+
+    // 手番表示を検証
+    await expect(page.locator('[data-testid="turn-indicator"]')).toContainText('のばん');
+  });
+
+  test('駒を置いて相手の駒が正しく裏返る', async ({ page }) => {
+    // 黒が(2,3)に置く
+    await page.locator('[data-testid="cell-2-3"]').click();
+
+    // 少し待機して、アニメーションと状態更新を待つ
+    await page.waitForTimeout(1000);
+
+    // 駒が正しく置かれているか
+    await expect(page.locator('[data-testid="cell-2-3"] > div').first()).toBeVisible();
+    await expect(page.locator('[data-testid="cell-2-3"] > div').first()).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+
+    // 駒が裏返っているか
+    await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+
+    // スコアが更新されているか
+    await expect(page.locator('[data-testid="score-black"]')).toHaveText('4');
+    await expect(page.locator('[data-testid="score-white"]')).toHaveText('1');
+
+    // 手番が白に変わっているか
+    await expect(page.locator('[data-testid="turn-indicator"] div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  });
+
+  test('ゲームをリセットできる', async ({ page }) => {
+    // 駒を置く
+    await page.locator('[data-testid="cell-2-3"]').click();
+    await page.waitForTimeout(1000);
+
+    // リセットボタンを押す
+    await page.locator('[data-testid="reset-button"]').click();
+    await page.locator('[data-testid="confirm-reset-button"]').click();
+
+    // 初期状態に戻っているか検証
+    await expect(page.locator('[data-testid="score-black"]')).toHaveText('2');
+    await expect(page.locator('[data-testid="score-white"]')).toHaveText('2');
+    await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  });
+
+  test('ヒント機能が正しく動作する', async ({ page }) => {
+    const hintButton = page.locator('[data-testid="hint-button"]');
+
+    // 初期状態の「ヒントなし」を確認
+    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(ヒントなし)');
+    await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).not.toBeVisible();
+    await expect(page.locator('[data-testid="cell-2-3"] > .placeableHint')).not.toBeVisible();
+
+    // 「おけるばしょ」に切り替え
+    await hintButton.click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(おけるばしょ)');
+    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).toBeVisible();
+
+    // 「ぜんぶヒント」に切り替え
+    await hintButton.click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(ぜんぶヒント)');
+    await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).toHaveText('1');
   });
 });

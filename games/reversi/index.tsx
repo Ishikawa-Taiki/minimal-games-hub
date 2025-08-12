@@ -214,7 +214,8 @@ const Reversi: React.FC = () => {
                 {hintLevel !== 'none' && moveInfo && (
                   <>
                     {hintLevel === 'placeable' && 
-                      <div 
+                      <div
+                        data-testid={`placeable-hint-${r}-${c}`}
                         style={{
                           ...styles.placeableHint,
                           backgroundColor: gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
@@ -222,7 +223,7 @@ const Reversi: React.FC = () => {
                       />
                     }
                     {hintLevel === 'full' && 
-                      <span style={styles.moveHint}>
+                      <span className="moveHint" style={styles.moveHint}>
                         {moveInfo.length}
                       </span>
                     }
@@ -239,7 +240,7 @@ const Reversi: React.FC = () => {
           はじめから<br />やりなおす
         </button>
         <button data-testid="hint-button" onClick={toggleHintLevel} style={getHintButtonStyle()}>
-          おしえて！<br />({getHintButtonText()})
+          おしえて！<br /><span data-testid="hint-level-text">({getHintButtonText()})</span>
         </button>
       </div>
 
