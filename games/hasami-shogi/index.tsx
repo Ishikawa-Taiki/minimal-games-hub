@@ -33,7 +33,6 @@ const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
 const HasamiShogi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [hintLevel, setHintLevel] = useState<'on' | 'off'>('off');
-  const [hoveredMove, setHoveredMove] = useState<string | null>(null);
 
   const initializeGame = useCallback(() => {
     setGameState(createInitialState());
@@ -59,25 +58,25 @@ const HasamiShogi: React.FC = () => {
   }, [gameState.board]);
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
-    const style: CSSProperties = { ...styles.cell };
-    const { board, selectedPiece, validMoves } = gameState;
+    const style: CSSProperties = { ...styles.cell, position: 'relative' };
+    const { board, selectedPiece, validMoves, potentialCaptures } = gameState;
     const moveKey = `${r},${c}`;
 
+    // Style for selected piece
     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
-      style.backgroundColor = '#f6e05e'; // Yellow for selected
+      style.backgroundColor = '#f6e05e'; // Yellow
     }
 
+    // Hint-related styling
     if (hintLevel === 'on' && selectedPiece) {
       const moveData = validMoves.get(moveKey);
       if (moveData) {
+        // Style for valid move destinations
         style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red/Green
       }
-    }
-
-    if (hintLevel === 'on' && hoveredMove) {
-      const moveData = validMoves.get(hoveredMove);
-      if (moveData?.captures.some(([capR, capC]) => capR === r && capC === c)) {
-        style.backgroundColor = '#a4cafe'; // Light blue for capture target
+      // Style for pieces that could be captured
+      if (potentialCaptures.some(([capR, capC]) => capR === r && capC === c)) {
+        style.backgroundColor = '#a4cafe'; // Light blue
       }
     }
 
@@ -87,8 +86,9 @@ const HasamiShogi: React.FC = () => {
   const winner = gameState.winner;
   const turnText = gameState.currentPlayer === 'PLAYER1'
     ? '歩のばん'
-    : <span style={{display: 'inline-flex', alignItems: 'center'}}>
-        <span style={{color: '#e53e3e'}}>と</span>のばん
+    : <span style={{display: 'inline-flex', alignItems: 'center', color: '#e53e3e'}}>
+        <span>と</span>
+        <span style={{color: 'black'}}>&nbsp;のばん</span>
       </span>;
 
   return (
@@ -111,17 +111,17 @@ const HasamiShogi: React.FC = () => {
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {
-            const moveKey = `${r},${c}`;
             return (
               <div
-                key={moveKey}
+                key={`${r}-${c}`}
                 data-testid={`cell-${r}-${c}`}
                 style={getCellStyle(r, c)}
                 onClick={() => onCellClick(r, c)}
-                onMouseEnter={() => { if (gameState.validMoves.has(moveKey)) setHoveredMove(moveKey); }}
-                onMouseLeave={() => setHoveredMove(null)}
               >
                 {cell && <Piece player={cell} />}
+                {cell === gameState.currentPlayer && !winner && (
+                  <div style={styles.currentPlayerHighlight} />
+                )}
               </div>
             );
           })
@@ -265,6 +265,16 @@ const styles: { [key: string]: CSSProperties } = {
     justifyContent: 'center',
     marginBottom: '1.5rem',
   },
+  currentPlayerHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: '2px',
+    pointerEvents: 'none',
+  }
 };
 
 export default HasamiShogi;

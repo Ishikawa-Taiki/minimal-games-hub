@@ -118,4 +118,25 @@ describe('はさみ将棋コアロジック', () => {
     const moveData = state.validMoves.get('7,1');
     expect(moveData?.isUnsafe).toBe(false);
   });
+
+  it('potentialCapturesが正しく計算されること', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    board[8][4] = 'PLAYER1'; // The selected piece
+
+    // Setup for vertical capture: Move (8,4)=>(7,4) will capture P2 at (6,4)
+    board[5][4] = 'PLAYER1'; // Stationary piece
+    board[6][4] = 'PLAYER2'; // Target 1
+
+    // Setup for horizontal capture: Move (8,4)=>(8,3) will capture P2 at (8,2)
+    board[8][1] = 'PLAYER1'; // Stationary piece
+    board[8][2] = 'PLAYER2'; // Target 2
+
+    let state: GameState = { ...createInitialState(), board };
+    state = handleCellClick(state, 8, 4); // Select the piece
+
+    const captures = state.potentialCaptures;
+
+    expect(captures).toHaveLength(2);
+    expect(captures).toEqual(expect.arrayContaining([[6,4], [8,2]]));
+  });
 });
