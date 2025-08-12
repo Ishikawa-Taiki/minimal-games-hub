@@ -70,6 +70,7 @@ const TicTacToe = () => {
           return (
             <button
               key={`${row}-${col}`}
+              data-testid={`cell-${row}-${col}`}
               style={{
                 ...styles.cell,
                 backgroundColor: getCellBackgroundColor(index),
@@ -88,15 +89,17 @@ const TicTacToe = () => {
           );
         })}
       </div>
-      <p style={styles.status}>{getStatus()}</p>
+      <p data-testid="status" style={styles.status}>{getStatus()}</p>
       <div>
         <button
+          data-testid="reset-button"
           style={styles.resetButton}
           onClick={handleReset}
         >
           ゲームをリセット
         </button>
         <button
+          data-testid="hint-button"
           style={styles.toggleButton}
           onClick={() => setShowHints(!showHints)}
         >
