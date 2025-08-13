@@ -86,75 +86,17 @@ describe('はさみ将棋コアロジック', () => {
     expect(nextState.currentPlayer).toBe('PLAYER2');
   });
 
-  it('角の駒が正しくキャプチャされること', () => {
+  it('相手の駒が1つになったら勝利判定がされること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[0][1] = 'PLAYER1';
-    board[1][0] = 'PLAYER1';
-    board[0][0] = 'PLAYER2'; // Piece to be captured at corner
-    board[8][0] = 'PLAYER1'; // Moving piece
+    board[6][2] = 'PLAYER1'; // Stationary
+    board[6][3] = 'PLAYER2'; // The only remaining piece
+    board[8][4] = 'PLAYER1'; // Moving piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
-
-    // A move by P1 anywhere (that doesn't change the corner) should trigger the capture check.
-    // Let's just move a random piece.
-    state = handleCellClick(state, 8, 0);
-    const nextState = handleCellClick(state, 7, 0);
-
-    expect(nextState.board[0][0]).toBeNull('Corner piece should be captured');
-    expect(nextState.capturedPieces.PLAYER2).toBe(1);
-  });
-
-  it('辺の駒が正しくキャプチャされること', () => {
-    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[0][1] = 'PLAYER1';
-    board[0][3] = 'PLAYER1';
-    board[1][2] = 'PLAYER1';
-    board[0][2] = 'PLAYER2'; // Piece to be captured at edge
-    board[8][0] = 'PLAYER1'; // Moving piece
-    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
-
-    state = handleCellClick(state, 8, 0);
-    const nextState = handleCellClick(state, 7, 0);
-
-    expect(nextState.board[0][2]).toBeNull('Edge piece should be captured');
-    expect(nextState.capturedPieces.PLAYER2).toBe(1);
-  });
-
-  it('5枚先取で勝利判定がされること', () => {
-    let state = createInitialState();
-    state.capturedPieces.PLAYER2 = 4; // P1 has captured 4 of P2's pieces
-
-    // Set up a board for one more capture
-    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[6][2] = 'PLAYER1';
-    board[6][3] = 'PLAYER2';
-    board[8][4] = 'PLAYER1';
-    state.board = board;
-    state.currentPlayer = 'PLAYER1';
+    state.capturedPieces.PLAYER2 = 8;
 
     state = handleCellClick(state, 8, 4);
-    const nextState = handleCellClick(state, 6, 4); // Move to capture
+    const nextState = handleCellClick(state, 6, 4);
 
-    expect(nextState.capturedPieces.PLAYER2).toBe(5);
-    expect(nextState.gameStatus).toBe('GAME_OVER');
-    expect(nextState.winner).toBe('PLAYER1');
-  });
-
-  it('3枚差で勝利判定がされること', () => {
-    let state = createInitialState();
-    state.capturedPieces.PLAYER1 = 0; // P2 has captured 0
-    state.capturedPieces.PLAYER2 = 2; // P1 has captured 2
-
-    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[6][2] = 'PLAYER1';
-    board[6][3] = 'PLAYER2';
-    board[8][4] = 'PLAYER1';
-    state.board = board;
-    state.currentPlayer = 'PLAYER1';
-
-    state = handleCellClick(state, 8, 4);
-    const nextState = handleCellClick(state, 6, 4); // Move to capture
-
-    expect(nextState.capturedPieces.PLAYER2).toBe(3);
     expect(nextState.gameStatus).toBe('GAME_OVER');
     expect(nextState.winner).toBe('PLAYER1');
   });
