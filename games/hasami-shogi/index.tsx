@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useCallback, CSSProperties, useMemo } from 'react';
+import React, { useState, useCallback, CSSProperties } from 'react';
 import {
   Player,
   GameState,
+  WinCondition,
   createInitialState,
   handleCellClick as handleCellClickCore,
+  setWinCondition,
 } from './core';
 
 // Piece component for the game board
@@ -39,7 +41,14 @@ const HasamiShogi: React.FC = () => {
   }, []);
 
   const onCellClick = (r: number, c: number) => {
+    if (gameState.gameStatus === 'GAME_OVER') return;
     const newState = handleCellClickCore(gameState, r, c);
+    setGameState(newState);
+  };
+
+  const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newCondition = e.target.value as WinCondition;
+    const newState = setWinCondition(gameState, newCondition);
     setGameState(newState);
   };
 
@@ -47,19 +56,12 @@ const HasamiShogi: React.FC = () => {
     setHintLevel(prev => prev === 'on' ? 'off' : 'on');
   };
 
-  const remainingPieces = useMemo(() => {
-    let p1 = 0;
-    let p2 = 0;
-    gameState.board.forEach(row => row.forEach(cell => {
-      if (cell === 'PLAYER1') p1++;
-      else if (cell === 'PLAYER2') p2++;
-    }));
-    return { PLAYER1: p1, PLAYER2: p2 };
-  }, [gameState.board]);
+  const isGameStarted = gameState.capturedPieces.PLAYER1 > 0 || gameState.capturedPieces.PLAYER2 > 0 || !gameState.board.every((row, r) => row.every((cell, c) => cell === createInitialState().board[r][c]));
+
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cell, position: 'relative' };
-    const { board, selectedPiece, validMoves, potentialCaptures } = gameState;
+    const { selectedPiece, validMoves, potentialCaptures } = gameState;
     const moveKey = `${r},${c}`;
 
     // Style for selected piece
@@ -93,18 +95,39 @@ const HasamiShogi: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>はさみ将棋</h1>
+      <h1 style={styles.title}>はさみしょうぎ</h1>
+
+      <div style={styles.winConditionSelector} data-testid="win-condition-selector">
+        <h2 style={styles.winConditionTitle}>勝利条件</h2>
+        <div style={styles.radioGroup}>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="win-condition" value="standard" checked={gameState.winCondition === 'standard'} onChange={onWinConditionChange} disabled={isGameStarted} />
+            スタンダード (5枚先取 or 3枚差)
+          </label>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="win-condition" value="five_captures" checked={gameState.winCondition === 'five_captures'} onChange={onWinConditionChange} disabled={isGameStarted} />
+            5枚先取
+          </label>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="win-condition" value="total_capture" checked={gameState.winCondition === 'total_capture'} onChange={onWinConditionChange} disabled={isGameStarted} />
+            全取り (相手を残り1枚に)
+          </label>
+        </div>
+      </div>
+
       <div style={styles.infoPanel}>
         <div style={styles.score}>
-          <IndicatorPiece player="PLAYER1" />
-          <span>: {remainingPieces.PLAYER1}</span>
+          <span>取った駒:</span>
+          <IndicatorPiece player="PLAYER2" />
+          <span>x {gameState.capturedPieces.PLAYER2}</span>
         </div>
         <div style={styles.turnIndicator}>
           {winner ? 'ゲーム終了' : turnText}
         </div>
         <div style={styles.score}>
-          <IndicatorPiece player="PLAYER2" />
-          <span>: {remainingPieces.PLAYER2}</span>
+          <span>取った駒:</span>
+          <IndicatorPiece player="PLAYER1" />
+          <span>x {gameState.capturedPieces.PLAYER1}</span>
         </div>
       </div>
 
@@ -174,6 +197,30 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: '2.5rem',
     fontWeight: 'bold',
     marginBottom: '1rem',
+  },
+  winConditionSelector: {
+    marginBottom: '1.5rem',
+    padding: '1rem',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    backgroundColor: '#f7fafc',
+  },
+  winConditionTitle: {
+    margin: '0 0 0.5rem 0',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  radioGroup: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '1rem',
+  },
+  radioLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.3rem',
+    cursor: 'pointer',
   },
   infoPanel: {
     display: 'flex',

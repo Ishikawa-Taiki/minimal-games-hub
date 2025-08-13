@@ -2,8 +2,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createInitialState,
   handleCellClick,
+  setWinCondition,
   GameState,
   Board,
+  WinCondition,
 } from './core';
 
 describe('はさみ将棋コアロジック', () => {
@@ -11,6 +13,24 @@ describe('はさみ将棋コアロジック', () => {
 
   beforeEach(() => {
     gameState = createInitialState();
+  });
+
+  describe('勝利条件の選択', () => {
+    it('ゲーム開始前に勝利条件を変更できること', () => {
+      const newState = setWinCondition(gameState, 'five_captures');
+      expect(newState.winCondition).toBe('five_captures');
+    });
+
+    it('ゲーム開始後は勝利条件を変更できないこと', () => {
+      // Simulate a move has been made
+      const board = gameState.board.map(row => [...row]);
+      board[8][0] = null;
+      board[7][0] = 'PLAYER1';
+      gameState.board = board;
+
+      const newState = setWinCondition(gameState, 'total_capture');
+      expect(newState.winCondition).toBe('standard'); // Should not change from the default
+    });
   });
 
   it('ゲームが正しく初期化されること（プレイヤー1が下段）', () => {
@@ -47,17 +67,9 @@ describe('はさみ将棋コアロジック', () => {
   it('危険な手（isUnsafe: true）が正しく判定されること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
     board[8][1] = 'PLAYER1'; // Our moving piece
-    board[6][0] = 'PLAYER2'; // Opponent piece that can capture
     board[6][2] = 'PLAYER2'; // Opponent piece that can capture
     let state: GameState = { ...createInitialState(), board };
 
-    // Select the piece to calculate moves
-    state = handleCellClick(state, 8, 1);
-
-    // The move to (7,1) is unsafe because P2 at (6,0) and (6,2) can move to capture it
-    // P2 at (6,0) can move to (7,0), P2 at (6,2) can move to (7,2) to capture (7,1)
-    // Actually, one P2 piece is enough. Let's simplify.
-    // P2 at (6,0) can move to (7,0). P2 at (6,2) can move to (7,2).
     // Let's place a stationary P2 piece.
     board[7][0] = 'PLAYER2';
     state = { ...createInitialState(), board };
@@ -65,7 +77,6 @@ describe('はさみ将棋コアロジック', () => {
 
     const moveData = state.validMoves.get('7,1');
     // Moving P1 to (7,1) can be captured by P2 moving from (6,2) to (7,2).
-    // The piece at (7,0) and the piece at (7,2) will form the sandwich.
     expect(moveData?.isUnsafe).toBe(true);
   });
 
@@ -86,19 +97,129 @@ describe('はさみ将棋コアロジック', () => {
     expect(nextState.currentPlayer).toBe('PLAYER2');
   });
 
-  it('相手の駒が1つになったら勝利判定がされること', () => {
+  it('角の駒が正しくキャプチャされること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[6][2] = 'PLAYER1'; // Stationary
-    board[6][3] = 'PLAYER2'; // The only remaining piece
-    board[8][4] = 'PLAYER1'; // Moving piece
+    board[0][1] = 'PLAYER1';
+    board[1][0] = 'PLAYER1';
+    board[0][0] = 'PLAYER2'; // Piece to be captured at corner
+    board[8][0] = 'PLAYER1'; // Moving piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
-    state.capturedPieces.PLAYER2 = 8;
 
-    state = handleCellClick(state, 8, 4);
-    const nextState = handleCellClick(state, 6, 4);
+    // A move by P1 anywhere (that doesn't change the corner) should trigger the capture check.
+    state = handleCellClick(state, 8, 0);
+    const nextState = handleCellClick(state, 7, 0);
 
-    expect(nextState.gameStatus).toBe('GAME_OVER');
-    expect(nextState.winner).toBe('PLAYER1');
+    expect(nextState.board[0][0]).toBeNull('Corner piece should be captured');
+    expect(nextState.capturedPieces.PLAYER2).toBe(1);
+  });
+
+  it('辺の駒が正しくキャプチャされること', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    board[0][1] = 'PLAYER1';
+    board[0][3] = 'PLAYER1';
+    board[1][2] = 'PLAYER1';
+    board[0][2] = 'PLAYER2'; // Piece to be captured at edge
+    board[8][0] = 'PLAYER1'; // Moving piece
+    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+
+    state = handleCellClick(state, 8, 0);
+    const nextState = handleCellClick(state, 7, 0);
+
+    expect(nextState.board[0][2]).toBeNull('Edge piece should be captured');
+    expect(nextState.capturedPieces.PLAYER2).toBe(1);
+  });
+
+  describe('勝利判定ロジック', () => {
+    it('スタンダードルール: 5枚先取で勝利', () => {
+      let state = setWinCondition(createInitialState(), 'standard');
+      state.capturedPieces.PLAYER2 = 4; // P1 has captured 4 of P2's pieces
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
+      state.board = board; state.currentPlayer = 'PLAYER1';
+      state = handleCellClick(state, 8, 4);
+      const nextState = handleCellClick(state, 6, 4);
+      expect(nextState.capturedPieces.PLAYER2).toBe(5);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER1');
+    });
+
+    it('スタンダードルール: 3枚差で勝利', () => {
+      let state = setWinCondition(createInitialState(), 'standard');
+      state.capturedPieces.PLAYER2 = 2; // P1 has captured 2 of P2's pieces
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
+      state.board = board; state.currentPlayer = 'PLAYER1';
+      state = handleCellClick(state, 8, 4);
+      const nextState = handleCellClick(state, 6, 4);
+      expect(nextState.capturedPieces.PLAYER2).toBe(3);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER1');
+    });
+
+    it('全取りルール: 相手の駒が1つになったら勝利', () => {
+      let state = setWinCondition(createInitialState(), 'total_capture');
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+
+      // P1 pieces
+      board[5][1] = 'PLAYER1'; // Stationary piece
+      board[7][8] = 'PLAYER1'; // Moving piece
+
+      // P2 pieces
+      board[6][1] = 'PLAYER2'; // Piece to be captured
+      board[0][0] = 'PLAYER2'; // The one that will remain
+
+      state.board = board;
+      state.currentPlayer = 'PLAYER1';
+
+      // Select moving piece at (7,8)
+      state = handleCellClick(state, 7, 8);
+      // Move it to (7,1) to create a vertical sandwich
+      const nextState = handleCellClick(state, 7, 1);
+
+      expect(nextState.board[6][1]).toBeNull(); // Verify capture happened
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER1');
+    });
+  });
+
+  it('グループキャプチャ（囲み取り）が正しく行われること', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    // Setup a group of 2 opponent pieces
+    board[0][1] = 'PLAYER2';
+    board[0][2] = 'PLAYER2';
+    // Surround them
+    board[0][0] = 'PLAYER1';
+    board[0][3] = 'PLAYER1';
+    board[1][1] = 'PLAYER1';
+    board[1][2] = 'PLAYER1';
+    board[8][0] = 'PLAYER1'; // Moving piece
+    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+
+    state = handleCellClick(state, 8, 0);
+    const nextState = handleCellClick(state, 7, 0); // Any move triggers the check
+
+    expect(nextState.board[0][1]).toBeNull();
+    expect(nextState.board[0][2]).toBeNull();
+    expect(nextState.capturedPieces.PLAYER2).toBe(2);
+  });
+
+  it('グループキャプチャ（囲み取り）が動ける箇所が一つでもあると実行されないこと', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    board[0][1] = 'PLAYER2';
+    board[0][2] = 'PLAYER2';
+    // Surround them, but leave one liberty
+    board[0][0] = 'PLAYER1';
+    // board[0][3] is null (a liberty)
+    board[1][1] = 'PLAYER1';
+    board[1][2] = 'PLAYER1';
+    board[8][0] = 'PLAYER1';
+    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+
+    state = handleCellClick(state, 8, 0);
+    const nextState = handleCellClick(state, 7, 0);
+
+    expect(nextState.board[0][1]).toBe('PLAYER2'); // Not captured
+    expect(nextState.capturedPieces.PLAYER2).toBe(0);
   });
 
   it('isMoveUnsafeエッジケース：相手の駒の間に移動するが、相手は動けないので安全', () => {
