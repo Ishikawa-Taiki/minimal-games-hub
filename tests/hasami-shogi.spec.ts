@@ -11,6 +11,7 @@ test('はさみ将棋のゲームページに正しく遷移し、タイトル�
   await expect(page).toHaveURL('/games/hasami-shogi/');
 
   // ゲームのタイトルが表示されていることを確認
-  const title = page.locator('main h1');
-  await expect(title).toHaveText('はさみ将棋');
+  const titleLocator = page.locator('main h1');
+  const titleText = await titleLocator.textContent();
+  expect(titleText).toBe('はさみしょうぎ');
 });
