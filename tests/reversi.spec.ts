@@ -7,5 +7,9 @@ describe('E2Eテストの仕組みの動作確認', () => {
 
     // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
     await expect(page).toHaveTitle(/Minimal Games Hub/);
+
+    // ゲームのタイトルが表示されていることを確認
+    const title = page.locator('header h1');
+    await expect(title).toHaveText('リバーシ');
   });
 });

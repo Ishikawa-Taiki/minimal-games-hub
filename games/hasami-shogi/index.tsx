@@ -93,7 +93,7 @@ const HasamiShogi: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>はさみ将棋</h1>
+      
       <div style={styles.infoPanel}>
         <div style={styles.score}>
           <IndicatorPiece player="PLAYER1" />

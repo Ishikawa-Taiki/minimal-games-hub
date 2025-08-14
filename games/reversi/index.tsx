@@ -170,7 +170,7 @@ const Reversi: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>リバーシ</h1>
+      
       <div style={styles.scoreBoard}>
         <div style={styles.score}>
           <DiscIcon player="BLACK" />

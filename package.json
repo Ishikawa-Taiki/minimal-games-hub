@@ -13,7 +13,7 @@
     "gemini": "gemini",
     "license-update": "npx license-checker --production --json | node scripts/license-update.js",
     "prepare": "husky",
-    "postinstall": "npx playwright install --with-deps && npm run license-update"
+    "postinstall": "npx playwright install && npm run license-update"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
