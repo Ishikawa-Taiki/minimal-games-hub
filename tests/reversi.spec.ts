@@ -4,6 +4,13 @@ describe('リバーシゲームのE2Eテスト', () => {
   beforeEach(async ({ page }) => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
+    // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
+    await expect(page).toHaveTitle(/Minimal Games Hub/);
+
+    // ゲームのタイトルが表示されていることを確認
+    const titleLocator = page.locator('header h1');
+    const titleText = await titleLocator.textContent();
+    expect(titleText).toBe('リバーシ');
   });
 
   test('初期状態の盤面が正しく表示される', async ({ page }) => {

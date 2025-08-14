@@ -95,8 +95,6 @@ const HasamiShogi: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>はさみしょうぎ</h1>
-
       <div style={styles.winConditionSelector} data-testid="win-condition-selector">
         <h2 style={styles.winConditionTitle}>勝利条件</h2>
         <div style={styles.radioGroup}>

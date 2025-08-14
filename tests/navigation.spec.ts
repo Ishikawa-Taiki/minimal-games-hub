@@ -11,7 +11,7 @@ test.describe('ホームページのナビゲーション', () => {
 
     // 3. URLが正しく変更されたことを確認
     // next.config.ts の trailingSlash: true の設定に基づき、URLの末尾には / がつく
-    await expect(page).toHaveURL('/games/reversi/');
+    await expect(page).toHaveURL('http://localhost:3000/minimal-games-hub/games/reversi/');
 
     // 4. ページが完全に読み込まれるのを待つ
     await page.waitForLoadState('networkidle');
@@ -27,7 +27,7 @@ test.describe('ホームページのナビゲーション', () => {
     await tictactoeLink.click();
 
     // 3. URLが正しく変更されたことを確認
-    await expect(page).toHaveURL('/games/tictactoe/');
+    await expect(page).toHaveURL('http://localhost:3000/minimal-games-hub/games/tictactoe/');
 
     // 4. ページが完全に読み込まれるのを待つ
     await page.waitForLoadState('networkidle');
