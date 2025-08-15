@@ -148,6 +148,12 @@ E2Eテストは、ユーザーの操作を模倣することで、アプリケ�
     -   この環境差異により、特にクライアントサイドのナビゲーションを伴うテストが不安定になる場合があります。
     -   `pre-push`でE2Eテストが失敗し、原因の特定が困難な場合は、安易な待機処理を追加するのではなく、テストの実装方法（アサーションの仕方やテストの責務）そのものを見直すことを検討してください。
 
+-   **`npm run build`と`npm run e2e`の実行順序に関する補足:**
+    -   `pre-push`フックでは、`npm run lint`、`npm run test`、`npm run e2e`、`npm run build`の順序で実行される。
+    -   `npm run e2e`は`npm run dev`（開発サーバー）に対して実行されるため、`npm run build`の成果物には依存しない。
+    -   したがって、`npm run build`が`npm run e2e`の前に実行されても、E2Eテストの安定性には影響しない。
+    -   `npm run build`を`npm run e2e`の後に配置しているのは、`pre-push`フックの実行時間を考慮し、かつ`npm run build`がE2Eテストの実行結果に影響を与えないためである。
+
 ## 4. ログ管理
 
 プロジェクトのログ管理に関する詳細は、[ログ管理ドキュメント](./technical-guide-log-management.md)を参照してください。
