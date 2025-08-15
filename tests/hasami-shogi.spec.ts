@@ -7,10 +7,9 @@ test('はさみ将棋のゲームページに正しく遷移し、タイトル�
 
   // はさみ将棋へのリンクをクリック
   await page.click('a[href="/games/hasami-shogi/"]');
-  await page.waitForLoadState('networkidle');
 
-  // URLが正しく変更されたことを確認
-  await expect(page).toHaveURL(/\/games\/hasami-shogi\/$/);
+  // URLが変更されるのを待つ
+  await page.waitForURL('**/games/hasami-shogi/');
 
   // ゲームのタイトルが表示されていることを確認
   await expect(page.locator('header h1')).toHaveText('はさみしょうぎ');
