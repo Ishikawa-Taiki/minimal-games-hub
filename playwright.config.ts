@@ -20,7 +20,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: isPrepuch ? 'npx serve@latest out -s' : 'npm run dev',
+    command: isPrepuch ? 'npm start' : 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: false,
   },
