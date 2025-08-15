@@ -29,7 +29,7 @@ const Reversi: React.FC = () => {
 
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [hintLevel, setHintLevel] = useState<HintLevel>('full'); // Default to full for dev
+  const [hintLevel, setHintLevel] = useState<HintLevel>('none'); // Default to full for dev
   const [selectedHintCell, setSelectedHintCell] = useState<[number, number] | null>(null);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
   const [visualBoard, setVisualBoard] = useState<Board>(gameState.board);
@@ -170,7 +170,7 @@ const Reversi: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>リバーシ</h1>
+      
       <div style={styles.scoreBoard}>
         <div style={styles.score}>
           <DiscIcon player="BLACK" />

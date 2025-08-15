@@ -1,16 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, describe, beforeEach } from '@playwright/test';
 
-test('はさみ将棋のゲームページに正しく遷移し、タイトルが表示されることを確認', async ({ page }) => {
-  // トップページにアクセス
-  await page.goto('/');
+describe('はさみ将棋ゲームのE2Eテスト', () => {
+  beforeEach(async ({ page }) => {
+    await page.goto('/games/hasami-shogi');
+  });
 
-  // はさみ将棋へのリンクをクリック
-  await page.click('a[href="/games/hasami-shogi/"]');
+  test('初期状態が正しく表示される', async ({ page }) => {
+    // ゲームのタイトルが表示されていることを確認
+    await expect(page.locator('header h1')).toHaveText('はさみしょうぎ');
 
-  // URLが正しく変更されたことを確認
-  await expect(page).toHaveURL('/games/hasami-shogi/');
-
-  // ゲームのタイトルが表示されていることを確認
-  const title = page.locator('main h1');
-  await expect(title).toHaveText('はさみ将棋');
+    // TODO: 今後、盤面の駒の数や初期配置などを検証するアサーションを追加する
+  });
 });

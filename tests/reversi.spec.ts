@@ -4,12 +4,19 @@ describe('リバーシゲームのE2Eテスト', () => {
   beforeEach(async ({ page }) => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
+    // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
+    await expect(page).toHaveTitle(/Minimal Games Hub/);
+
+    // ゲームのタイトルが表示されていることを確認
+    const titleLocator = page.locator('header h1');
+    const titleText = await titleLocator.textContent();
+    expect(titleText).toBe('リバーシ');
+
+    // 盤面のセルの数を検証
+    await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
   });
 
   test('初期状態の盤面が正しく表示される', async ({ page }) => {
-    // 盤面のセルの数を検証
-    await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
-
     // 初期配置の駒を確認
     await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toBeVisible();
     await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -21,15 +28,19 @@ describe('リバーシゲームのE2Eテスト', () => {
     await expect(page.locator('[data-testid="cell-4-4"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 
     // スコアの初期状態を検証
-    await expect(page.locator('[data-testid="score-black"]')).toHaveText('2');
-    await expect(page.locator('[data-testid="score-white"]')).toHaveText('2');
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('2');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('2');
 
     // 手番表示を検証
-    await expect(page.locator('[data-testid="turn-indicator"]')).toContainText('のばん');
+    const turnIndicator = await page.locator('[data-testid="turn-indicator"]').textContent();
+    expect(turnIndicator).toContain('のばん');
   });
 
   test('駒を置いて相手の駒が正しく裏返る', async ({ page }) => {
     // 黒が(2,3)に置く
+    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
 
     // 少し待機して、アニメーションと状態更新を待つ
@@ -43,8 +54,10 @@ describe('リバーシゲームのE2Eテスト', () => {
     await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
 
     // スコアが更新されているか
-    await expect(page.locator('[data-testid="score-black"]')).toHaveText('4');
-    await expect(page.locator('[data-testid="score-white"]')).toHaveText('1');
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('4');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('1');
 
     // 手番が白に変わっているか
     await expect(page.locator('[data-testid="turn-indicator"] div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -52,6 +65,7 @@ describe('リバーシゲームのE2Eテスト', () => {
 
   test('ゲームをリセットできる', async ({ page }) => {
     // 駒を置く
+    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
     await page.waitForTimeout(1000);
 
@@ -60,8 +74,10 @@ describe('リバーシゲームのE2Eテスト', () => {
     await page.locator('[data-testid="confirm-reset-button"]').click();
 
     // 初期状態に戻っているか検証
-    await expect(page.locator('[data-testid="score-black"]')).toHaveText('2');
-    await expect(page.locator('[data-testid="score-white"]')).toHaveText('2');
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('2');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('2');
     await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   });
 
@@ -69,20 +85,24 @@ describe('リバーシゲームのE2Eテスト', () => {
     const hintButton = page.locator('[data-testid="hint-button"]');
 
     // 初期状態の「ヒントなし」を確認
-    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(ヒントなし)');
+    const hintLevelText1 = await page.locator('[data-testid="hint-level-text"]').textContent();
+    expect(hintLevelText1).toBe('(ヒントなし)');
     await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).not.toBeVisible();
     await expect(page.locator('[data-testid="cell-2-3"] > .placeableHint')).not.toBeVisible();
 
     // 「おけるばしょ」に切り替え
     await hintButton.click();
     await page.waitForTimeout(200);
-    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(おけるばしょ)');
+    const hintLevelText2 = await page.locator('[data-testid="hint-level-text"]').textContent();
+    expect(hintLevelText2).toBe('(おけるばしょ)');
     await expect(page.locator('[data-testid="placeable-hint-2-3"]')).toBeVisible();
 
     // 「ぜんぶヒント」に切り替え
     await hintButton.click();
     await page.waitForTimeout(200);
-    await expect(page.locator('[data-testid="hint-level-text"]')).toHaveText('(ぜんぶヒント)');
-    await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).toHaveText('1');
+    const hintLevelText3 = await page.locator('[data-testid="hint-level-text"]').textContent();
+    expect(hintLevelText3).toBe('(ぜんぶヒント)');
+    const moveHint = await page.locator('[data-testid="cell-2-3"] > .moveHint').textContent();
+    expect(moveHint).toBe('1');
   });
 });

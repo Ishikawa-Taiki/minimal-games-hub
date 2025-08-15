@@ -60,7 +60,7 @@ const TicTacToe = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>○×ゲーム</h1>
+      
       <div style={styles.board}>
         {gameState.board.flat().map((cell, index) => {
           const row = Math.floor(index / 3);
