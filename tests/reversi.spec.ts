@@ -11,12 +11,12 @@ describe('リバーシゲームのE2Eテスト', () => {
     const titleLocator = page.locator('header h1');
     const titleText = await titleLocator.textContent();
     expect(titleText).toBe('リバーシ');
+
+    // 盤面のセルの数を検証
+    await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
   });
 
   test('初期状態の盤面が正しく表示される', async ({ page }) => {
-    // 盤面のセルの数を検証
-    await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
-
     // 初期配置の駒を確認
     await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toBeVisible();
     await expect(page.locator('[data-testid="cell-3-3"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
@@ -40,6 +40,7 @@ describe('リバーシゲームのE2Eテスト', () => {
 
   test('駒を置いて相手の駒が正しく裏返る', async ({ page }) => {
     // 黒が(2,3)に置く
+    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
 
     // 少し待機して、アニメーションと状態更新を待つ
@@ -64,6 +65,7 @@ describe('リバーシゲームのE2Eテスト', () => {
 
   test('ゲームをリセットできる', async ({ page }) => {
     // 駒を置く
+    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
     await page.waitForTimeout(1000);
 
