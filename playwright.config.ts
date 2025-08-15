@@ -1,3 +1,5 @@
+import { defineConfig, devices } from '@playwright/test';
+
 const isPrepuch = process.env.PREPUSH === 'true';
 
 export default defineConfig({
