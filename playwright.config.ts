@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+const isPrepuch = process.env.PREPUSH === 'true';
 
 export default defineConfig({
   testDir: './tests',
@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: isPrepuch ? 'http://localhost:3000/minimal-games-hub' : 'http://localhost:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: isPrepuch ? 'npx serve@latest out' : 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: false,
   },
