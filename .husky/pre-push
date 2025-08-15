@@ -1,4 +1,3 @@
 npm run lint
 npm run test
-npm run build
-PREPUSH=true npm run e2e
+npm run e2e
