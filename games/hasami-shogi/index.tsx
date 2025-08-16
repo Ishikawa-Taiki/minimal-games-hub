@@ -117,15 +117,15 @@ const HasamiShogi: React.FC = () => {
         <div style={styles.score}>
           <span>取った駒:</span>
           <IndicatorPiece player="PLAYER2" />
-          <span>x {gameState.capturedPieces.PLAYER2}</span>
+          <span data-testid="opponent-score">x {gameState.capturedPieces.PLAYER1}</span>
         </div>
-        <div style={styles.turnIndicator}>
+        <div data-testid="turn-indicator" style={styles.turnIndicator}>
           {winner ? 'ゲーム終了' : turnText}
         </div>
         <div style={styles.score}>
           <span>取った駒:</span>
           <IndicatorPiece player="PLAYER1" />
-          <span>x {gameState.capturedPieces.PLAYER1}</span>
+          <span data-testid="player-score">x {gameState.capturedPieces.PLAYER2}</span>
         </div>
       </div>
 

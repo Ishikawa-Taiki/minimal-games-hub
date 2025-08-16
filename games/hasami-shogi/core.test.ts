@@ -143,6 +143,20 @@ describe('はさみ将棋コアロジック', () => {
       expect(nextState.winner).toBe('PLAYER1');
     });
 
+    it('スタンダードルール: 後手が5枚先取で勝利', () => {
+      let state = setWinCondition(createInitialState(), 'standard');
+      state.capturedPieces.PLAYER1 = 4; // P2 has captured 4 of P1's pieces
+      state.currentPlayer = 'PLAYER2';
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
+      state.board = board;
+      state = handleCellClick(state, 0, 4);
+      const nextState = handleCellClick(state, 2, 4);
+      expect(nextState.capturedPieces.PLAYER1).toBe(5);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER2');
+    });
+
     it('スタンダードルール: 3枚差で勝利', () => {
       let state = setWinCondition(createInitialState(), 'standard');
       state.capturedPieces.PLAYER2 = 2; // P1 has captured 2 of P2's pieces
@@ -154,6 +168,20 @@ describe('はさみ将棋コアロジック', () => {
       expect(nextState.capturedPieces.PLAYER2).toBe(3);
       expect(nextState.gameStatus).toBe('GAME_OVER');
       expect(nextState.winner).toBe('PLAYER1');
+    });
+
+    it('スタンダードルール: 後手が3枚差で勝利', () => {
+      let state = setWinCondition(createInitialState(), 'standard');
+      state.capturedPieces.PLAYER1 = 2; // P2 has captured 2 of P1's pieces
+      state.currentPlayer = 'PLAYER2';
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
+      state.board = board;
+      state = handleCellClick(state, 0, 4);
+      const nextState = handleCellClick(state, 2, 4);
+      expect(nextState.capturedPieces.PLAYER1).toBe(3);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER2');
     });
 
     it('全取りルール: 相手の駒が1つになったら勝利', () => {
@@ -179,6 +207,45 @@ describe('はさみ将棋コアロジック', () => {
       expect(nextState.board[6][1]).toBeNull(); // Verify capture happened
       expect(nextState.gameStatus).toBe('GAME_OVER');
       expect(nextState.winner).toBe('PLAYER1');
+    });
+
+    it('5枚先取ルール: 先手が5枚とって勝利', () => {
+      let state = setWinCondition(createInitialState(), 'five_captures');
+      state.capturedPieces.PLAYER2 = 4;
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
+      state.board = board; state.currentPlayer = 'PLAYER1';
+      state = handleCellClick(state, 8, 4);
+      const nextState = handleCellClick(state, 6, 4);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER1');
+    });
+
+    it('5枚先取ルール: 後手が5枚とって勝利', () => {
+      let state = setWinCondition(createInitialState(), 'five_captures');
+      state.capturedPieces.PLAYER1 = 4;
+      state.currentPlayer = 'PLAYER2';
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
+      state.board = board;
+      state = handleCellClick(state, 0, 4);
+      const nextState = handleCellClick(state, 2, 4);
+      expect(nextState.gameStatus).toBe('GAME_OVER');
+      expect(nextState.winner).toBe('PLAYER2');
+    });
+
+    it('勝利条件未達の場合はゲームが継続すること', () => {
+      let state = setWinCondition(createInitialState(), 'standard');
+      state.capturedPieces.PLAYER2 = 3; // P1 has 3
+      state.capturedPieces.PLAYER1 = 2; // P2 has 2
+      const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+      board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
+      state.board = board; state.currentPlayer = 'PLAYER1';
+      state = handleCellClick(state, 8, 4);
+      const nextState = handleCellClick(state, 6, 4);
+      expect(nextState.capturedPieces.PLAYER2).toBe(4);
+      expect(nextState.gameStatus).toBe('PLAYING');
+      expect(nextState.winner).toBeNull();
     });
   });
 
