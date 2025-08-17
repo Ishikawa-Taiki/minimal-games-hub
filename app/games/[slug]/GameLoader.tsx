@@ -17,6 +17,9 @@ const getGameComponent = (slug: string) => {
   if (slug === 'hasami-shogi') {
     return dynamic(() => import('../../../games/hasami-shogi/index'), { ssr: false });
   }
+  if (slug === 'concentration') {
+    return dynamic(() => import('../../../games/concentration/index'), { ssr: false });
+  }
   // Add other games here
   return null;
 };
