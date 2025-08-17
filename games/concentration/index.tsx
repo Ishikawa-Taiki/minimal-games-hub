@@ -12,6 +12,7 @@ import {
 
 const Concentration = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [showHints, setShowHints] = useState(false);
 
   useEffect(() => {
     if (gameState.status === 'evaluating') {
@@ -58,7 +59,7 @@ const Concentration = () => {
 
   const CardComponent = ({ card, index }: { card: BoardCard; index: number }) => (
     <button
-      style={getCardStyle(card)}
+      style={getCardStyle(card, index)}
       onClick={() => onCardClick(index)}
       disabled={card.isMatched || card.isFlipped}
       data-testid={`card-${index}`}
@@ -76,11 +77,14 @@ const Concentration = () => {
     </button>
   );
 
-  const getCardStyle = (card: BoardCard): CSSProperties => {
+  const getCardStyle = (card: BoardCard, index: number): CSSProperties => {
     const style = { ...styles.card };
     if (card.isFlipped) {
       style.backgroundColor = styles.cardFace.backgroundColor;
+    } else if (showHints && gameState.revealedIndices.includes(index)) {
+      style.backgroundColor = styles.cardHint.backgroundColor;
     }
+
     if (card.isMatched) {
       style.backgroundColor = styles.cardMatched.backgroundColor;
       style.opacity = styles.cardMatched.opacity;
@@ -109,9 +113,18 @@ const Concentration = () => {
           <CardComponent key={card.id} card={card} index={index} />
         ))}
       </div>
-      <button style={styles.resetButton} onClick={handleReset} data-testid="reset-button">
-        ゲームをリセット
-      </button>
+      <div style={styles.buttonContainer}>
+        <button style={styles.resetButton} onClick={handleReset} data-testid="reset-button">
+          ゲームをリセット
+        </button>
+        <button
+          style={styles.toggleButton}
+          onClick={() => setShowHints(!showHints)}
+          data-testid="hint-button"
+        >
+          ヒント: {showHints ? 'ON' : 'OFF'}
+        </button>
+      </div>
     </div>
   );
 };
@@ -191,7 +204,6 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: 'clamp(14px, 4vw, 32px)',
   },
   resetButton: {
-    marginTop: '20px',
     padding: '10px 20px',
     fontSize: '1rem',
     backgroundColor: '#3b82f6',
@@ -199,6 +211,23 @@ const styles: { [key: string]: CSSProperties } = {
     borderRadius: '8px',
     border: 'none',
     cursor: 'pointer',
+  },
+  toggleButton: {
+    padding: '10px 20px',
+    fontSize: '1rem',
+    backgroundColor: '#6b7280',
+    color: 'white',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  buttonContainer: {
+    display: 'flex',
+    gap: '1rem',
+    marginTop: '20px',
+  },
+  cardHint: {
+    backgroundColor: '#fef9c3', // light yellow
   },
 };
 

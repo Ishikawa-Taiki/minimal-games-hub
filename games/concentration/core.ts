@@ -22,6 +22,7 @@ export interface GameState {
   currentPlayer: Player;
   scores: { player1: number; player2: number };
   flippedIndices: number[];
+  revealedIndices: number[];
   status: GameStatus;
   winner: Player | 'draw' | null;
 }
@@ -74,6 +75,7 @@ export function createInitialState(): GameState {
     currentPlayer: 1,
     scores: { player1: 0, player2: 0 },
     flippedIndices: [],
+    revealedIndices: [],
     status: 'player1_turn',
     winner: null,
   };
@@ -91,9 +93,12 @@ export function handleCardClick(currentState: GameState, cardIndex: number): Gam
 
   const newState = JSON.parse(JSON.stringify(currentState)) as GameState;
 
-  // カードを表向きにする
+  // カードを表向きにし、めくった履歴に追加
   newState.board[cardIndex].isFlipped = true;
   newState.flippedIndices.push(cardIndex);
+  if (!newState.revealedIndices.includes(cardIndex)) {
+    newState.revealedIndices.push(cardIndex);
+  }
 
   // めくったカードが2枚になったら評価
   if (newState.flippedIndices.length === 2) {

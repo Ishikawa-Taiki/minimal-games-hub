@@ -11,6 +11,10 @@ test('concentration game navigation and core functionality', async ({ page }) =>
   await expect(page).toHaveURL('/games/concentration/');
 
   // ゲームのタイトルが表示されていることを確認
+  // まず、レイアウトが読み込まれているかを確認するために静的な要素をテスト
+  await expect(page.getByRole('link', { name: 'Back to Home' })).toBeVisible();
+
+  // 次に、動的なタイトルをテスト
   await expect(page.getByRole('heading', { name: 'カードあわせ' })).toBeVisible();
 
   // 2. ゲームの基本的な動作を確認 (オプション)
@@ -25,4 +29,12 @@ test('concentration game navigation and core functionality', async ({ page }) =>
   // 54枚のカードが存在することを確認
   const cards = await page.locator('[data-testid^="card-"]').all();
   expect(cards.length).toBe(54);
+
+  // 3. ヒント機能のトグルを確認
+  const hintButton = page.getByTestId('hint-button');
+  await expect(hintButton).toHaveText('ヒント: OFF');
+  await hintButton.click();
+  await expect(hintButton).toHaveText('ヒント: ON');
+  await hintButton.click();
+  await expect(hintButton).toHaveText('ヒント: OFF');
 });

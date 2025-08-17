@@ -96,6 +96,23 @@ describe('神経衰弱ゲームのコアロジック', () => {
 
       expect(stateAfterClick).toEqual(stateBeforeClick);
     });
+
+    it('クリックしたカードのインデックスをrevealedIndicesに追加する', () => {
+      let state = createInitialState();
+
+      // 1枚目をクリック
+      state = handleCardClick(state, 5);
+      expect(state.revealedIndices).toEqual([5]);
+
+      // 2枚目をクリック
+      state = handleCardClick(state, 10);
+      expect(state.revealedIndices).toEqual([5, 10]);
+
+      // 既にめくったことのあるカードなので、履歴は変わらない
+      const stateAfterMismatch = clearNonMatchingFlippedCards(state);
+      const finalState = handleCardClick(stateAfterMismatch, 5);
+      expect(finalState.revealedIndices).toEqual([5, 10]);
+    });
   });
 
   describe('clearNonMatchingFlippedCards', () => {
