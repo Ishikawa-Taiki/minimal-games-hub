@@ -1,0 +1,9 @@
+{
+  "name": "Concentration",
+  "displayName": "カードあわせ",
+  "shortDescription": "裏返しにされたカードをめくり、同じ絵柄のペアを見つける記憶力ゲームです。すべてのペアを見つけ出すことを目指します。",
+  "path": "/games/concentration",
+  "rulesFile": "/games/concentration/rules.md",
+  "specActionFile": "/games/concentration/spec-action.md",
+  "specDisplayFile": "/games/concentration/spec-display.md"
+}
