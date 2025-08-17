@@ -62,6 +62,33 @@ describe('神経衰弱ゲームのコアロジック', () => {
       expect(state.status).toBe('player1_turn');
     });
 
+    it('同じランクで異なるスートのカードがマッチすること', () => {
+      let state = createInitialState();
+      // '01'ランクのカードを2枚探す
+      const rankToTest = '01';
+      const indices = state.board
+        .map((card, index) =>
+          card.rank === rankToTest && card.suit !== 'Joker' ? index : -1
+        )
+        .filter((index) => index !== -1);
+
+      // 4枚あるはず
+      expect(indices.length).toBe(4);
+      const [index1, index2] = indices;
+
+      // カードのスートが異なることを確認 (テストの前提条件)
+      expect(state.board[index1].suit).not.toEqual(state.board[index2].suit);
+
+      state = handleCardClick(state, index1);
+      state = handleCardClick(state, index2);
+
+      expect(state.scores.player1).toBe(1);
+      expect(state.board[index1].isMatched).toBe(true);
+      expect(state.board[index2].isMatched).toBe(true);
+      expect(state.flippedIndices.length).toBe(0);
+      expect(state.currentPlayer).toBe(1);
+    });
+
     it('2枚のカードがマッチしなかった時、評価中の状態になる', () => {
       let state = createInitialState();
       // マッチしないカードのペアを確実に見つける

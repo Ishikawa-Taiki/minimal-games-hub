@@ -52,14 +52,14 @@ export function createInitialState(): GameState {
         id: idCounter++,
         suit,
         rank,
-        matchId: `${suit}${rank}`,
+        matchId: `r${rank}`,
       });
     }
   }
 
   const jokers: Card[] = [
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'Joker' },
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'Joker' },
+    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
+    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
   ];
 
   const deck = shuffle([...standardCards, ...jokers]);
