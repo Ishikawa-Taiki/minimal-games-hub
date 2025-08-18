@@ -81,6 +81,8 @@ const Concentration = () => {
     const style = { ...styles.card };
     if (card.isFlipped) {
       style.backgroundColor = styles.cardFace.backgroundColor;
+    } else if (showHints && gameState.hintedIndices.includes(index)) {
+      style.backgroundColor = styles.cardHintStrong.backgroundColor;
     } else if (showHints && gameState.revealedIndices.includes(index)) {
       style.backgroundColor = styles.cardHint.backgroundColor;
     }
@@ -228,6 +230,9 @@ const styles: { [key: string]: CSSProperties } = {
   },
   cardHint: {
     backgroundColor: '#fef9c3', // light yellow
+  },
+  cardHintStrong: {
+    backgroundColor: '#fca5a5', // light red
   },
 };
 

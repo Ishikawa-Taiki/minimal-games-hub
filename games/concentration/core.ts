@@ -7,7 +7,7 @@ export interface Card {
   id: number; // カード一意のID
   suit: Suit | 'Joker';
   rank: Rank | 'J';
-  matchId: string; // ペア判定用ID (例: "S01", "Joker")
+  matchId: string; // ペア判定用ID (例: "r01", "rJ")
 }
 
 export interface BoardCard extends Card {
@@ -23,6 +23,7 @@ export interface GameState {
   scores: { player1: number; player2: number };
   flippedIndices: number[];
   revealedIndices: number[];
+  hintedIndices: number[];
   status: GameStatus;
   winner: Player | 'draw' | null;
 }
@@ -41,6 +42,29 @@ function shuffle<T>(array: T[]): T[] {
   return newArray;
 }
 
+// This is now a pure function
+function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): number[] {
+  const revealedAndUnmatched = new Map<string, number[]>();
+  revealedIndices.forEach(index => {
+    const card = board[index];
+    if (card && !card.isMatched) {
+      if (!revealedAndUnmatched.has(card.matchId)) {
+        revealedAndUnmatched.set(card.matchId, []);
+      }
+      revealedAndUnmatched.get(card.matchId)!.push(index);
+    }
+  });
+
+  const potentialPairs = [...revealedAndUnmatched.values()].filter(indices => indices.length >= 2);
+
+  if (potentialPairs.length >= 2) {
+    return potentialPairs.flat();
+  }
+
+  return [];
+}
+
+
 // 4. コアロジック (Core Logic)
 export function createInitialState(): GameState {
   let idCounter = 0;
@@ -52,14 +76,14 @@ export function createInitialState(): GameState {
         id: idCounter++,
         suit,
         rank,
-        matchId: `${suit}${rank}`,
+        matchId: `r${rank}`,
       });
     }
   }
 
   const jokers: Card[] = [
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'Joker' },
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'Joker' },
+    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
+    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
   ];
 
   const deck = shuffle([...standardCards, ...jokers]);
@@ -76,6 +100,7 @@ export function createInitialState(): GameState {
     scores: { player1: 0, player2: 0 },
     flippedIndices: [],
     revealedIndices: [],
+    hintedIndices: [],
     status: 'player1_turn',
     winner: null,
   };
@@ -100,6 +125,9 @@ export function handleCardClick(currentState: GameState, cardIndex: number): Gam
     newState.revealedIndices.push(cardIndex);
   }
 
+  // ヒントの状態を更新
+  newState.hintedIndices = calculateHintedIndices(newState.board, newState.revealedIndices);
+
   // めくったカードが2枚になったら評価
   if (newState.flippedIndices.length === 2) {
     newState.status = 'evaluating';
@@ -113,6 +141,9 @@ export function handleCardClick(currentState: GameState, cardIndex: number): Gam
       card2.isMatched = true;
       newState.scores[`player${newState.currentPlayer}`]++;
       newState.flippedIndices = [];
+
+      // マッチしたのでヒントの状態を再更新
+      newState.hintedIndices = calculateHintedIndices(newState.board, newState.revealedIndices);
 
       // ターンはそのまま
       newState.status = newState.currentPlayer === 1 ? 'player1_turn' : 'player2_turn';

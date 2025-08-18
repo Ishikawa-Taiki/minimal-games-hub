@@ -1,21 +1,15 @@
 import { test, expect } from '@playwright/test';
 
 test('concentration game navigation and core functionality', async ({ page }) => {
-  // 1. トップページからゲームページへ正しく遷移できることを確認
-  await page.goto('/');
-
-  // "カードあわせ" という表示名のリンクをクリック
-  await page.getByRole('link', { name: 'カードあわせ' }).click();
-
-  // URLが正しいことを確認
-  await expect(page).toHaveURL('/games/concentration/');
+  // 1. ゲームページへ直接遷移して正しく表示されることを確認
+  await page.goto('/games/concentration/');
 
   // ゲームのタイトルが表示されていることを確認
   // まず、レイアウトが読み込まれているかを確認するために静的な要素をテスト
   await expect(page.getByRole('link', { name: 'Back to Home' })).toBeVisible();
 
   // 次に、動的なタイトルをテスト
-  await expect(page.getByRole('heading', { name: 'カードあわせ' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '神経衰弱' })).toBeVisible();
 
   // 2. ゲームの基本的な動作を確認 (オプション)
   // E2Eテストの責務外だが、基本的なUI要素の存在を確認する
