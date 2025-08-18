@@ -13,6 +13,7 @@ export interface Card {
 export interface BoardCard extends Card {
   isFlipped: boolean;
   isMatched: boolean;
+  matchedBy: Player | null;
 }
 
 export type GameStatus = 'player1_turn' | 'player2_turn' | 'evaluating' | 'game_over';
@@ -92,6 +93,7 @@ export function createInitialState(): GameState {
     ...card,
     isFlipped: false,
     isMatched: false,
+    matchedBy: null,
   }));
 
   return {
@@ -139,6 +141,8 @@ export function handleCardClick(currentState: GameState, cardIndex: number): Gam
       // --- マッチした場合 ---
       card1.isMatched = true;
       card2.isMatched = true;
+      card1.matchedBy = newState.currentPlayer;
+      card2.matchedBy = newState.currentPlayer;
       newState.scores[`player${newState.currentPlayer}`]++;
       newState.flippedIndices = [];
 
