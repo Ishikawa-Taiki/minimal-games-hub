@@ -185,4 +185,59 @@ describe('神経衰弱ゲームのコアロジック', () => {
       expect(state.scores.player1).toBe(27);
     });
   });
+
+  describe('ヒント機能のロジック', () => {
+    // Helper to find indices of cards with a specific rank
+    const findCardIndicesByRank = (state: GameState, rank: Rank): number[] => {
+      return state.board
+        .map((card, index) => (card.rank === rank ? index : -1))
+        .filter((index) => index !== -1);
+    };
+
+    it('ペア候補が1組だけでは、何もハイライトされない', () => {
+      let state = createInitialState();
+      const r1 = findCardIndicesByRank(state, '01');
+
+      // 2枚のカードを公開するが、ペアは1組だけ
+      state.revealedIndices = [r1[0], r1[1], 9, 10]; // 9, 10は無関係なカード
+
+      // クリックしてヒント計算をトリガー
+      state = handleCardClick(state, 11);
+
+      expect(state.hintedIndices).toEqual([]);
+    });
+
+    it('ペア候補が2組以上ある場合、対象のカードがハイライトされる', () => {
+      let state = createInitialState();
+      const r1 = findCardIndicesByRank(state, '01');
+      const r2 = findCardIndicesByRank(state, '02');
+
+      // 2組のペア候補を公開
+      state.revealedIndices = [r1[0], r1[1], r2[0], r2[1]];
+
+      // クリックしてヒント計算をトリガー
+      state = handleCardClick(state, 11);
+
+      expect(state.hintedIndices).toHaveLength(4);
+      expect(state.hintedIndices).toEqual(expect.arrayContaining([r1[0], r1[1], r2[0], r2[1]]));
+    });
+
+    it('ペアが成立すると、ハイライト対象から除外される', () => {
+      let state = createInitialState();
+      const r1 = findCardIndicesByRank(state, '01');
+      const r2 = findCardIndicesByRank(state, '02');
+
+      // 2組のペア候補を公開
+      state.revealedIndices = [r1[0], r1[1], r2[0], r2[1]];
+      // 1組をマッチ済みにする
+      state.board[r1[0]].isMatched = true;
+      state.board[r1[1]].isMatched = true;
+
+      // クリックしてヒント計算をトリガー
+      state = handleCardClick(state, 11);
+
+      // 残りのペア候補は1組だけなので、ヒントは表示されない
+      expect(state.hintedIndices).toEqual([]);
+    });
+  });
 });
