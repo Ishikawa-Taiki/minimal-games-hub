@@ -8,6 +8,7 @@ import {
   clearNonMatchingFlippedCards,
   BoardCard,
   Suit,
+  Player,
 } from './core';
 
 const Concentration = () => {
@@ -88,9 +89,11 @@ const Concentration = () => {
     }
 
     if (card.isMatched) {
-      style.backgroundColor = styles.cardMatched.backgroundColor;
-      style.opacity = styles.cardMatched.opacity;
-      style.border = styles.cardMatched.border;
+      if (card.matchedBy === 1) {
+        Object.assign(style, styles.cardMatchedPlayer1);
+      } else if (card.matchedBy === 2) {
+        Object.assign(style, styles.cardMatchedPlayer2);
+      }
     }
     return style;
   };
@@ -98,14 +101,14 @@ const Concentration = () => {
   return (
     <div style={styles.container}>
       <div style={styles.statusBar}>
-        <div style={styles.scoreBox} data-testid="score-player1">
+        <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer1}} data-testid="score-player1">
           <p>プレイヤー1</p>
           <p>{gameState.scores.player1}</p>
         </div>
         <div style={styles.turnBox} data-testid="status-message">
           <p>{getStatusMessage()}</p>
         </div>
-        <div style={styles.scoreBox} data-testid="score-player2">
+        <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer2}} data-testid="score-player2">
            <p>プレイヤー2</p>
            <p>{gameState.scores.player2}</p>
         </div>
@@ -127,6 +130,7 @@ const Concentration = () => {
           ヒント: {showHints ? 'ON' : 'OFF'}
         </button>
       </div>
+      <GameOverModal winner={gameState.winner} onReset={handleReset} />
     </div>
   );
 };
@@ -153,9 +157,18 @@ const styles: { [key: string]: CSSProperties } = {
   scoreBox: {
     textAlign: 'center',
     padding: '5px 15px',
-    backgroundColor: '#f0f0f0',
     borderRadius: '8px',
     minWidth: '100px',
+    border: '2px solid transparent',
+    transition: 'all 0.3s',
+  },
+  scoreBoxPlayer1: {
+    backgroundColor: 'rgba(255, 182, 193, 0.5)',
+    borderColor: '#ff69b4',
+  },
+  scoreBoxPlayer2: {
+    backgroundColor: 'rgba(173, 216, 230, 0.5)',
+    borderColor: '#1e90ff',
   },
   turnBox: {
     textAlign: 'center',
@@ -187,10 +200,13 @@ const styles: { [key: string]: CSSProperties } = {
   cardFace: {
     backgroundColor: '#ffffff',
   },
-  cardMatched: {
-    backgroundColor: '#d0d0d0',
-    opacity: 0.5,
-    border: '2px solid #a0a0a0',
+  cardMatchedPlayer1: {
+    backgroundColor: 'rgba(255, 182, 193, 0.5)', // Light Pink with transparency
+    border: '2px solid #ff69b4', // Hot Pink
+  },
+  cardMatchedPlayer2: {
+    backgroundColor: 'rgba(173, 216, 230, 0.5)', // Light Blue with transparency
+    border: '2px solid #1e90ff', // Dodger Blue
   },
   cardContent: {
     display: 'flex',
@@ -234,6 +250,55 @@ const styles: { [key: string]: CSSProperties } = {
   cardHintStrong: {
     backgroundColor: '#fca5a5', // light red
   },
+  gameOverOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  gameOverModal: {
+    backgroundColor: 'white',
+    padding: '2rem',
+    borderRadius: '0.5rem',
+    textAlign: 'center',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  gameOverTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem',
+  },
+  winnerText: {
+    fontSize: '1.25rem',
+    marginBottom: '1.5rem',
+  },
+};
+
+const GameOverModal = ({ winner, onReset }: { winner: Player | 'draw' | null, onReset: () => void }) => {
+  if (!winner) return null;
+
+  const getWinnerText = () => {
+    if (winner === 'draw') return "引き分け！";
+    return `プレイヤー${winner}の勝ち！`;
+  };
+
+  return (
+    <div style={styles.gameOverOverlay} data-testid="game-over-modal">
+      <div style={styles.gameOverModal}>
+        <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
+        <p style={styles.winnerText} data-testid="winner-message">{getWinnerText()}</p>
+        <button onClick={onReset} style={styles.resetButton} data-testid="play-again-button">
+          もう一度プレイ
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Concentration;
