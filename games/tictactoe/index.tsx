@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, CSSProperties } from 'react';
+import React, { useState, CSSProperties, useEffect } from 'react';
 import {
   Player,
   GameState,
@@ -11,12 +11,24 @@ import {
 const TicTacToe = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [showHints, setShowHints] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (gameState.winner || gameState.isDraw) {
+      setShowModal(true);
+    }
+  }, [gameState.winner, gameState.isDraw]);
 
   const handleClick = (row: number, col: number) => {
     const newState = handleCellClick(gameState, row, col);
     if (newState) {
       setGameState(newState);
     }
+  };
+
+  const handlePlayAgain = () => {
+    setGameState(createInitialState());
+    setShowModal(false);
   };
 
   const handleReset = () => {
@@ -106,6 +118,24 @@ const TicTacToe = () => {
           ヒント: {showHints ? 'ON' : 'OFF'}
         </button>
       </div>
+
+      {showModal && (
+        <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
+          <div style={styles.gameOverModal}>
+            <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
+            <div data-testid="winner-message">
+              {gameState.winner ? `勝者: ${gameState.winner}` : '引き分け！'}
+            </div>
+            <button
+              data-testid="play-again-button"
+              style={styles.resetButton}
+              onClick={handlePlayAgain}
+            >
+              もう一度プレイ
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -181,6 +211,28 @@ const styles: { [key: string]: CSSProperties } = {
     borderRadius: '0.25rem',
     border: 'none',
     cursor: 'pointer',
+  },
+  gameOverOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gameOverModal: {
+    backgroundColor: 'white',
+    padding: '2rem',
+    borderRadius: '0.5rem',
+    textAlign: 'center',
+  },
+  gameOverTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem',
   },
 };
 
