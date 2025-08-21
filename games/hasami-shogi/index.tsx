@@ -31,6 +31,14 @@ const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
   return <div style={pieceStyle}>{char}</div>;
 };
 
+const Rule: React.FC = () => {
+  return (
+    <div style={{...styles.winConditionSelector, marginTop: '1rem' }}>
+      <h2 style={styles.winConditionTitle}>かちかた</h2>
+      <p style={{textAlign: 'center'}}>あいてのこまを、じぶんのこまではさむととれるよ。さきに5ことったほうがかち！</p>
+    </div>
+  );
+}
 
 const HasamiShogi: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
@@ -46,37 +54,24 @@ const HasamiShogi: React.FC = () => {
     setGameState(newState);
   };
 
-  const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCondition = e.target.value as WinCondition;
-    const newState = setWinCondition(gameState, newCondition);
-    setGameState(newState);
-  };
-
   const toggleHintLevel = () => {
     setHintLevel(prev => prev === 'on' ? 'off' : 'on');
   };
-
-  const isGameStarted = gameState.capturedPieces.PLAYER1 > 0 || gameState.capturedPieces.PLAYER2 > 0 || !gameState.board.every((row, r) => row.every((cell, c) => cell === createInitialState().board[r][c]));
-
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cell, position: 'relative' };
     const { selectedPiece, validMoves, potentialCaptures } = gameState;
     const moveKey = `${r},${c}`;
 
-    // Style for selected piece
     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
       style.backgroundColor = '#f6e05e'; // Yellow
     }
 
-    // Hint-related styling
     if (hintLevel === 'on' && selectedPiece) {
       const moveData = validMoves.get(moveKey);
       if (moveData) {
-        // Style for valid move destinations
         style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red/Green
       }
-      // Style for pieces that could be captured
       if (potentialCaptures.some(([capR, capC]) => capR === r && capC === c)) {
         style.backgroundColor = '#a4cafe'; // Light blue
       }
@@ -87,49 +82,28 @@ const HasamiShogi: React.FC = () => {
 
   const winner = gameState.winner;
   const turnText = gameState.currentPlayer === 'PLAYER1'
-    ? '歩のばん'
-    : <span style={{display: 'inline-flex', alignItems: 'center', color: '#e53e3e'}}>
-        <span>と</span>
-        <span style={{color: 'black'}}>&nbsp;のばん</span>
-      </span>;
+    ? 'あなたのばん'
+    : 'あいてのばん';
 
   return (
     <div style={styles.container}>
-      <div style={styles.winConditionSelector} data-testid="win-condition-selector">
-        <h2 style={styles.winConditionTitle}>勝利条件</h2>
-        <div style={styles.radioGroup}>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="win-condition" value="standard" checked={gameState.winCondition === 'standard'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            スタンダード (5枚先取 or 3枚差)
-          </label>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="win-condition" value="five_captures" checked={gameState.winCondition === 'five_captures'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            5枚先取
-          </label>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="win-condition" value="total_capture" checked={gameState.winCondition === 'total_capture'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            全取り (相手を残り1枚に)
-          </label>
-        </div>
-      </div>
-
       <div style={styles.infoPanel}>
         <div style={styles.score}>
-          <span>取った駒:</span>
+          <span>とったかず:</span>
           <IndicatorPiece player="PLAYER2" />
           <span data-testid="opponent-score">x {gameState.capturedPieces.PLAYER1}</span>
         </div>
         <div data-testid="turn-indicator" style={styles.turnIndicator}>
-          {winner ? 'ゲーム終了' : turnText}
+          {winner ? 'おしまい' : turnText}
         </div>
         <div style={styles.score}>
-          <span>取った駒:</span>
+          <span>とったかず:</span>
           <IndicatorPiece player="PLAYER1" />
           <span data-testid="player-score">x {gameState.capturedPieces.PLAYER2}</span>
         </div>
       </div>
 
-      <div style={styles.board}>
+      <div style={styles.board} data-testid="board">
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {
             return (
@@ -149,9 +123,11 @@ const HasamiShogi: React.FC = () => {
         )}
       </div>
 
+      <Rule />
+
       <div style={styles.buttonGroup}>
         <button data-testid="reset-button" onClick={initializeGame} style={styles.resetButton}>
-          はじめから
+          やりなおす
         </button>
         <button
           data-testid="hint-button"
@@ -165,16 +141,16 @@ const HasamiShogi: React.FC = () => {
       {winner && (
         <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
+            <h2 style={styles.gameOverTitle}>おしまい！</h2>
             <div data-testid="winner-message" style={styles.winnerText}>
               {winner === 'PLAYER1'
                  ? <IndicatorPiece player="PLAYER1" />
                  : <IndicatorPiece player="PLAYER2" />
               }
-              <span>の勝ち!</span>
+              <span>のかち！</span>
             </div>
             <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
-              もう一度プレイ
+              もういっかい
             </button>
           </div>
         </div>
@@ -202,6 +178,7 @@ const styles: { [key: string]: CSSProperties } = {
     border: '1px solid #ccc',
     borderRadius: '8px',
     backgroundColor: '#f7fafc',
+    width: '400px'
   },
   winConditionTitle: {
     margin: '0 0 0.5rem 0',
@@ -211,8 +188,9 @@ const styles: { [key: string]: CSSProperties } = {
   },
   radioGroup: {
     display: 'flex',
-    justifyContent: 'center',
-    gap: '1rem',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '0.5rem',
   },
   radioLabel: {
     display: 'flex',
