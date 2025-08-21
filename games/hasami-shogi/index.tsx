@@ -87,45 +87,42 @@ const HasamiShogi: React.FC = () => {
 
   const winner = gameState.winner;
   const turnText = gameState.currentPlayer === 'PLAYER1'
-    ? '歩のばん'
+    ? '「歩」のばん'
     : <span style={{display: 'inline-flex', alignItems: 'center', color: '#e53e3e'}}>
-        <span>と</span>
-        <span style={{color: 'black'}}>&nbsp;のばん</span>
+        <span>「と」のばん</span>
       </span>;
 
   return (
     <div style={styles.container}>
       <div style={styles.winConditionSelector} data-testid="win-condition-selector">
-        <h2 style={styles.winConditionTitle}>勝利条件</h2>
+        <h2 style={styles.winConditionTitle}>かちかたのルール</h2>
         <div style={styles.radioGroup}>
           <label style={styles.radioLabel}>
             <input type="radio" name="win-condition" value="standard" checked={gameState.winCondition === 'standard'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            スタンダード (5枚先取 or 3枚差)
+            ふつうのルール
           </label>
           <label style={styles.radioLabel}>
             <input type="radio" name="win-condition" value="five_captures" checked={gameState.winCondition === 'five_captures'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            5枚先取
+            ５こさきどり
           </label>
           <label style={styles.radioLabel}>
             <input type="radio" name="win-condition" value="total_capture" checked={gameState.winCondition === 'total_capture'} onChange={onWinConditionChange} disabled={isGameStarted} />
-            全取り (相手を残り1枚に)
+            ぜんぶとる
           </label>
         </div>
       </div>
 
       <div style={styles.infoPanel}>
-        <div style={styles.score}>
-          <span>取った駒:</span>
+        <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-start'}}>
           <IndicatorPiece player="PLAYER2" />
-          <span data-testid="opponent-score">x {gameState.capturedPieces.PLAYER1}</span>
+          <span data-testid="opponent-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER1}</span>
         </div>
-        <div data-testid="turn-indicator" style={styles.turnIndicator}>
-          {winner ? 'ゲーム終了' : turnText}
+        <div data-testid="turn-indicator" style={{...styles.turnIndicator, ...styles.infoPanelItem}}>
+          {winner ? 'おしまい' : turnText}
         </div>
-        <div style={styles.score}>
-          <span>取った駒:</span>
+        <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-end'}}>
           <IndicatorPiece player="PLAYER1" />
-          <span data-testid="player-score">x {gameState.capturedPieces.PLAYER2}</span>
+          <span data-testid="player-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER2}</span>
         </div>
       </div>
 
@@ -165,16 +162,16 @@ const HasamiShogi: React.FC = () => {
       {winner && (
         <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
           <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
+            <h2 style={styles.gameOverTitle}>おしまい</h2>
             <div data-testid="winner-message" style={styles.winnerText}>
               {winner === 'PLAYER1'
                  ? <IndicatorPiece player="PLAYER1" />
                  : <IndicatorPiece player="PLAYER2" />
               }
-              <span>の勝ち!</span>
+              <span>のかち！</span>
             </div>
             <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
-              もう一度プレイ
+              もういちど
             </button>
           </div>
         </div>
@@ -222,11 +219,19 @@ const styles: { [key: string]: CSSProperties } = {
   },
   infoPanel: {
     display: 'flex',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    width: '360px',
+    width: '100%',
+    maxWidth: '400px',
     marginBottom: '1rem',
     fontSize: '1.2rem',
+  },
+  infoPanelItem: {
+    width: '33%',
+    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   score: {
     display: 'flex',
