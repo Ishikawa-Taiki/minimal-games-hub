@@ -9,10 +9,12 @@ import {
   BoardCard,
   Suit,
   Player,
+  Difficulty,
 } from './core';
 
 const Concentration = () => {
-  const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [gameState, setGameState] = useState<GameState>(createInitialState(difficulty));
   const [showHints, setShowHints] = useState(false);
 
   useEffect(() => {
@@ -31,8 +33,16 @@ const Concentration = () => {
   };
 
   const handleReset = () => {
-    setGameState(createInitialState());
+    setGameState(createInitialState(difficulty));
   };
+
+  const handleDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDifficulty = e.target.value as Difficulty;
+    setDifficulty(newDifficulty);
+    setGameState(createInitialState(newDifficulty));
+  };
+
+  const isGameStarted = gameState.flippedIndices.length > 0 || gameState.revealedIndices.length > 0 || gameState.scores.player1 > 0 || gameState.scores.player2 > 0;
 
   const getStatusMessage = (): string => {
     switch (gameState.status) {
@@ -80,8 +90,16 @@ const Concentration = () => {
 
   const getCardStyle = (card: BoardCard, index: number): CSSProperties => {
     const style = { ...styles.card };
+    const isFlippedInTurn = gameState.flippedIndices.includes(index);
+
     if (card.isFlipped) {
       style.backgroundColor = styles.cardFace.backgroundColor;
+
+      // 1枚目選択時の強調表示
+      if (gameState.flippedIndices.length === 1 && isFlippedInTurn) {
+        Object.assign(style, styles.cardSelected);
+      }
+
     } else if (showHints && gameState.hintedIndices.includes(index)) {
       style.backgroundColor = styles.cardHintStrong.backgroundColor;
     } else if (showHints && gameState.revealedIndices.includes(index)) {
@@ -98,22 +116,51 @@ const Concentration = () => {
     return style;
   };
 
+  const getBoardStyle = (): CSSProperties => {
+    const columns = {
+      easy: 5,
+      normal: 8,
+      hard: 9,
+    };
+    return {
+      ...styles.board,
+      gridTemplateColumns: `repeat(${columns[difficulty]}, 1fr)`,
+    };
+  };
+
   return (
     <div style={styles.container}>
+      <div style={styles.difficultySelector} data-testid="difficulty-selector">
+        <h2 style={styles.difficultyTitle}>難易度選択</h2>
+        <div style={styles.radioGroup}>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            かんたん
+          </label>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            ふつう
+          </label>
+          <label style={styles.radioLabel}>
+            <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            むずかしい
+          </label>
+        </div>
+      </div>
       <div style={styles.statusBar}>
         <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer1}} data-testid="score-player1">
           <p>プレイヤー1</p>
-          <p>{gameState.scores.player1}</p>
+          <p style={styles.scoreText}>{gameState.scores.player1}</p>
         </div>
         <div style={styles.turnBox} data-testid="status-message">
           <p>{getStatusMessage()}</p>
         </div>
         <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer2}} data-testid="score-player2">
            <p>プレイヤー2</p>
-           <p>{gameState.scores.player2}</p>
+           <p style={styles.scoreText}>{gameState.scores.player2}</p>
         </div>
       </div>
-      <div style={styles.board}>
+      <div style={getBoardStyle()}>
         {gameState.board.map((card, index) => (
           <CardComponent key={card.id} card={card} index={index} />
         ))}
@@ -147,6 +194,31 @@ const styles: { [key: string]: CSSProperties } = {
     padding: '10px',
     boxSizing: 'border-box',
   },
+  difficultySelector: {
+    marginBottom: '1.5rem',
+    padding: '1rem',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    backgroundColor: '#f7fafc',
+    width: '100%',
+  },
+  difficultyTitle: {
+    margin: '0 0 0.5rem 0',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  radioGroup: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '1rem',
+  },
+  radioLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.3rem',
+    cursor: 'pointer',
+  },
   statusBar: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -161,6 +233,10 @@ const styles: { [key: string]: CSSProperties } = {
     minWidth: '100px',
     border: '2px solid transparent',
     transition: 'all 0.3s',
+  },
+  scoreText: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
   },
   scoreBoxPlayer1: {
     backgroundColor: 'rgba(255, 182, 193, 0.5)',
@@ -199,6 +275,10 @@ const styles: { [key: string]: CSSProperties } = {
   },
   cardFace: {
     backgroundColor: '#ffffff',
+  },
+  cardSelected: {
+    boxShadow: '0 0 0 4px #3b82f6',
+    borderColor: '#3b82f6',
   },
   cardMatchedPlayer1: {
     backgroundColor: 'rgba(255, 182, 193, 0.5)', // Light Pink with transparency
@@ -248,7 +328,7 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: '#fef9c3', // light yellow
   },
   cardHintStrong: {
-    backgroundColor: '#fca5a5', // light red
+    backgroundColor: '#a7f3d0', // light green
   },
   gameOverOverlay: {
     position: 'fixed',

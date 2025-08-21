@@ -3,15 +3,16 @@ import {
   createInitialState,
   handleCardClick,
   clearNonMatchingFlippedCards,
+  calculateHintedIndices,
   GameState,
   Card,
 } from './core';
 
 describe('神経衰弱ゲームのコアロジック', () => {
   describe('createInitialState', () => {
-    it('54枚のカードを持つ初期ゲーム状態を正しく生成する', () => {
-      const state = createInitialState();
-      expect(state.board.length).toBe(54);
+    it('デフォルト（easy）で20枚のカードを持つ初期ゲーム状態を正しく生成する', () => {
+      const state = createInitialState(); // 'easy'
+      expect(state.board.length).toBe(20);
       expect(state.currentPlayer).toBe(1);
       expect(state.scores.player1).toBe(0);
       expect(state.scores.player2).toBe(0);
@@ -20,15 +21,36 @@ describe('神経衰弱ゲームのコアロジック', () => {
       expect(state.winner).toBeNull();
     });
 
-    it('Jokerが2枚含まれている', () => {
-      const state = createInitialState();
+    it('normal設定で40枚のカードを生成する', () => {
+      const state = createInitialState('normal');
+      expect(state.board.length).toBe(40);
+    });
+
+    it('hard設定で54枚のカードを生成する', () => {
+      const state = createInitialState('hard');
+      expect(state.board.length).toBe(54);
+    });
+
+
+    it('hard設定でJokerが2枚含まれている', () => {
+      const state = createInitialState('hard');
       const jokers = state.board.filter((card) => card.suit === 'Joker');
       expect(jokers.length).toBe(2);
     });
 
+    it('easy, normal設定ではJokerが含まれない', () => {
+      const easyState = createInitialState('easy');
+      const easyJokers = easyState.board.filter((card) => card.suit === 'Joker');
+      expect(easyJokers.length).toBe(0);
+
+      const normalState = createInitialState('normal');
+      const normalJokers = normalState.board.filter((card) => card.suit === 'Joker');
+      expect(normalJokers.length).toBe(0);
+    });
+
     it('デッキがシャッフルされている', () => {
-      const state1 = createInitialState();
-      const state2 = createInitialState();
+      const state1 = createInitialState('hard');
+      const state2 = createInitialState('hard');
       // 確率的に失敗する可能性はゼロではないが、実用上は十分
       expect(state1.board.map(c => c.id)).not.toEqual(state2.board.map(c => c.id));
     });
@@ -43,7 +65,7 @@ describe('神経衰弱ゲームのコアロジック', () => {
     });
 
     it('2枚のカードがマッチした時、スコアが加算され、カードはマッチ状態になる', () => {
-      let state = createInitialState();
+      let state = createInitialState('hard');
       // Jokerのペアを見つけて確実にテストする
       const jokerIndices = state.board
         .map((card, index) => (card.suit === 'Joker' ? index : -1))
@@ -62,8 +84,8 @@ describe('神経衰弱ゲームのコアロジック', () => {
       expect(state.status).toBe('player1_turn');
     });
 
-    it('同じランクで異なるスートのカードがマッチすること', () => {
-      let state = createInitialState();
+    it('同じランクで異なるスートのカードがマッチすること (normal)', () => {
+      let state = createInitialState('normal');
       // '01'ランクのカードを2枚探す
       const rankToTest = '01';
       const indices = state.board
@@ -72,7 +94,7 @@ describe('神経衰弱ゲームのコアロジック', () => {
         )
         .filter((index) => index !== -1);
 
-      // 4枚あるはず
+      // normalでは4枚あるはず
       expect(indices.length).toBe(4);
       const [index1, index2] = indices;
 
@@ -108,7 +130,7 @@ describe('神経衰弱ゲームのコアロジック', () => {
     });
 
     it('すでにマッチしたカードはクリックできない', () => {
-      let state = createInitialState();
+      let state = createInitialState('hard');
       // Jokerのペアを見つけて確実にマッチさせる
       const jokerIndices = state.board
         .map((card, index) => (card.suit === 'Joker' ? index : -1))
@@ -165,28 +187,33 @@ describe('神経衰弱ゲームのコアロジック', () => {
 
   describe('ゲーム終了判定', () => {
     it('全てのカードがマッチした時、ゲームが終了し勝者が決まる', () => {
-      let state = createInitialState();
+      let state = createInitialState('hard');
 
       // 全てのカードをプレイヤー1がマッチさせた状態をシミュレート
-      state.scores.player1 = 26;
+      const totalPairs = state.board.length / 2;
+      state.scores.player1 = totalPairs - 1;
       state.scores.player2 = 0;
-      state.board.forEach(card => card.isMatched = true);
-      // 最後の1ペアをマッチさせる
+
+      // 最後の1ペア以外をマッチ済みにする
+      state.board.forEach((card, i) => {
+        if (i > 1) card.isMatched = true;
+      });
       state.board[0].isMatched = false;
       state.board[1].isMatched = false;
-      state.board[0].matchId = 'test_pair';
-      state.board[1].matchId = 'test_pair';
+      // 最後のペアのmatchIdを同じにする
+      state.board[1].matchId = state.board[0].matchId;
+
 
       state = handleCardClick(state, 0);
       state = handleCardClick(state, 1);
 
       expect(state.status).toBe('game_over');
       expect(state.winner).toBe(1);
-      expect(state.scores.player1).toBe(27);
+      expect(state.scores.player1).toBe(totalPairs);
     });
   });
 
-  describe('ヒント機能のロジック', () => {
+  describe('ヒント機能のロジック (calculateHintedIndices)', () => {
     // Helper to find indices of cards with a specific rank
     const findCardIndicesByRank = (state: GameState, rank: Rank): number[] => {
       return state.board
@@ -195,49 +222,42 @@ describe('神経衰弱ゲームのコアロジック', () => {
     };
 
     it('ペア候補が1組だけでは、何もハイライトされない', () => {
-      let state = createInitialState();
-      const r1 = findCardIndicesByRank(state, '01');
+      const state = createInitialState('hard');
+      const r1_indices = findCardIndicesByRank(state, '01');
+      const revealedIndices = [r1_indices[0], r1_indices[1], 9, 10]; // 9, 10は無関係
 
-      // 2枚のカードを公開するが、ペアは1組だけ
-      state.revealedIndices = [r1[0], r1[1], 9, 10]; // 9, 10は無関係なカード
-
-      // クリックしてヒント計算をトリガー
-      state = handleCardClick(state, 11);
-
-      expect(state.hintedIndices).toEqual([]);
+      const hinted = calculateHintedIndices(state.board, revealedIndices);
+      expect(hinted).toEqual([]);
     });
 
     it('ペア候補が2組以上ある場合、対象のカードがハイライトされる', () => {
-      let state = createInitialState();
-      const r1 = findCardIndicesByRank(state, '01');
-      const r2 = findCardIndicesByRank(state, '02');
+      const state = createInitialState('hard');
+      const r1_indices = findCardIndicesByRank(state, '01');
+      const r2_indices = findCardIndicesByRank(state, '02');
+      const revealedIndices = [...r1_indices, ...r2_indices];
 
-      // 2組のペア候補を公開
-      state.revealedIndices = [r1[0], r1[1], r2[0], r2[1]];
+      const hinted = calculateHintedIndices(state.board, revealedIndices);
 
-      // クリックしてヒント計算をトリガー
-      state = handleCardClick(state, 11);
-
-      expect(state.hintedIndices).toHaveLength(4);
-      expect(state.hintedIndices).toEqual(expect.arrayContaining([r1[0], r1[1], r2[0], r2[1]]));
+      expect(hinted).toHaveLength(8); // 4枚 * 2組
+      expect(hinted).toEqual(expect.arrayContaining(revealedIndices));
     });
 
     it('ペアが成立すると、ハイライト対象から除外される', () => {
-      let state = createInitialState();
-      const r1 = findCardIndicesByRank(state, '01');
-      const r2 = findCardIndicesByRank(state, '02');
+      const state = createInitialState('hard');
+      const r1_indices = findCardIndicesByRank(state, '01');
+      const r2_indices = findCardIndicesByRank(state, '02');
 
-      // 2組のペア候補を公開
-      state.revealedIndices = [r1[0], r1[1], r2[0], r2[1]];
-      // 1組をマッチ済みにする
-      state.board[r1[0]].isMatched = true;
-      state.board[r1[1]].isMatched = true;
+      // r1をマッチ済みにする
+      state.board[r1_indices[0]].isMatched = true;
+      state.board[r1_indices[1]].isMatched = true;
+      state.board[r1_indices[2]].isMatched = true;
+      state.board[r1_indices[3]].isMatched = true;
 
-      // クリックしてヒント計算をトリガー
-      state = handleCardClick(state, 11);
+      const revealedIndices = [...r1_indices, ...r2_indices];
+      const hinted = calculateHintedIndices(state.board, revealedIndices);
 
-      // 残りのペア候補は1組だけなので、ヒントは表示されない
-      expect(state.hintedIndices).toEqual([]);
+      // r1は除外され、r2のペア候補は1組だけなので、ヒントは表示されない
+      expect(hinted).toEqual([]);
     });
   });
 });
