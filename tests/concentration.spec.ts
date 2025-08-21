@@ -20,6 +20,10 @@ test('concentration game navigation and core functionality', async ({ page }) =>
   await expect(page.getByTestId('score-player2')).toBeVisible();
   await expect(page.getByTestId('reset-button')).toBeVisible();
 
+  // 難易度を「むずかしい」に設定
+  await page.getByLabel('むずかしい').click();
+  await expect(page.locator('input[value="hard"]')).toBeChecked();
+
   // 54枚のカードが存在することを確認
   const cards = await page.locator('[data-testid^="card-"]').all();
   expect(cards.length).toBe(54);

@@ -1,4 +1,5 @@
 // 1. タイプ定義 (Type Definitions)
+export type Difficulty = 'easy' | 'normal' | 'hard';
 export type Suit = 'S' | 'H' | 'D' | 'C';
 export type Rank = '01' | '02' | '03' | '04' | '05' | '06' | '07' | '08' | '09' | '10' | '11' | '12' | '13';
 export type Player = 1 | 2;
@@ -44,7 +45,7 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 // This is now a pure function
-function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): number[] {
+export function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): number[] {
   const revealedAndUnmatched = new Map<string, number[]>();
   revealedIndices.forEach(index => {
     const card = board[index];
@@ -67,29 +68,46 @@ function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): 
 
 
 // 4. コアロジック (Core Logic)
-export function createInitialState(): GameState {
-  let idCounter = 0;
-  const standardCards: Card[] = [];
+export function createInitialState(difficulty: Difficulty = 'easy'): GameState {
+  const deck: Card[] = [];
+  let uniqueId = 0;
 
-  for (const suit of SUITS) {
-    for (const rank of RANKS) {
-      standardCards.push({
-        id: idCounter++,
-        suit,
-        rank,
-        matchId: `r${rank}`,
-      });
+  switch (difficulty) {
+    case 'easy': {
+      const suits: Suit[] = ['S', 'H'];
+      const ranks = RANKS.slice(0, 10);
+      for (const suit of suits) {
+        for (const rank of ranks) {
+          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
+        }
+      }
+      break;
+    }
+    case 'normal': {
+      const ranks = RANKS.slice(0, 10);
+      for (const suit of SUITS) {
+        for (const rank of ranks) {
+          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
+        }
+      }
+      break;
+    }
+    case 'hard':
+    default: {
+      for (const suit of SUITS) {
+        for (const rank of RANKS) {
+          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
+        }
+      }
+      deck.push({ id: uniqueId++, suit: 'Joker', rank: 'J', matchId: 'rJ' });
+      deck.push({ id: uniqueId++, suit: 'Joker', rank: 'J', matchId: 'rJ' });
+      break;
     }
   }
 
-  const jokers: Card[] = [
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
-    { id: idCounter++, suit: 'Joker', rank: 'J', matchId: 'rJ' },
-  ];
+  const shuffledDeck = shuffle(deck);
 
-  const deck = shuffle([...standardCards, ...jokers]);
-
-  const board: BoardCard[] = deck.map((card) => ({
+  const board: BoardCard[] = shuffledDeck.map((card) => ({
     ...card,
     isFlipped: false,
     isMatched: false,
