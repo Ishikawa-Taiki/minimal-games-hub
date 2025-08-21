@@ -25,7 +25,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
       // 現在のターン表示を確認
       const turnIndicator = page.locator('[data-testid="turn-indicator"]');
       const turnText = await turnIndicator.textContent();
-      expect(turnText).toContain('歩のばん');
+      expect(turnText).toContain('「歩」のばん');
 
       // 駒の数表示を確認
       const playerScore = page.locator('[data-testid="player-score"]');
@@ -89,7 +89,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
 
       // ターン表示が「とのばん」に変わることを確認
       const turnText = await turnIndicator.textContent() ?? '';
-      expect(turnText.replace(/\s/g, ' ')).toContain('と のばん');
+      expect(turnText).toContain('「と」のばん');
     });
 
     test('他の駒を飛び越えて移動することはできない', async ({ page }) => {
@@ -151,7 +151,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
 
       // ターンが相手になっていることを確認
       let turnIndicator = page.locator('[data-testid="turn-indicator"]');
-      await expect(turnIndicator).toContainText(/と\s*のばん/);
+      await expect(turnIndicator).toContainText('「と」のばん');
 
       // 「はじめから」ボタンをクリック
       await page.locator('[data-testid="reset-button"]').click();
@@ -160,7 +160,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
 
       // ターンが先手（歩）に戻っていることを確認
       turnIndicator = page.locator('[data-testid="turn-indicator"]');
-      await expect(turnIndicator).toContainText(/歩\s*のばん/);
+      await expect(turnIndicator).toContainText('「歩」のばん');
 
       // 駒の位置が初期配置に戻っていることを確認
       // (動かした駒が元の位置に戻っているか)
