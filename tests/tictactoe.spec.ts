@@ -111,4 +111,48 @@ describe('Tic-Tac-Toe Game', () => {
     // Check for hint color
     await expect(hintCell).toHaveCSS('background-color', 'rgb(254, 249, 195)'); // light yellow from styles.reachingCell
   });
+
+  describe('Game Over Modal', () => {
+    test('should show game over modal when a player wins', async ({ page }) => {
+      await page.locator('[data-testid="cell-0-0"]').click(); // O
+      await page.locator('[data-testid="cell-1-0"]').click(); // X
+      await page.locator('[data-testid="cell-0-1"]').click(); // O
+      await page.locator('[data-testid="cell-1-1"]').click(); // X
+      await page.locator('[data-testid="cell-0-2"]').click(); // O
+
+      await expect(page.locator('[data-testid="game-over-modal"]')).toBeVisible();
+      await expect(page.locator('[data-testid="winner-message"]')).toHaveText('勝者: O');
+    });
+
+    test('should show game over modal on a draw', async ({ page }) => {
+      await page.locator('[data-testid="cell-0-0"]').click(); // O
+      await page.locator('[data-testid="cell-0-1"]').click(); // X
+      await page.locator('[data-testid="cell-0-2"]').click(); // O
+      await page.locator('[data-testid="cell-1-1"]').click(); // X
+      await page.locator('[data-testid="cell-1-0"]').click(); // O
+      await page.locator('[data-testid="cell-1-2"]').click(); // X
+      await page.locator('[data-testid="cell-2-1"]').click(); // O
+      await page.locator('[data-testid="cell-2-0"]').click(); // X
+      await page.locator('[data-testid="cell-2-2"]').click(); // O
+
+      await expect(page.locator('[data-testid="game-over-modal"]')).toBeVisible();
+      await expect(page.locator('[data-testid="winner-message"]')).toHaveText('引き分け！');
+    });
+
+    test('should reset the game when "Play Again" is clicked', async ({ page }) => {
+      await page.locator('[data-testid="cell-0-0"]').click(); // O
+      await page.locator('[data-testid="cell-1-0"]').click(); // X
+      await page.locator('[data-testid="cell-0-1"]').click(); // O
+      await page.locator('[data-testid="cell-1-1"]').click(); // X
+      await page.locator('[data-testid="cell-0-2"]').click(); // O
+
+      await page.locator('[data-testid="play-again-button"]').click();
+
+      await expect(page.locator('[data-testid="game-over-modal"]')).not.toBeVisible();
+      await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
+      await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
+      const status = await page.getByTestId('status').textContent();
+      expect(status).toBe('現在のプレイヤー: O');
+    });
+  });
 });
