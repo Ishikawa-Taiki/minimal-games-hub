@@ -3,12 +3,11 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
-  Difficulty,
 } from './core';
 
-describe('stick-taking game core logic', () => {
+describe('棒消しゲームのコアロジック', () => {
   describe('createInitialState', () => {
-    it('should create a correct state for easy difficulty', () => {
+    it('かんたんモードで正しく初期化されること', () => {
       const state = createInitialState('easy');
       expect(state.rows.length).toBe(3);
       expect(state.rows[0].length).toBe(1);
@@ -18,13 +17,13 @@ describe('stick-taking game core logic', () => {
       expect(state.winner).toBeNull();
     });
 
-    it('should create a correct state for normal difficulty', () => {
+    it('ふつうモードで正しく初期化されること', () => {
       const state = createInitialState('normal');
       expect(state.rows.length).toBe(5);
       expect(state.rows[4].length).toBe(9);
     });
 
-    it('should create a correct state for hard difficulty', () => {
+    it('むずかしいモードで正しく初期化されること', () => {
       const state = createInitialState('hard');
       expect(state.rows.length).toBe(7);
       expect(state.rows[6].length).toBe(13);
@@ -32,7 +31,7 @@ describe('stick-taking game core logic', () => {
   });
 
   describe('selectStick', () => {
-    it('should allow selecting a single stick', () => {
+    it('1本の棒を選択できること', () => {
       let state = createInitialState('easy');
       const stickToSelect = state.rows[1][1];
       state = selectStick(state, 1, stickToSelect.id);
@@ -40,7 +39,7 @@ describe('stick-taking game core logic', () => {
       expect(state.selectedSticks[0]).toEqual({ row: 1, stickId: stickToSelect.id });
     });
 
-    it('should allow selecting multiple consecutive sticks', () => {
+    it('連続した複数の棒を選択できること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][1];
       const stick2 = state.rows[2][2];
@@ -57,7 +56,7 @@ describe('stick-taking game core logic', () => {
       );
     });
 
-    it('should reset selection when selecting from a different row', () => {
+    it('異なる段の棒を選択すると選択がリセットされること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[1][0];
       const stick2 = state.rows[2][0];
@@ -69,7 +68,7 @@ describe('stick-taking game core logic', () => {
       expect(state.selectedSticks[0]).toEqual({ row: 2, stickId: stick2.id });
     });
 
-    it('should deselect a stick if it is selected again', () => {
+    it('選択済みの棒を再度選択すると選択解除されること', () => {
       let state = createInitialState('easy');
       const stick = state.rows[1][0];
 
@@ -79,7 +78,7 @@ describe('stick-taking game core logic', () => {
       expect(state.selectedSticks).toHaveLength(0);
     });
 
-    it('should reset selection to the latest stick if non-consecutive stick is selected', () => {
+    it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][1];
       const stick2 = state.rows[2][3];
@@ -93,7 +92,7 @@ describe('stick-taking game core logic', () => {
   });
 
   describe('handleTakeSticks', () => {
-    it('should mark selected sticks as taken', () => {
+    it('選択した棒が消去されること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][1];
       const stick2 = state.rows[2][2];
@@ -108,23 +107,23 @@ describe('stick-taking game core logic', () => {
       expect(newState.selectedSticks).toHaveLength(0);
     });
 
-    it('should switch players after taking sticks', () => {
+    it('棒を消した後、プレイヤーが交代すること', () => {
       let state = createInitialState('easy');
       state = selectStick(state, 0, state.rows[0][0].id);
       const newState = handleTakeSticks(state);
       expect(newState.currentPlayer).toBe('Player 2');
     });
 
-    it('should declare a winner if the last stick is taken', () => {
+    it('最後の棒を取った場合に勝者が決まること', () => {
       let state = createInitialState('easy');
 
-      // Take all sticks except for one
+      // 最後の1本以外をすべて取得済みにする
       state.rows = state.rows.map(row =>
         row.map(stick => ({...stick, isTaken: true}))
       );
       state.rows[2][4].isTaken = false;
 
-      // Select the last stick
+      // 最後の1本を選択する
       const lastStick = state.rows[2][4];
       state = selectStick(state, 2, lastStick.id);
 

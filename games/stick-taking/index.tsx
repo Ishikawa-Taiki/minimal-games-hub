@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, CSSProperties, useEffect, useMemo } from 'react';
+import React, { useState, CSSProperties, useEffect } from 'react';
 import {
   Difficulty,
   GameState,
@@ -50,12 +50,12 @@ const StickTakingGame = () => {
 
   const renderDifficultyScreen = () => (
     <div style={styles.container}>
-      <h1 style={styles.title}>棒消しゲーム</h1>
-      <h2 style={styles.subtitle}>難易度を選択してください</h2>
+      <h1 style={styles.title}>ぼうけしゲーム</h1>
+      <h2 style={styles.subtitle}>むずかしさをえらんでね</h2>
       <div style={styles.difficultyButtons}>
-        <button style={styles.button} onClick={() => handleDifficultySelect('easy')}>かんたん (3段)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('normal')}>ふつう (5段)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('hard')}>むずかしい (7段)</button>
+        <button style={styles.button} onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</button>
+        <button style={styles.button} onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</button>
+        <button style={styles.button} onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</button>
       </div>
     </div>
   );
@@ -84,7 +84,7 @@ const StickTakingGame = () => {
 
     return (
       <div style={styles.container}>
-        <h2 style={styles.turnIndicator}>{gameState.winner ? 'ゲーム終了' : `${gameState.currentPlayer}のターン`}</h2>
+        <h2 style={styles.turnIndicator}>{gameState.winner ? 'おしまい！' : `${gameState.currentPlayer}のばん`}</h2>
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
@@ -97,17 +97,17 @@ const StickTakingGame = () => {
           onClick={handleTakeButtonClick}
           disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
         >
-          選択した棒を消す
+          えらんだぼうをとる
         </button>
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
             <div style={styles.gameOverModal}>
-              <h2 style={styles.gameOverTitle}>勝敗決定！</h2>
-              <p style={styles.winnerText}>勝者: {gameState.winner}</p>
-              <p style={styles.reasonText}>({gameState.currentPlayer}が最後の棒を取りました)</p>
+              <h2 style={styles.gameOverTitle}>けっか</h2>
+              <p style={styles.winnerText}>かったのは {gameState.winner}！</p>
+              <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
               <div style={styles.modalButtons}>
-                <button data-testid="play-again-button" style={styles.button} onClick={handlePlayAgain}>もう一度遊ぶ</button>
-                <button style={styles.button} onClick={handleBackToTitle}>タイトルへ戻る</button>
+                <button data-testid="play-again-button" style={styles.button} onClick={handlePlayAgain}>もういっかい</button>
+                <button style={styles.button} onClick={handleBackToTitle}>タイトルにもどる</button>
               </div>
             </div>
           </div>
