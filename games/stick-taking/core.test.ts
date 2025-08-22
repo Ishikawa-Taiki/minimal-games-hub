@@ -11,8 +11,8 @@ describe('棒消しゲームのコアロジック', () => {
       const state = createInitialState('easy');
       expect(state.rows.length).toBe(3);
       expect(state.rows[0].length).toBe(1);
-      expect(state.rows[1].length).toBe(3);
-      expect(state.rows[2].length).toBe(5);
+      expect(state.rows[1].length).toBe(2);
+      expect(state.rows[2].length).toBe(3);
       expect(state.currentPlayer).toBe('プレイヤー1');
       expect(state.winner).toBeNull();
     });
@@ -20,13 +20,13 @@ describe('棒消しゲームのコアロジック', () => {
     it('ふつうモードで正しく初期化されること', () => {
       const state = createInitialState('normal');
       expect(state.rows.length).toBe(5);
-      expect(state.rows[4].length).toBe(9);
+      expect(state.rows[4].length).toBe(5);
     });
 
     it('むずかしいモードで正しく初期化されること', () => {
       const state = createInitialState('hard');
       expect(state.rows.length).toBe(7);
-      expect(state.rows[6].length).toBe(13);
+      expect(state.rows[6].length).toBe(7);
     });
   });
 
@@ -80,8 +80,8 @@ describe('棒消しゲームのコアロジック', () => {
 
     it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
       let state = createInitialState('easy');
-      const stick1 = state.rows[2][1];
-      const stick2 = state.rows[2][3];
+      const stick1 = state.rows[2][0];
+      const stick2 = state.rows[2][2];
 
       state = selectStick(state, 2, stick1.id);
       state = selectStick(state, 2, stick2.id);
@@ -121,10 +121,10 @@ describe('棒消しゲームのコアロジック', () => {
       state.rows = state.rows.map(row =>
         row.map(stick => ({...stick, isTaken: true}))
       );
-      state.rows[2][4].isTaken = false;
+      state.rows[2][2].isTaken = false;
 
       // 最後の1本を選択する
-      const lastStick = state.rows[2][4];
+      const lastStick = state.rows[2][2];
       state = selectStick(state, 2, lastStick.id);
 
       const newState = handleTakeSticks(state);

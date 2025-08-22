@@ -15,7 +15,7 @@ test.describe('棒消しゲーム', () => {
   test('難易度を選択するとゲームが開始されること', async ({ page }) => {
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
     await expect(page.getByRole('heading', { name: "プレイヤー1のばん" })).toBeVisible();
-    await expect(page.locator('[data-testid^="stick-"]')).toHaveCount(9);
+    await expect(page.locator('[data-testid^="stick-"]')).toHaveCount(6);
   });
 
   test('棒を取るとターンが交代すること', async ({ page }) => {
@@ -41,25 +41,22 @@ test.describe('棒消しゲーム', () => {
     test.slow();
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
 
-    // 1段目の棒をすべて取る
-    await page.locator('[data-testid^="row-0"] > div').nth(0).click();
+    // P1: 3段目の棒を1本取る
+    await page.locator('[data-testid="row-2"] > div').nth(0).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    // 2段目の棒をすべて取る
-    await page.locator('[data-testid^="row-1"] > div').nth(0).click();
-    await page.locator('[data-testid^="row-1"] > div').nth(1).click();
-    await page.locator('[data-testid^="row-1"] > div').nth(2).click();
+    // P2: 3段目の残りの棒を2本取る
+    await page.locator('[data-testid="row-2"] > div').nth(1).click();
+    await page.locator('[data-testid="row-2"] > div').nth(2).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    // 3段目の棒を4本取る
-    await page.locator('[data-testid^="row-2"] > div').nth(0).click();
-    await page.locator('[data-testid^="row-2"] > div').nth(1).click();
-    await page.locator('[data-testid^="row-2"] > div').nth(2).click();
-    await page.locator('[data-testid^="row-2"] > div').nth(3).click();
+    // P1: 2段目の棒を2本取る
+    await page.locator('[data-testid="row-1"] > div').nth(0).click();
+    await page.locator('[data-testid="row-1"] > div').nth(1).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    // 最後の1本を取る
-    await page.locator('[data-testid^="row-2"] > div').nth(4).click();
+    // P2: 1段目の最後の棒を取る
+    await page.locator('[data-testid="row-0"] > div').nth(0).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
     await expect(page.getByTestId('game-over-modal')).toBeVisible();
@@ -74,7 +71,7 @@ test.describe('棒消しゲーム', () => {
     const stickSelector = '[data-testid^="row-"] > div[style*="background-color: rgb(139, 69, 19)"]';
 
     // ゲームが終了するまでループ
-    for (let i = 0; i < 9; i++) { // 9ターンあれば必ず終わる
+    for (let i = 0; i < 6; i++) { // 6ターンあれば必ず終わる
       const modalVisible = await page.getByTestId('game-over-modal').isVisible();
       if (modalVisible) break;
 
