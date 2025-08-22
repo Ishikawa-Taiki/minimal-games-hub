@@ -14,6 +14,8 @@ const StickTakingGame = () => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
 
   useEffect(() => {
     if (gameState?.winner) {
@@ -32,6 +34,42 @@ const StickTakingGame = () => {
     }
   };
 
+  const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
+    setIsDragging(true);
+    const stick = gameState?.rows[rowIndex].find(s => s.id === stickId);
+    if (!stick || stick.isTaken) return;
+
+    const isSelected = gameState?.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
+    const currentDragAction = isSelected ? 'deselect' : 'select';
+    setDragAction(currentDragAction);
+
+    // Apply the initial action immediately
+    if (gameState) {
+      setGameState(selectStick(gameState, rowIndex, stickId));
+    }
+  };
+
+  const handleStickInteractionMove = (rowIndex: number, stickId: number) => {
+    if (isDragging && gameState) {
+      const stick = gameState.rows[rowIndex].find(s => s.id === stickId);
+      if (!stick || stick.isTaken) return;
+
+      const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
+
+      if (dragAction === 'select' && !isSelected) {
+        setGameState(selectStick(gameState, rowIndex, stickId));
+      } else if (dragAction === 'deselect' && isSelected) {
+        setGameState(selectStick(gameState, rowIndex, stickId));
+      }
+    }
+  };
+
+  const handleInteractionEnd = () => {
+    setIsDragging(false);
+    setDragAction(null);
+  };
+
+
   const handleTakeButtonClick = () => {
     if (gameState && gameState.selectedSticks.length > 0) {
       setGameState(handleTakeSticks(gameState));
@@ -45,7 +83,7 @@ const StickTakingGame = () => {
   };
 
   const handleBackToTitle = () => {
-    window.location.href = '/';
+    window.location.reload();
   };
 
   const renderDifficultyScreen = () => (
@@ -67,14 +105,38 @@ const StickTakingGame = () => {
       ...(stick.isTaken ? styles.takenStick : {}),
       ...(isSelected ? styles.selectedStick : {}),
     };
+
+    const strikeThroughStyle = {
+      ...styles.strikeThrough,
+      backgroundColor: stick.takenBy === 'プレイヤー1' ? '#ff4136' : '#0074d9',
+    };
+
     return (
       <div
         key={stick.id}
-        data-testid={`stick-${rowIndex}-${stickIndex}`}
+        data-testid={`stick-${rowIndex}-${stick.id}`}
         style={stickStyle}
         onClick={() => handleStickClick(rowIndex, stick.id)}
+        onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
+        onMouseEnter={() => handleStickInteractionMove(rowIndex, stick.id)}
+        onMouseUp={handleInteractionEnd}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          handleStickInteractionStart(rowIndex, stick.id);
+        }}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const element = document.elementFromPoint(touch.clientX, touch.clientY);
+          if (element && element.getAttribute('data-testid')?.startsWith('stick-')) {
+            const [_, rowStr, stickIdStr] = element.getAttribute('data-testid')!.split('-');
+            handleStickInteractionMove(parseInt(rowStr), parseInt(stickIdStr));
+          }
+        }}
+        onTouchEnd={handleInteractionEnd}
+        onMouseLeave={isDragging ? undefined : handleInteractionEnd}
       >
-        {stick.isTaken && <div style={styles.strikeThrough}></div>}
+        {stick.isTaken && <div style={strikeThroughStyle}></div>}
       </div>
     );
   };
@@ -82,9 +144,14 @@ const StickTakingGame = () => {
   const renderGameScreen = () => {
     if (!gameState) return null;
 
+    const turnIndicatorStyle = {
+      ...styles.turnIndicator,
+      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
+    };
+
     return (
-      <div style={styles.container}>
-        <h2 style={styles.turnIndicator}>{gameState.winner ? 'おしまい！' : `${gameState.currentPlayer}のばん`}</h2>
+      <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
+        <h2 style={turnIndicatorStyle}>{gameState.winner ? 'おしまい！' : `${gameState.currentPlayer}のばん`}</h2>
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
@@ -155,6 +222,7 @@ const styles: { [key: string]: CSSProperties } = {
       fontSize: '1.8rem',
       marginBottom: '1rem',
       fontWeight: 'bold',
+      transition: 'color 0.3s',
     },
     board: {
       display: 'flex',
@@ -189,7 +257,7 @@ const styles: { [key: string]: CSSProperties } = {
         left: '-5px',
         right: '-5px',
         height: '4px',
-        backgroundColor: 'red',
+        // backgroundColor is now set dynamically
         transform: 'translateY(-50%)',
     },
     gameOverOverlay: {

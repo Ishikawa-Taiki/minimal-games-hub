@@ -1,9 +1,10 @@
-export type Player = 'Player 1' | 'Player 2';
+export type Player = 'プレイヤー1' | 'プレイヤー2';
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
 export interface Stick {
   id: number;
   isTaken: boolean;
+  takenBy: Player | null;
 }
 
 export interface GameState {
@@ -26,12 +27,13 @@ export function createInitialState(difficulty: Difficulty): GameState {
     return Array.from({ length: stickCount }, () => ({
       id: stickIdCounter++,
       isTaken: false,
+      takenBy: null,
     }));
   });
 
   return {
     rows,
-    currentPlayer: 'Player 1',
+    currentPlayer: 'プレイヤー1',
     winner: null,
     difficulty,
     selectedSticks: [],
@@ -102,11 +104,29 @@ export function handleTakeSticks(currentState: GameState): GameState {
     return currentState; // No move made
   }
 
+  // Ensure all selected sticks are in the same row and consecutive
+  const selectedRowIndex = selectedSticks[0].row;
+  const selectedStickIndices = selectedSticks
+    .map(s => rows[selectedRowIndex].findIndex(rs => rs.id === s.stickId))
+    .sort((a, b) => a - b);
+
+  const isConsecutive = selectedStickIndices.every((index, i) => i === 0 || index === selectedStickIndices[i-1] + 1);
+
+  if(!isConsecutive) {
+    // If not consecutive, this is an invalid move. Clear selection.
+    return {
+      ...currentState,
+      selectedSticks: [],
+    }
+  }
+
+
   const newRows = rows.map(row => row.map(stick => ({ ...stick })));
   selectedSticks.forEach(({ row, stickId }) => {
     const stick = newRows[row].find(s => s.id === stickId);
     if (stick) {
       stick.isTaken = true;
+      stick.takenBy = currentPlayer;
     }
   });
 
@@ -115,13 +135,13 @@ export function handleTakeSticks(currentState: GameState): GameState {
   let winner: Player | null = null;
   if (remainingSticks === 0) {
     // The current player took the last stick, so the other player wins.
-    winner = currentPlayer === 'Player 1' ? 'Player 2' : 'Player 1';
+    winner = currentPlayer === 'プレイヤー1' ? 'プレイヤー2' : 'プレイヤー1';
   }
 
   return {
     ...currentState,
     rows: newRows,
-    currentPlayer: winner ? currentState.currentPlayer : (currentPlayer === 'Player 1' ? 'Player 2' : 'Player 1'),
+    currentPlayer: winner ? currentState.currentPlayer : (currentPlayer === 'プレイヤー1' ? 'プレイヤー2' : 'プレイヤー1'),
     winner,
     selectedSticks: [],
   };
