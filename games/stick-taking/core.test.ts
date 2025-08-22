@@ -13,7 +13,7 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.rows[0].length).toBe(1);
       expect(state.rows[1].length).toBe(3);
       expect(state.rows[2].length).toBe(5);
-      expect(state.currentPlayer).toBe('Player 1');
+      expect(state.currentPlayer).toBe('プレイヤー1');
       expect(state.winner).toBeNull();
     });
 
@@ -111,7 +111,7 @@ describe('棒消しゲームのコアロジック', () => {
       let state = createInitialState('easy');
       state = selectStick(state, 0, state.rows[0][0].id);
       const newState = handleTakeSticks(state);
-      expect(newState.currentPlayer).toBe('Player 2');
+      expect(newState.currentPlayer).toBe('プレイヤー2');
     });
 
     it('最後の棒を取った場合に勝者が決まること', () => {
@@ -128,7 +128,7 @@ describe('棒消しゲームのコアロジック', () => {
       state = selectStick(state, 2, lastStick.id);
 
       const newState = handleTakeSticks(state);
-      expect(newState.winner).toBe('Player 2');
+      expect(newState.winner).toBe('プレイヤー2');
     });
   });
 });
