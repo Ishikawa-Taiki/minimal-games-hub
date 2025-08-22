@@ -20,6 +20,9 @@ const getGameComponent = (slug: string) => {
   if (slug === 'concentration') {
     return dynamic(() => import('../../../games/concentration/index'), { ssr: false });
   }
+  if (slug === 'stick-taking') {
+    return dynamic(() => import('../../../games/stick-taking/index'), { ssr: false });
+  }
   // Add other games here
   return null;
 };
