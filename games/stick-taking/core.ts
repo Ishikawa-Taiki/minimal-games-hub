@@ -16,9 +16,9 @@ export interface GameState {
 }
 
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
-  easy: [1, 3, 5],
-  normal: [1, 3, 5, 7, 9],
-  hard: [1, 3, 5, 7, 9, 11, 13],
+  easy: [1, 2, 3],
+  normal: [1, 2, 3, 4, 5],
+  hard: [1, 2, 3, 4, 5, 6, 7],
 };
 
 export function createInitialState(difficulty: Difficulty): GameState {
