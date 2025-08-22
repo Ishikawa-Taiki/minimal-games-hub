@@ -116,7 +116,6 @@ const StickTakingGame = () => {
         key={stick.id}
         data-testid={`stick-${rowIndex}-${stick.id}`}
         style={stickStyle}
-        onClick={() => handleStickClick(rowIndex, stick.id)}
         onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
         onMouseEnter={() => handleStickInteractionMove(rowIndex, stick.id)}
         onMouseUp={handleInteractionEnd}
