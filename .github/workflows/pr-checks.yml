@@ -26,14 +26,22 @@ jobs:
 
 
 
-      - name: Run tests
-        run: npm test
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
 
-      - name: Run lint
-        run: npm run lint
+      - name: Run license check
+        if: contains(steps.changed-files.outputs.all_changed_files, 'package-lock.json')
+        run: npm run test:license
+
+      - name: Run lint check
+        run: npm run test:lint
+
+      - name: Run unit tests
+        run: npm run test:unit
 
       - name: Build project
         run: npm run build
 
       - name: Run Playwright tests
-        run: npm run e2e
+        run: npm run test:e2e

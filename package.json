@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
+    "dev": "npm run update:license && next dev -H 0.0.0.0",
     "build": "node_modules/.bin/next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest",
+    "start": "npm run update:license && next start",
+    "test": "npm run test:lint && npm run test:license && npm run test:unit && npm run test:e2e",
+    "test:lint": "next lint",
+    "test:unit": "vitest",
     "test:ui": "vitest --ui",
-    "e2e": "npx playwright test",
+    "test:e2e": "npx playwright install && npx playwright test",
+    "test:license": "npx license-checker --production --summary --failOn \"GPL, AGPL\"",
     "gemini": "gemini",
-    "license-update": "npx license-checker --production --json | node scripts/license-update.js",
-    "prepare": "husky",
-    "postinstall": "npx playwright install && npm run license-update"
+    "update:license": "npx license-checker --production --json | node scripts/license-update.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
