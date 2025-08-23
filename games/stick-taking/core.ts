@@ -50,42 +50,34 @@ export function toggleHintVisibility(currentState: GameState): GameState {
 }
 
 export function getHintData(state: GameState) {
-  const remainingSticks = state.rows.flat().filter(stick => !stick.isTaken);
-  const remainingSticksCount = remainingSticks.length;
+  const remainingSticksCount = state.rows.flat().filter(stick => !stick.isTaken).length;
 
   if (remainingSticksCount === 0) {
     return {
       remainingSticksCount: 0,
-      shortestChunkSize: 0,
+      totalChunkCount: 0,
     };
   }
 
-  const chunks = state.rows
+  const totalChunkCount = state.rows
     .map(row => {
-      const rowChunks: number[] = [];
-      let currentChunkSize = 0;
+      let chunkCountInRow = 0;
+      let inChunk = false;
       row.forEach(stick => {
-        if (!stick.isTaken) {
-          currentChunkSize++;
-        } else {
-          if (currentChunkSize > 0) {
-            rowChunks.push(currentChunkSize);
-          }
-          currentChunkSize = 0;
+        if (!stick.isTaken && !inChunk) {
+          inChunk = true;
+          chunkCountInRow++;
+        } else if (stick.isTaken) {
+          inChunk = false;
         }
       });
-      if (currentChunkSize > 0) {
-        rowChunks.push(currentChunkSize);
-      }
-      return rowChunks;
+      return chunkCountInRow;
     })
-    .flat();
-
-  const shortestChunkSize = Math.min(...chunks);
+    .reduce((total, count) => total + count, 0);
 
   return {
     remainingSticksCount,
-    shortestChunkSize: isFinite(shortestChunkSize) ? shortestChunkSize : 0,
+    totalChunkCount,
   };
 }
 

@@ -182,7 +182,7 @@ const StickTakingGame = () => {
         {gameState.isHintVisible && (
           <div style={styles.hintBox} data-testid="hint-box">
             <p>のこりのぼう: {getHintData(gameState).remainingSticksCount}本</p>
-            <p>いちばんみじかいかたまり: {getHintData(gameState).shortestChunkSize}本</p>
+            <p>かたまりの数: {getHintData(gameState).totalChunkCount}個</p>
           </div>
         )}
         {showModal && (
