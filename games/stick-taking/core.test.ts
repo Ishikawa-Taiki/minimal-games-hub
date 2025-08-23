@@ -3,6 +3,8 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
+  toggleHintVisibility,
+  getHintData,
 } from './core';
 
 describe('棒消しゲームのコアロジック', () => {
@@ -129,6 +131,61 @@ describe('棒消しゲームのコアロジック', () => {
 
       const newState = handleTakeSticks(state);
       expect(newState.winner).toBe('プレイヤー2');
+    });
+  });
+
+  describe('ヒント機能', () => {
+    it('toggleHintVisibilityでヒントの表示・非表示が切り替わること', () => {
+      let state = createInitialState('easy');
+      expect(state.isHintVisible).toBe(false);
+
+      state = toggleHintVisibility(state);
+      expect(state.isHintVisible).toBe(true);
+
+      state = toggleHintVisibility(state);
+      expect(state.isHintVisible).toBe(false);
+    });
+
+    it('getHintDataが初期状態で正しい値を返すこと', () => {
+      const state = createInitialState('easy');
+      const hintData = getHintData(state);
+      expect(hintData.remainingSticksCount).toBe(6); // 1 + 2 + 3
+      expect(hintData.totalChunkCount).toBe(3); // 3段なので3つの塊
+    });
+
+    it('getHintDataが棒を取った後に正しい値を返すこと', () => {
+      let state = createInitialState('easy');
+      // 1段目の1本を取る
+      state = selectStick(state, 0, state.rows[0][0].id);
+      state = handleTakeSticks(state);
+
+      const hintData = getHintData(state);
+      expect(hintData.remainingSticksCount).toBe(5); // 2 + 3
+      expect(hintData.totalChunkCount).toBe(2); // 2段目と3段目の2つ
+    });
+
+    it('getHintDataが1つの段が複数の塊に分かれた場合に正しく数えること', () => {
+      let state = createInitialState('hard'); // 1,2,3,4,5,6,7
+
+      // 3段目(3本)の真ん中を取る -> 1, 2, (1,1), 4, 5, 6, 7
+      state = selectStick(state, 2, state.rows[2][1].id);
+      state = handleTakeSticks(state);
+
+      const hintData = getHintData(state);
+      expect(hintData.remainingSticksCount).toBe(27); // 28 - 1
+      // 1, 2, (1,1), 4, 5, 6, 7 -> 1+1+2+1+1+1+1 = 8 chunks
+      expect(hintData.totalChunkCount).toBe(8);
+    });
+
+    it('getHintDataがすべての棒がなくなったときに0を返すこと', () => {
+      let state = createInitialState('easy');
+      state.rows = state.rows.map(row =>
+        row.map(stick => ({...stick, isTaken: true}))
+      );
+
+      const hintData = getHintData(state);
+      expect(hintData.remainingSticksCount).toBe(0);
+      expect(hintData.totalChunkCount).toBe(0);
     });
   });
 });

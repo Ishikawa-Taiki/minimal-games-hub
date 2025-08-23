@@ -13,6 +13,7 @@ export interface GameState {
   winner: Player | null;
   difficulty: Difficulty;
   selectedSticks: { row: number; stickId: number }[];
+  isHintVisible: boolean;
 }
 
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
@@ -37,6 +38,46 @@ export function createInitialState(difficulty: Difficulty): GameState {
     winner: null,
     difficulty,
     selectedSticks: [],
+    isHintVisible: false,
+  };
+}
+
+export function toggleHintVisibility(currentState: GameState): GameState {
+  return {
+    ...currentState,
+    isHintVisible: !currentState.isHintVisible,
+  };
+}
+
+export function getHintData(state: GameState) {
+  const remainingSticksCount = state.rows.flat().filter(stick => !stick.isTaken).length;
+
+  if (remainingSticksCount === 0) {
+    return {
+      remainingSticksCount: 0,
+      totalChunkCount: 0,
+    };
+  }
+
+  const totalChunkCount = state.rows
+    .map(row => {
+      let chunkCountInRow = 0;
+      let inChunk = false;
+      row.forEach(stick => {
+        if (!stick.isTaken && !inChunk) {
+          inChunk = true;
+          chunkCountInRow++;
+        } else if (stick.isTaken) {
+          inChunk = false;
+        }
+      });
+      return chunkCountInRow;
+    })
+    .reduce((total, count) => total + count, 0);
+
+  return {
+    remainingSticksCount,
+    totalChunkCount,
   };
 }
 
