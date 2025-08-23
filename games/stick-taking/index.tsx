@@ -11,7 +11,6 @@ import {
   toggleHintVisibility,
   getHintData,
 } from './core';
-import { HintIcon } from './HintIcon';
 
 const StickTakingGame = () => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
@@ -160,6 +159,31 @@ const StickTakingGame = () => {
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
         <h2 style={turnIndicatorStyle}>{gameState.winner ? 'おしまい！' : `${gameState.currentPlayer}のばん`}</h2>
+        <div style={styles.topBar}>
+          <div style={styles.hintBoxLeft}>
+            {gameState.isHintVisible && (
+              <div data-testid="hint-box-left">
+                <p>のこりのぼう</p>
+                <p style={styles.hintValue}>{getHintData(gameState).remainingSticksCount}本</p>
+              </div>
+            )}
+          </div>
+          <button
+            style={{...styles.button, ...styles.hintButton}}
+            onClick={handleToggleHint}
+            data-testid="hint-button"
+          >
+            ヒント: {gameState.isHintVisible ? 'ON' : 'OFF'}
+          </button>
+          <div style={styles.hintBoxRight}>
+            {gameState.isHintVisible && (
+              <div data-testid="hint-box-right">
+                <p>かたまりの数</p>
+                <p style={styles.hintValue}>{getHintData(gameState).totalChunkCount}個</p>
+              </div>
+            )}
+          </div>
+        </div>
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
@@ -175,16 +199,7 @@ const StickTakingGame = () => {
           >
             えらんだぼうをとる
           </button>
-          <button style={styles.iconButton} onClick={handleToggleHint} data-testid="hint-button">
-            <HintIcon color={gameState.isHintVisible ? '#4a90e2' : '#888'} />
-          </button>
         </div>
-        {gameState.isHintVisible && (
-          <div style={styles.hintBox} data-testid="hint-box">
-            <p>のこりのぼう: {getHintData(gameState).remainingSticksCount}本</p>
-            <p>かたまりの数: {getHintData(gameState).totalChunkCount}個</p>
-          </div>
-        )}
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
             <div style={styles.gameOverModal}>
@@ -322,18 +337,44 @@ const styles: { [key: string]: CSSProperties } = {
       gap: '1rem',
       marginBottom: '1rem',
     },
-    iconButton: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: '0.5rem',
+    hintButton: {
+      backgroundColor: '#6b7280',
+      padding: '0.5rem 1rem',
+      fontSize: '1rem',
     },
-    hintBox: {
+    topBar: {
+      position: 'absolute',
+      top: '1rem',
+      left: '1rem',
+      right: '1rem',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      width: 'calc(100% - 2rem)',
+      pointerEvents: 'none',
+    },
+    hintBoxLeft: {
+      textAlign: 'left',
       border: '2px solid #4a90e2',
-      padding: '1rem',
+      padding: '0.5rem 1rem',
       borderRadius: '8px',
       backgroundColor: '#eef5ff',
-    }
+      minWidth: '120px',
+      pointerEvents: 'auto',
+    },
+    hintBoxRight: {
+      textAlign: 'right',
+      border: '2px solid #4a90e2',
+      padding: '0.5rem 1rem',
+      borderRadius: '8px',
+      backgroundColor: '#eef5ff',
+      minWidth: '120px',
+      pointerEvents: 'auto',
+    },
+    hintValue: {
+      fontSize: '1.5rem',
+      fontWeight: 'bold',
+    },
   };
 
 export default StickTakingGame;
