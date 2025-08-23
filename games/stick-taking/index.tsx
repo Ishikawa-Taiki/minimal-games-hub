@@ -8,7 +8,10 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
+  toggleHintVisibility,
+  getHintData,
 } from './core';
+import { HintIcon } from './HintIcon';
 
 const StickTakingGame = () => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
@@ -73,6 +76,12 @@ const StickTakingGame = () => {
   const handleTakeButtonClick = () => {
     if (gameState && gameState.selectedSticks.length > 0) {
       setGameState(handleTakeSticks(gameState));
+    }
+  };
+
+  const handleToggleHint = () => {
+    if (gameState) {
+      setGameState(toggleHintVisibility(gameState));
     }
   };
 
@@ -158,13 +167,24 @@ const StickTakingGame = () => {
             </div>
           ))}
         </div>
-        <button
-          style={styles.button}
-          onClick={handleTakeButtonClick}
-          disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
-        >
-          えらんだぼうをとる
-        </button>
+        <div style={styles.controls}>
+          <button
+            style={styles.button}
+            onClick={handleTakeButtonClick}
+            disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
+          >
+            えらんだぼうをとる
+          </button>
+          <button style={styles.iconButton} onClick={handleToggleHint} data-testid="hint-button">
+            <HintIcon color={gameState.isHintVisible ? '#4a90e2' : '#888'} />
+          </button>
+        </div>
+        {gameState.isHintVisible && (
+          <div style={styles.hintBox} data-testid="hint-box">
+            <p>のこりのぼう: {getHintData(gameState).remainingSticksCount}本</p>
+            <p>いちばんみじかいかたまり: {getHintData(gameState).shortestChunkSize}本</p>
+          </div>
+        )}
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
             <div style={styles.gameOverModal}>
@@ -295,6 +315,24 @@ const styles: { [key: string]: CSSProperties } = {
       display: 'flex',
       gap: '1rem',
       marginTop: '1rem',
+    },
+    controls: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '1rem',
+      marginBottom: '1rem',
+    },
+    iconButton: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: '0.5rem',
+    },
+    hintBox: {
+      border: '2px solid #4a90e2',
+      padding: '1rem',
+      borderRadius: '8px',
+      backgroundColor: '#eef5ff',
     }
   };
 

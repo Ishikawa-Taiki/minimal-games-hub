@@ -13,6 +13,7 @@ export interface GameState {
   winner: Player | null;
   difficulty: Difficulty;
   selectedSticks: { row: number; stickId: number }[];
+  isHintVisible: boolean;
 }
 
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
@@ -37,6 +38,54 @@ export function createInitialState(difficulty: Difficulty): GameState {
     winner: null,
     difficulty,
     selectedSticks: [],
+    isHintVisible: false,
+  };
+}
+
+export function toggleHintVisibility(currentState: GameState): GameState {
+  return {
+    ...currentState,
+    isHintVisible: !currentState.isHintVisible,
+  };
+}
+
+export function getHintData(state: GameState) {
+  const remainingSticks = state.rows.flat().filter(stick => !stick.isTaken);
+  const remainingSticksCount = remainingSticks.length;
+
+  if (remainingSticksCount === 0) {
+    return {
+      remainingSticksCount: 0,
+      shortestChunkSize: 0,
+    };
+  }
+
+  const chunks = state.rows
+    .map(row => {
+      const rowChunks: number[] = [];
+      let currentChunkSize = 0;
+      row.forEach(stick => {
+        if (!stick.isTaken) {
+          currentChunkSize++;
+        } else {
+          if (currentChunkSize > 0) {
+            rowChunks.push(currentChunkSize);
+          }
+          currentChunkSize = 0;
+        }
+      });
+      if (currentChunkSize > 0) {
+        rowChunks.push(currentChunkSize);
+      }
+      return rowChunks;
+    })
+    .flat();
+
+  const shortestChunkSize = Math.min(...chunks);
+
+  return {
+    remainingSticksCount,
+    shortestChunkSize: isFinite(shortestChunkSize) ? shortestChunkSize : 0,
   };
 }
 
