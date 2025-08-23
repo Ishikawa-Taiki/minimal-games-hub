@@ -224,7 +224,9 @@ describe('神経衰弱ゲームのコアロジック', () => {
     it('ペア候補が1組だけでは、何もハイライトされない', () => {
       const state = createInitialState('hard');
       const r1_indices = findCardIndicesByRank(state, '01');
-      const revealedIndices = [r1_indices[0], r1_indices[1], 9, 10]; // 9, 10は無関係
+      const r2_indices = findCardIndicesByRank(state, '02');
+      const r3_indices = findCardIndicesByRank(state, '03');
+      const revealedIndices = [r1_indices[0], r1_indices[1], r2_indices[0], r3_indices[0]];
 
       const hinted = calculateHintedIndices(state.board, revealedIndices);
       expect(hinted).toEqual([]);
