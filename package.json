@@ -12,7 +12,7 @@
     "test:unit": "vitest",
     "test:unit-ui": "vitest --ui",
     "test:e2e": "npx playwright install && npx playwright test",
-    "test:e2e-ui": "npx playwright test --ui",
+    "test:e2e-ui": "npx playwright install && npx playwright test --ui",
     "gemini": "gemini",
     "update:license": "npx license-checker --production --json | node scripts/license-update.js",
     "prepare": "husky"
