@@ -168,13 +168,6 @@ const StickTakingGame = () => {
               </div>
             )}
           </div>
-          <button
-            style={{...styles.button, ...styles.hintButton}}
-            onClick={handleToggleHint}
-            data-testid="hint-button"
-          >
-            ヒント: {gameState.isHintVisible ? 'ON' : 'OFF'}
-          </button>
           <div style={styles.hintBoxRight}>
             {gameState.isHintVisible && (
               <div data-testid="hint-box-right">
@@ -198,6 +191,15 @@ const StickTakingGame = () => {
             disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
           >
             えらんだぼうをとる
+          </button>
+        </div>
+        <div style={styles.hintButtonContainer}>
+          <button
+            style={{...styles.button, ...styles.hintButton}}
+            onClick={handleToggleHint}
+            data-testid="hint-button"
+          >
+            ヒント: {gameState.isHintVisible ? 'ON' : 'OFF'}
           </button>
         </div>
         {showModal && (
@@ -341,6 +343,11 @@ const styles: { [key: string]: CSSProperties } = {
       backgroundColor: '#6b7280',
       padding: '0.5rem 1rem',
       fontSize: '1rem',
+    },
+    hintButtonContainer: {
+      position: 'absolute',
+      bottom: '1rem',
+      right: '1rem',
     },
     topBar: {
       position: 'absolute',
