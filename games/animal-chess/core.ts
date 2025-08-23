@@ -252,12 +252,19 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
         return dropPiece(state, currentPlayer, pieceType, { row, col });
     }
 
-    // 2. If a board piece was selected, try to move it
+    // 2. If a board piece was selected, try to move it or change selection
     if (selectedCell) {
         // Deselect if clicking the same piece
         if (selectedCell.row === row && selectedCell.col === col) {
             return { ...state, selectedCell: null, selectedCaptureIndex: null };
         }
+
+        const clickedPiece = state.board[row][col];
+        // If clicking on another one of current player's pieces, change selection
+        if (clickedPiece && clickedPiece.owner === currentPlayer) {
+            return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null };
+        }
+
         // Try to move
         return movePiece(state, selectedCell, { row, col });
     }

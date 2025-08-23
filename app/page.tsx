@@ -9,15 +9,21 @@ interface GameManifest {
 }
 
 async function getGames() {
-  const gamesDirectory = path.join(process.cwd(), 'games');
+  const gamesDirectory = path.join(process.cwd(), 'public', 'games');
   const gameFolders = await fs.readdir(gamesDirectory);
 
   const games = await Promise.all(
     gameFolders.map(async (gameFolder) => {
-      const manifestPath = path.join(gamesDirectory, gameFolder, 'manifest.json');
+      // fetch API を使用して manifest.json を読み込む
+      // Playwright の webServer で起動される URL を考慮
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''; // 環境に応じて変更
+      const manifestUrl = `${baseUrl}/games/${gameFolder}/manifest.json`;
       try {
-        const manifestContent = await fs.readFile(manifestPath, 'utf-8');
-        const manifest = JSON.parse(manifestContent) as GameManifest;
+        const response = await fetch(manifestUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch manifest for ${gameFolder}: ${response.statusText}`);
+        }
+        const manifest = await response.json() as GameManifest;
         return {
           slug: gameFolder,
           ...manifest,
