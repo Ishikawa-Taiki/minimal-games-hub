@@ -3,19 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run update:license && next dev -H 0.0.0.0",
-    "build": "node_modules/.bin/next build",
-    "start": "npm run update:license && next start",
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
     "test": "npm run test:lint && npm run test:license && npm run test:unit && npm run test:e2e",
     "test:lint": "next lint",
     "test:license": "npx license-checker --production --summary --failOn \"GPL, AGPL\"",
     "test:unit": "vitest",
     "test:unit-ui": "vitest --ui",
-    "test:e2e": "npx playwright install && npx playwright test",
-    "test:e2e-ui": "npx playwright install && npx playwright test --ui",
+    "test:e2e": "npx playwright test",
+    "test:e2e-ui": "npx playwright test --ui",
     "gemini": "gemini",
     "update:license": "npx license-checker --production --json | node scripts/license-update.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "npx playwright install && npm run update:license"
   },
   "dependencies": {
     "autoprefixer": "^10.4.21",
