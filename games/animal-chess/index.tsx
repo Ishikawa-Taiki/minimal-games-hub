@@ -243,7 +243,7 @@ const styles: { [key: string]: CSSProperties } = {
     borderColor: 'gold',
     boxShadow: '0 0 10px gold',
   },
-  controls:.
+  controls: {
     textAlign: 'center',
     marginTop: '10px',
   },
