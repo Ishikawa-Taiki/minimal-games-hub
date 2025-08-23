@@ -1,16 +1,14 @@
-import type { NextConfig } from "next";
-
-// 'npm run build'時は'production'、'npm run dev'時は'development'になる
+/** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
 
-const nextConfig: NextConfig = {
-  output: 'export',
-  // 本番ビルド時（GitHub Pagesデプロイ時）のみ、リポジトリ名をパスに含める
-  // CI環境ではテストのためにbasePathを無効化する
-  basePath: isProd ? '/minimal-games-hub' : undefined,
-  assetPrefix: isProd ? '/minimal-games-hub/' : undefined,
-  trailingSlash: true,
-  /* config options here */
+const nextConfig = {
+  output: isProd ? 'export' : undefined,
+  distDir: isProd ? 'out' : '.next',
+  assetPrefix: process.env.GITHUB_ACTIONS && '/minimal-games-hub',
+  basePath: process.env.GITHUB_ACTIONS && '/minimal-games-hub',
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
