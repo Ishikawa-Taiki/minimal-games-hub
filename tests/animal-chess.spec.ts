@@ -1,21 +1,34 @@
 import { test, expect } from '@playwright/test';
 
-test('Animal Chess Game ページにアクセスすると、タイトルが正しく表示される', async ({ page }) => {
+// 各テストの前にゲームをリセット
+test.beforeEach(async ({ page }) => {
   await page.goto('/games/animal-chess');
+  await page.waitForLoadState('networkidle');
+  // リセットボタンが存在することを確認してからクリック
+  const resetButton = page.locator('button:has-text("リセット")');
+  if (await resetButton.isVisible()) { // リセットボタンが存在する場合のみクリック
+    await resetButton.click();
+    await page.waitForLoadState('networkidle'); // リセット後のUI更新を待つ
+  }
+});
+
+test('Animal Chess Game ページにアクセスすると、タイトルが正しく表示される', async ({ page }) => {
   await expect(page).toHaveTitle(/アニマルチェス/);
 });
 
 test('盤面が正しく表示される', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
   // 3x4 の盤面なので、12個のセルが存在することを確認
   const cells = await page.locator('[data-testid^="cell-"]').all();
   expect(cells.length).toBe(12);
 });
 
 test('初期盤面と駒が正しく表示される', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
   // 先手の駒の初期配置
   await expect(page.locator('[data-testid="cell-3-0"]')).toHaveText('麒');
@@ -40,8 +53,9 @@ test('初期盤面と駒が正しく表示される', async ({ page }) => {
 });
 
 test('駒をクリックすると選択状態になり、背景色が変わること', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
   // styles.selectedCell.backgroundColor の色 (rgb(191, 219, 254))
   const selectedCellColor = /rgb\(191, 219, 254\)/;
@@ -63,8 +77,9 @@ test('駒をクリックすると選択状態になり、背景色が変わる�
 });
 
 test('選択した駒を有効なマスに移動できること', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
   // 先手の雛 (2,1) を (1,1) に移動
   const chickCell = page.locator('[data-testid="cell-2-1"]');
@@ -86,8 +101,9 @@ test('選択した駒を有効なマスに移動できること', async ({ page 
 });
 
 test('リセットボタンが機能すること', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
   // 駒を動かしてゲームの状態を変更
   const chickCell = page.locator('[data-testid="cell-2-1"]');
@@ -113,8 +129,9 @@ test('リセットボタンが機能すること', async ({ page }) => {
 });
 
 test('ヒントボタンが機能すること', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
   const hintButton = page.locator('button:has-text("ヒント")');
   const selectedCellColor = /rgb\(191, 219, 254\)/; // 選択中の色
@@ -144,41 +161,58 @@ test('ヒントボタンが機能すること', async ({ page }) => {
   await expect(page.locator('[data-testid="cell-1-1"]')).not.toHaveCSS('background-color', validMoveCellColor);
 });
 
-/*
 test('持ち駒を配置できること', async ({ page }) => {
-  await page.goto('/games/animal-chess');
-  await page.waitForLoadState('networkidle');
+  // beforeEach でページロードとリセットが行われるため、ここでは不要
+  // await page.goto('/games/animal-chess');
+  // await page.waitForLoadState('networkidle');
 
-  // 先手のライオン (3,1) を (2,1) に移動させて、後手の雛 (1,1) を捕獲する
-  // これにより、先手の持ち駒に雛が追加される
+  // --- 駒を捕獲して持ち駒を生成するシナリオ --- 
+
+  // 1. 先手のライオン (3,1) を (2,2) に移動 (空マスへの移動)
   const lionCell = page.locator('[data-testid="cell-3-1"]');
-  const targetCell = page.locator('[data-testid="cell-2-1"]'); // 雛の初期位置
-
-  // ライオンを選択して雛を捕獲
+  const emptyCell1 = page.locator('[data-testid="cell-2-2"]');
   await lionCell.click();
-  await targetCell.click();
+  await emptyCell1.click();
+  await expect(emptyCell1).toHaveText('獅'); // ライオンが移動したことを確認
+  await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible(); // ターン交代を確認
 
-  // プレイヤーが後手に変わっていることを確認
-  await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible();
+  // 2. 後手のキリン (0,2) を (1,2) に移動 (空マスへの移動)
+  const goteGiraffeCell = page.locator('[data-testid="cell-0-2"]');
+  const emptyCell2 = page.locator('[data-testid="cell-1-2"]');
+  await goteGiraffeCell.click();
+  await emptyCell2.click();
+  await expect(emptyCell2).toHaveText('麒'); // キリンが移動したことを確認
+  await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible(); // ターン交代を確認
 
-  // 先手の持ち駒に雛が追加されていることを確認
-  const senteCapturedChick = page.locator('text="先手の持ち駒"').locator('span:has-text("雛")');
-  await expect(senteCapturedChick).toBeVisible();
+  // 3. 先手のライオン (2,2) を (1,2) に移動させて、後手のキリン (1,2) を捕獲する
+  // これにより、先手の持ち駒にキリンが追加される
+  const movedLionCell = page.locator('[data-testid="cell-2-2"]');
+  const targetGiraffeCell = page.locator('[data-testid="cell-1-2"]'); // 捕獲対象のキリン
+  await movedLionCell.click();
+  await targetGiraffeCell.click();
+  await expect(targetGiraffeCell).toHaveText('獅'); // ライオンが移動したことを確認
+  await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible(); // ターン交代を確認
 
-  // 後手のターンで、先手の持ち駒の雛を選択し、空いているマス (0,0) に配置する
-  // 持ち駒の雛をクリック
-  await senteCapturedChick.click();
+  // 先手の持ち駒にキリンが追加されていることを確認
+  const senteCapturedGiraffe = page.locator('[data-testid="captured-piece-SENTE-GIRAFFE"]'); // セレクタ修正
+  await expect(senteCapturedGiraffe).toBeVisible();
+
+  // --- 持ち駒を配置するシナリオ ---
+
+  // 後手のターンで、先手の持ち駒のキリンを選択し、空いているマス (1,0) に配置する
+  // 持ち駒のキリンをクリック
+  await senteCapturedGiraffe.click();
 
   // 配置先のマスをクリック
-  const dropTargetCell = page.locator('[data-testid="cell-0-0"]'); // 空いているマス
+  const dropTargetCell = page.locator('[data-testid="cell-1-0"]'); // 空いているマスに変更
   await dropTargetCell.click();
 
-  // 雛が配置先に存在することを確認
-  await expect(dropTargetCell).toHaveText('雛');
-  // 先手の持ち駒から雛が減っていることを確認
-  await expect(senteCapturedChick).not.toBeVisible(); // 雛が消えていることを期待
+  // キリンが配置先に存在することを確認
+  await expect(dropTargetCell).toHaveText('麒');
+
+  // 先手の持ち駒からキリンが減っていることを確認
+  await expect(senteCapturedGiraffe).not.toBeVisible(); // キリンが消えていることを期待
 
   // プレイヤーが先手に変わっていることを確認
   await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
 });
-*/

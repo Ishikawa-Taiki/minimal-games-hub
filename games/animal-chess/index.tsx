@@ -20,6 +20,7 @@ import {
   ELEPHANT,
   CHICK,
   ROOSTER,
+  dropPiece, // dropPiece も core.ts からインポート
 } from './core';
 
 // 駒の表示用コンポーネント (SVGは後で実装)
@@ -44,10 +45,20 @@ const AnimalChessPage = () => {
   const [showHints, setShowHints] = useState(false); // ヒント表示状態
 
   // コンポーネント内のクリックハンドラ
-  const onCellClick = (row: number, col: number) => { // 名前を変更
-    const newState = coreHandleCellClick(gameState, row, col); // core.ts の関数を呼び出す
-    if (newState) {
-      setGameState(newState);
+  const onCellClick = (row: number, col: number) => {
+    // 持ち駒が選択されている場合
+    if (gameState.selectedCaptureIndex !== null) {
+      const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
+      const newState = dropPiece(gameState, gameState.currentPlayer, pieceType, { row, col });
+      if (newState) {
+        setGameState(newState);
+      }
+    } else {
+      // 盤面の駒が選択されている、または選択されていない場合
+      const newState = coreHandleCellClick(gameState, row, col);
+      if (newState) {
+        setGameState(newState);
+      }
     }
   };
 
@@ -121,6 +132,7 @@ const AnimalChessPage = () => {
               <button
                 key={`sente-${index}`}
                 style={styles.capturedPiece}
+                data-testid={`captured-piece-${SENTE}-${pieceType}`} // 追加
                 onClick={() => {
                   const newState = handleCaptureClick(gameState, SENTE, index);
                   if (newState) {
@@ -140,6 +152,7 @@ const AnimalChessPage = () => {
               <button
                 key={`gote-${index}`}
                 style={styles.capturedPiece}
+                data-testid={`captured-piece-${GOTE}-${pieceType}`} // 追加
                 onClick={() => {
                   const newState = handleCaptureClick(gameState, GOTE, index);
                   if (newState) {
