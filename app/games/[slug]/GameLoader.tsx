@@ -23,6 +23,9 @@ const getGameComponent = (slug: string) => {
   if (slug === 'stick-taking') {
     return dynamic(() => import('../../../games/stick-taking/index'), { ssr: false });
   }
+  if (slug === 'animal-chess') {
+    return dynamic(() => import('../../../games/animal-chess/index'), { ssr: false });
+  }
   // Add other games here
   return null;
 };
