@@ -49,7 +49,7 @@ const AnimalChessPage = () => {
     // 持ち駒が選択されている場合
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
-      const newState = dropPiece(gameState, gameState.currentPlayer, pieceType, { row, col });
+      const newState = dropPiece(gameState, gameState.selectedCaptureIndex.player, pieceType, { row, col });
       if (newState) {
         setGameState(newState);
       }
@@ -131,7 +131,10 @@ const AnimalChessPage = () => {
             {gameState.capturedPieces[SENTE].map((pieceType, index) => (
               <button
                 key={`sente-${index}`}
-                style={styles.capturedPiece}
+                style={{
+                  ...styles.capturedPiece,
+                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                }}
                 data-testid={`captured-piece-${SENTE}-${pieceType}`} // 追加
                 onClick={() => {
                   const newState = handleCaptureClick(gameState, SENTE, index);

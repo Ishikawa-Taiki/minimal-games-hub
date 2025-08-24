@@ -122,7 +122,7 @@ describe('Animal Chess Core Logic', () => {
   it('should return valid moves for a piece', () => {
     const state = createInitialState();
     const moves = getValidMoves(state, 3, 1); // SENTE LION
-    expect(moves.length).toBe(5); // Blocked by own pieces
+    expect(moves.length).toBe(2); // Blocked by own pieces
   });
 
   it('should return valid drop locations', () => {
