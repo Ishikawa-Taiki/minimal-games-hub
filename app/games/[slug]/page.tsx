@@ -5,7 +5,7 @@ import fs from 'fs'; // generateStaticParams で必要なので残す
 import { Metadata } from 'next'; // 追加
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export async function generateStaticParams() {
