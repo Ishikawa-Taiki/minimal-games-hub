@@ -33,8 +33,7 @@ async function getGameData(slug: string) {
 
 // generateMetadata 関数を追加
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const { slug } = params;
   const { manifest } = await getGameData(slug);
   return {
     title: manifest.displayName,
@@ -42,8 +41,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function GamePage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
+  const { slug } = params;
   const { manifest } = await getGameData(slug);
 
   return <GameClientPage manifest={manifest} slug={slug} />;
