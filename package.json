@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
     "test": "npm run test:lint && npm run test:license && npm run test:unit && npm run test:e2e",
     "test:lint": "next lint",
     "test:license": "npx license-checker --production --summary --failOn \"GPL, AGPL\"",

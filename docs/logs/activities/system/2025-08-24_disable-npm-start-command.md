@@ -1,0 +1,9 @@
+-   **日付:** 2025年8月24日
+-   **種別:** システム改修
+-   **概要:**
+    -   `package.json` から不要な `start` スクリプトを削除した。
+-   **詳細:**
+    -   本プロジェクトは静的エクスポート (`output: 'export'`) を採用しているため、`next start` コマンドは使用できない。
+    -   開発者の誤用を防ぐ目的で、`scripts` オブジェクトから `"start": "next start"` の記述を削除した。
+-   **関連ドキュメント:**
+    -   `docs/logs/decisions/2025-08-24_disable-npm-start-command.md`
