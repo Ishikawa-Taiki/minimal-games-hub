@@ -9,7 +9,7 @@ import {
   Piece,
   GameState,
   createInitialState,
-  handleCellClick as coreHandleCellClick, // core.ts の handleCellClick を別名でインポート
+  handleCellClick as coreHandleCellClick,
   handleCaptureClick,
   getValidMoves,
   getValidDrops,
@@ -20,21 +20,18 @@ import {
   ELEPHANT,
   CHICK,
   ROOSTER,
-  dropPiece, // dropPiece も core.ts からインポート
+  dropPiece,
 } from './core';
-
 import Image from 'next/image';
 
-// 画像ファイル名と駒タイプのマッピング
-const pieceImageMap: { [key in PieceType]: string } = {
-  [LION]: 'lion.png',
-  [GIRAFFE]: 'giraffe.png',
-  [ELEPHANT]: 'elephant.png',
-  [CHICK]: 'chick.png',
-  [ROOSTER]: 'chicken.png', // ROOSTER は chicken.png に対応
+const pieceImageMap: Record<PieceType, string> = {
+  LION: 'lion.png',
+  GIRAFFE: 'giraffe.png',
+  ELEPHANT: 'elephant.png',
+  CHICK: 'chick.png',
+  ROOSTER: 'chicken.png',
 };
 
-// 駒の表示用コンポーネント
 const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
@@ -56,11 +53,9 @@ const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
 
 const AnimalChessPage = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
-  const [showHints, setShowHints] = useState(false); // ヒント表示状態
+  const [showHints, setShowHints] = useState(false);
 
-  // コンポーネント内のクリックハンドラ
   const onCellClick = (row: number, col: number) => {
-    // 持ち駒が選択されている場合
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
       const newState = dropPiece(gameState, gameState.selectedCaptureIndex.player, pieceType, { row, col });
@@ -68,7 +63,6 @@ const AnimalChessPage = () => {
         setGameState(newState);
       }
     } else {
-      // 盤面の駒が選択されている、または選択されていない場合
       const newState = coreHandleCellClick(gameState, row, col);
       if (newState) {
         setGameState(newState);
@@ -82,9 +76,8 @@ const AnimalChessPage = () => {
 
   const getCellBackgroundColor = (row: number, col: number): string => {
     if (gameState.selectedCell && gameState.selectedCell.row === row && gameState.selectedCell.col === col) {
-      return styles.selectedCell.backgroundColor as string; // 選択中のセル
+      return styles.selectedCell.backgroundColor as string;
     }
-    // 有効な移動先をハイライト (ヒントONの場合)
     if (showHints) {
       const validMoves = gameState.selectedCell ? getValidMoves(gameState, gameState.selectedCell.row, gameState.selectedCell.col) : [];
       if (validMoves.some(move => move.row === row && move.col === col)) {
@@ -112,7 +105,7 @@ const AnimalChessPage = () => {
                 ...styles.cell,
                 backgroundColor: getCellBackgroundColor(rowIndex, colIndex),
               }}
-              onClick={() => onCellClick(rowIndex, colIndex)} // ここも変更
+              onClick={() => onCellClick(rowIndex, colIndex)}
             >
               {cell && <PieceDisplay piece={cell} />}
             </button>
@@ -149,7 +142,7 @@ const AnimalChessPage = () => {
                   ...styles.capturedPiece,
                   ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
                 }}
-                data-testid={`captured-piece-${SENTE}-${pieceType}`} // 追加
+                data-testid={`captured-piece-${SENTE}-${pieceType}`}
                 onClick={() => {
                   const newState = handleCaptureClick(gameState, SENTE, index);
                   if (newState) {
@@ -169,7 +162,7 @@ const AnimalChessPage = () => {
               <button
                 key={`gote-${index}`}
                 style={styles.capturedPiece}
-                data-testid={`captured-piece-${GOTE}-${pieceType}`} // 追加
+                data-testid={`captured-piece-${GOTE}-${pieceType}`}
                 onClick={() => {
                   const newState = handleCaptureClick(gameState, GOTE, index);
                   if (newState) {
@@ -187,7 +180,6 @@ const AnimalChessPage = () => {
   );
 };
 
-// styles オブジェクトを定義
 const styles: { [key: string]: CSSProperties } = {
   container: {
     display: 'flex',
@@ -276,6 +268,10 @@ const styles: { [key: string]: CSSProperties } = {
     padding: '0.25rem 0.5rem',
     backgroundColor: '#f3f4f6',
     borderRadius: '0.25rem',
+  },
+  selectedCapturedPiece: {
+    backgroundColor: '#bfdbfe',
+    boxShadow: '0 0 0 2px #3b82f6',
   },
 };
 

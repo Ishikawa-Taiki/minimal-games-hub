@@ -25,28 +25,38 @@ test('盤面が正しく表示される', async ({ page }) => {
   expect(cells.length).toBe(12);
 });
 
-test('初期盤面と駒が正しく表示される', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
+const expectPiece = async (page: any, cellTestId: string, pieceOwner: 'p1' | 'p2', pieceName: string) => {
+  const cell = page.locator(`[data-testid="${cellTestId}"]`);
+  const image = cell.locator('img');
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute('src', new RegExp(`/games/animal-chess/img/${pieceOwner}_${pieceName}.png`));
+  // alt属性のチェックを修正
+  await expect(image).toHaveAttribute('alt', new RegExp(`${pieceOwner === 'p1' ? 'SENTE' : 'GOTE'} ${pieceName.toUpperCase().replace('CHICKEN', 'ROOSTER')}`))
+};
 
+const expectEmpty = async (page: any, cellTestId: string) => {
+  const cell = page.locator(`[data-testid="${cellTestId}"]`);
+  await expect(cell.locator('img')).not.toBeVisible();
+};
+
+test('初期盤面と駒が正しく表示される', async ({ page }) => {
   // 先手の駒の初期配置
-  await expect(page.locator('[data-testid="cell-3-0"]')).toHaveText('麒');
-  await expect(page.locator('[data-testid="cell-3-1"]')).toHaveText('獅');
-  await expect(page.locator('[data-testid="cell-3-2"]')).toHaveText('象');
-  await expect(page.locator('[data-testid="cell-2-1"]')).toHaveText('雛');
+  await expectPiece(page, 'cell-3-0', 'p1', 'giraffe');
+  await expectPiece(page, 'cell-3-1', 'p1', 'lion');
+  await expectPiece(page, 'cell-3-2', 'p1', 'elephant');
+  await expectPiece(page, 'cell-2-1', 'p1', 'chick');
 
   // 後手の駒の初期配置
-  await expect(page.locator('[data-testid="cell-0-0"]')).toHaveText('象');
-  await expect(page.locator('[data-testid="cell-0-1"]')).toHaveText('獅');
-  await expect(page.locator('[data-testid="cell-0-2"]')).toHaveText('麒');
-  await expect(page.locator('[data-testid="cell-1-1"]')).toHaveText('雛');
+  await expectPiece(page, 'cell-0-0', 'p2', 'elephant');
+  await expectPiece(page, 'cell-0-1', 'p2', 'lion');
+  await expectPiece(page, 'cell-0-2', 'p2', 'giraffe');
+  await expectPiece(page, 'cell-1-1', 'p2', 'chick');
 
   // 空のセル
-  await expect(page.locator('[data-testid="cell-1-0"]')).toHaveText(''); // 空であることを確認
-  await expect(page.locator('[data-testid="cell-1-2"]')).toHaveText(''); // 空であることを確認
-  await expect(page.locator('[data-testid="cell-2-0"]')).toHaveText(''); // 空であることを確認
-  await expect(page.locator('[data-testid="cell-2-2"]')).toHaveText(''); // 空であることを確認
+  await expectEmpty(page, 'cell-1-0');
+  await expectEmpty(page, 'cell-1-2');
+  await expectEmpty(page, 'cell-2-0');
+  await expectEmpty(page, 'cell-2-2');
 
   // 現在のプレイヤー表示
   await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
@@ -92,9 +102,9 @@ test('選択した駒を有効なマスに移動できること', async ({ page 
   await destinationCell.click();
 
   // 雛が移動先に存在することを確認
-  await expect(destinationCell).toHaveText('雛');
+  await expectPiece(page, 'cell-1-1', 'p1', 'chick');
   // 元の場所が空になっていることを確認
-  await expect(chickCell).toHaveText('');
+  await expectEmpty(page, 'cell-2-1');
 
   // プレイヤーが後手に変わっていることを確認
   await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible();
@@ -122,10 +132,8 @@ test('リセットボタンが機能すること', async ({ page }) => {
   await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
 
   // 駒の位置が初期配置に戻っていることを確認
-  // cell-2-1 には先手の雛が戻る
-  await expect(page.locator('[data-testid="cell-2-1"]')).toHaveText('雛');
-  // cell-1-1 には後手の雛が戻る
-  await expect(page.locator('[data-testid="cell-1-1"]')).toHaveText('雛'); // 修正
+  await expectPiece(page, 'cell-2-1', 'p1', 'chick');
+  await expectPiece(page, 'cell-1-1', 'p2', 'chick');
 });
 
 test('ヒントボタンが機能すること', async ({ page }) => {
