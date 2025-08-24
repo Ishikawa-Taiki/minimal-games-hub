@@ -23,20 +23,34 @@ import {
   dropPiece, // dropPiece も core.ts からインポート
 } from './core';
 
-// 駒の表示用コンポーネント (SVGは後で実装)
+import Image from 'next/image';
+
+// 画像ファイル名と駒タイプのマッピング
+const pieceImageMap: { [key in PieceType]: string } = {
+  [LION]: 'lion.png',
+  [GIRAFFE]: 'giraffe.png',
+  [ELEPHANT]: 'elephant.png',
+  [CHICK]: 'chick.png',
+  [ROOSTER]: 'chicken.png', // ROOSTER は chicken.png に対応
+};
+
+// 駒の表示用コンポーネント
 const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
-  let pieceChar = '';
-  switch (piece.type) {
-    case LION: pieceChar = '獅'; break;
-    case GIRAFFE: pieceChar = '麒'; break;
-    case ELEPHANT: pieceChar = '象'; break;
-    case CHICK: pieceChar = '雛'; break;
-    case ROOSTER: pieceChar = '鶏'; break;
-  }
+  const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
+  const imageName = pieceImageMap[piece.type];
+  const imagePath = `/games/animal-chess/img/${playerPrefix}${imageName}`;
+
+  const imageStyle: CSSProperties = {
+    transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
+    width: '90%',
+    height: '90%',
+    objectFit: 'contain',
+  };
+
   return (
-    <span style={{ color: piece.owner === SENTE ? 'blue' : 'red' }}>
-      {pieceChar}
-    </span>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+      <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} width={60} height={60} style={imageStyle} />
+    </div>
   );
 };
 
