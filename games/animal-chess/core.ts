@@ -179,9 +179,9 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
     }
 
     const newBoard = state.board.map(row => [...row]);
-    const newCapturedPieces = {
-      [SENTE]: [...state.capturedPieces[SENTE]],
-      [GOTE]: [...state.capturedPieces[GOTE]],
+    const newCapturedPieces: CapturedPieces = {
+      SENTE: [...state.capturedPieces.SENTE],
+      GOTE: [...state.capturedPieces.GOTE],
     };
 
     const captured = newBoard[to.row][to.col];

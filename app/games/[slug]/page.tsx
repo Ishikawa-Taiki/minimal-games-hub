@@ -5,7 +5,7 @@ import fs from 'fs'; // generateStaticParams で必要なので残す
 import { Metadata } from 'next'; // 追加
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
@@ -18,22 +18,16 @@ export async function generateStaticParams() {
 }
 
 async function getGameData(slug: string) {
-  // fetch API を使用して manifest.json を読み込む
-  // Playwright の webServer で起動される URL を考慮
-  const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''; // 環境に応じて変更
-  const manifestUrl = `${baseUrl}/games/${slug}/manifest.json`;
-  const response = await fetch(manifestUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch manifest for ${slug}: ${response.statusText}`);
-  }
-  const manifest = await response.json() as GameManifest;
+  const manifestPath = path.join(process.cwd(), 'public', 'games', slug, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as GameManifest;
 
   return { manifest };
 }
 
 // generateMetadata 関数を追加
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const { slug } = params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   const { manifest } = await getGameData(slug);
   return {
     title: manifest.displayName,
@@ -41,7 +35,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function GamePage({ params }: PageProps) {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
   const { manifest } = await getGameData(slug);
 
   return <GameClientPage manifest={manifest} slug={slug} />;
