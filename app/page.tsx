@@ -9,7 +9,7 @@ interface GameManifest {
 }
 
 async function getGames() {
-  const gamesDirectory = path.join(process.cwd(), 'games');
+  const gamesDirectory = path.join(process.cwd(), 'public', 'games');
   const gameFolders = await fs.readdir(gamesDirectory);
 
   const games = await Promise.all(

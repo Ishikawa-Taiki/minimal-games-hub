@@ -7,7 +7,7 @@ describe('Tic-Tac-Toe Game', () => {
   });
 
   test('should load the page and display the title', async ({ page }) => {
-    await expect(page).toHaveTitle(/Minimal Games Hub/);
+    await expect(page).toHaveTitle(/○×ゲーム/);
     const heading = await page.getByRole('heading', { name: '○×ゲーム' }).textContent();
     expect(heading).toBe('○×ゲーム');
   });

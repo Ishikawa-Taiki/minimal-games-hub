@@ -5,7 +5,7 @@ describe('リバーシゲームのE2Eテスト', () => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
     // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
-    await expect(page).toHaveTitle(/Minimal Games Hub/);
+    await expect(page).toHaveTitle(/リバーシ/);
 
     // ゲームのタイトルが表示されていることを確認
     const titleLocator = page.locator('header h1');

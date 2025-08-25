@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   basePath: isProd ? '/minimal-games-hub' : undefined,
   assetPrefix: isProd ? '/minimal-games-hub/' : undefined,
   trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
   /* config options here */
 };
 
