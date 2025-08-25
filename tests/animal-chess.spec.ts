@@ -1,4 +1,14 @@
 import { test, expect, Page } from '@playwright/test';
+import { setConfig } from 'next/config'; // setConfig をインポート
+
+// テスト実行前にモックを設定
+test.beforeAll(() => {
+  setConfig({
+    publicRuntimeConfig: {
+      basePath: '', // テスト環境では basePath を空文字列に設定
+    },
+  });
+});
 
 // 各テストの前にゲームページにアクセスし、リセットする
 test.beforeEach(async ({ page }) => {

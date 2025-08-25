@@ -20,7 +20,7 @@ import {
   ROOSTER,
   dropPiece,
 } from './core';
-import getConfig from 'next/config';
+import Image from 'next/image';
 
 const pieceImageMap: Record<PieceType, string> = {
   LION: 'lion.png',
@@ -31,12 +31,9 @@ const pieceImageMap: Record<PieceType, string> = {
 };
 
 const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
-  const { publicRuntimeConfig } = getConfig();
-  const basePath = publicRuntimeConfig.basePath || '';
-
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
-  const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
+  const imagePath = `/games/animal-chess/img/${playerPrefix}${imageName}`;
 
   const imageStyle: CSSProperties = {
     transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
@@ -47,7 +44,7 @@ const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
-      <img src={imagePath} alt={`${piece.owner} ${piece.type}`} style={imageStyle} />
+      <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} width={60} height={60} style={imageStyle} />
     </div>
   );
 };
