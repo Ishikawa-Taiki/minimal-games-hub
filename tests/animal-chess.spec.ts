@@ -1,52 +1,57 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
-// 各テストの前にゲームをリセット
+// 各テストの前にゲームページにアクセスし、リセットする
 test.beforeEach(async ({ page }) => {
   await page.goto('/games/animal-chess');
   await page.waitForLoadState('networkidle');
-  // リセットボタンが存在することを確認してからクリック
   const resetButton = page.locator('button:has-text("リセット")');
-  if (await resetButton.isVisible()) { // リセットボタンが存在する場合のみクリック
+  if (await resetButton.isVisible()) {
     await resetButton.click();
-    await page.waitForLoadState('networkidle'); // リセット後のUI更新を待つ
+    await page.waitForLoadState('networkidle');
   }
 });
 
 test('Animal Chess Game ページにアクセスすると、タイトルが正しく表示される', async ({ page }) => {
   await expect(page).toHaveTitle(/アニマルチェス/);
+  await expect(page.locator('h1')).toHaveText('アニマルチェス');
 });
 
 test('盤面が正しく表示される', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
-  // 3x4 の盤面なので、12個のセルが存在することを確認
   const cells = await page.locator('[data-testid^="cell-"]').all();
   expect(cells.length).toBe(12);
 });
 
-const expectPiece = async (page: any, cellTestId: string, pieceOwner: 'p1' | 'p2', pieceName: string) => {
+// ヘルパー関数: 特定のセルに指定された駒が存在することを検証
+const expectPiece = async (page: Page, cellTestId: string, pieceOwner: 'p1' | 'p2', pieceName: string) => {
   const cell = page.locator(`[data-testid="${cellTestId}"]`);
   const image = cell.locator('img');
   await expect(image).toBeVisible();
   await expect(image).toHaveAttribute('src', new RegExp(`/games/animal-chess/img/${pieceOwner}_${pieceName}.png`));
-  // alt属性のチェックを修正
-  await expect(image).toHaveAttribute('alt', new RegExp(`${pieceOwner === 'p1' ? 'SENTE' : 'GOTE'} ${pieceName.toUpperCase().replace('CHICKEN', 'ROOSTER')}`))
+  const owner = pieceOwner === 'p1' ? 'SENTE' : 'GOTE';
+  const type = pieceName.toUpperCase().replace('CHICKEN', 'ROOSTER');
+  await expect(image).toHaveAttribute('alt', `${owner} ${type}`);
 };
 
-const expectEmpty = async (page: any, cellTestId: string) => {
+// ヘルパー関数: 特定のセルが空であることを検証
+const expectEmpty = async (page: Page, cellTestId: string) => {
   const cell = page.locator(`[data-testid="${cellTestId}"]`);
   await expect(cell.locator('img')).not.toBeVisible();
 };
 
+// ヘルパー関数: 現在のプレイヤー表示を検証
+const expectCurrentPlayer = async (page: Page, player: 'プレイヤー1' | 'プレイヤー2') => {
+  const locator = page.locator('[data-testid="current-player-text"]');
+  await expect(locator).toHaveText(`いまのばん: ${player}`);
+};
+
 test('初期盤面と駒が正しく表示される', async ({ page }) => {
-  // 先手の駒の初期配置
+  // 先手の駒
   await expectPiece(page, 'cell-3-0', 'p1', 'giraffe');
   await expectPiece(page, 'cell-3-1', 'p1', 'lion');
   await expectPiece(page, 'cell-3-2', 'p1', 'elephant');
   await expectPiece(page, 'cell-2-1', 'p1', 'chick');
 
-  // 後手の駒の初期配置
+  // 後手の駒
   await expectPiece(page, 'cell-0-0', 'p2', 'elephant');
   await expectPiece(page, 'cell-0-1', 'p2', 'lion');
   await expectPiece(page, 'cell-0-2', 'p2', 'giraffe');
@@ -59,186 +64,159 @@ test('初期盤面と駒が正しく表示される', async ({ page }) => {
   await expectEmpty(page, 'cell-2-2');
 
   // 現在のプレイヤー表示
-  await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
+  await expectCurrentPlayer(page, 'プレイヤー1');
 });
 
 test('駒をクリックすると選択状態になり、背景色が変わること', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
+  const selectedCellColor = 'rgb(191, 219, 254)'; // #bfdbfe
 
-  // styles.selectedCell.backgroundColor の色 (rgb(191, 219, 254))
-  const selectedCellColor = /rgb\(191, 219, 254\)/;
-
-  // 先手のライオンを選択
   const lionCell = page.locator('[data-testid="cell-3-1"]');
   await lionCell.click();
   await expect(lionCell).toHaveCSS('background-color', selectedCellColor);
 
-  // 別の先手の駒を選択すると、選択が切り替わる
   const giraffeCell = page.locator('[data-testid="cell-3-0"]');
   await giraffeCell.click();
   await expect(lionCell).not.toHaveCSS('background-color', selectedCellColor);
   await expect(giraffeCell).toHaveCSS('background-color', selectedCellColor);
 
-  // 選択中の駒を再度クリックすると、選択が解除される
   await giraffeCell.click();
   await expect(giraffeCell).not.toHaveCSS('background-color', selectedCellColor);
 });
 
 test('選択した駒を有効なマスに移動できること', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
-
-  // 先手の雛 (2,1) を (1,1) に移動
   const chickCell = page.locator('[data-testid="cell-2-1"]');
-  const destinationCell = page.locator('[data-testid="cell-1-1"]'); // 雛の移動先
+  const destinationCell = page.locator('[data-testid="cell-1-1"]');
 
-  // 雛を選択
   await chickCell.click();
-
-  // 移動先にクリック
   await destinationCell.click();
 
-  // 雛が移動先に存在することを確認
   await expectPiece(page, 'cell-1-1', 'p1', 'chick');
-  // 元の場所が空になっていることを確認
   await expectEmpty(page, 'cell-2-1');
-
-  // プレイヤーが後手に変わっていることを確認
-  await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible();
+  await expectCurrentPlayer(page, 'プレイヤー2');
 });
 
 test('リセットボタンが機能すること', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
-
-  // 駒を動かしてゲームの状態を変更
   const chickCell = page.locator('[data-testid="cell-2-1"]');
   const destinationCell = page.locator('[data-testid="cell-1-1"]');
   await chickCell.click();
   await destinationCell.click();
 
-  // プレイヤーが後手に変わっていることを確認
-  await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible();
+  await expectCurrentPlayer(page, 'プレイヤー2');
 
-  // リセットボタンをクリック
   await page.locator('button:has-text("リセット")').click();
   await page.waitForLoadState('networkidle');
 
-  // プレイヤーが先手に戻っていることを確認
-  await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
-
-  // 駒の位置が初期配置に戻っていることを確認
+  await expectCurrentPlayer(page, 'プレイヤー1');
   await expectPiece(page, 'cell-2-1', 'p1', 'chick');
   await expectPiece(page, 'cell-1-1', 'p2', 'chick');
 });
 
 test('ヒントボタンが機能すること', async ({ page }) => {
-  // beforeEach でページロードとリセットが行われるため、ここでは不要
-  // await page.goto('/games/animal-chess');
-  // await page.waitForLoadState('networkidle');
-
   const hintButton = page.locator('button:has-text("ヒント")');
-  const selectedCellColor = /rgb\(191, 219, 254\)/; // 選択中の色
-  const validMoveCellColor = /rgb\(220, 252, 231\)/; // styles.validMoveCell.backgroundColor の色 (dcfce7)
+  const selectedCellColor = 'rgb(191, 219, 254)'; // #bfdbfe
+  const validMoveCellColor = 'rgb(220, 252, 231)'; // #dcfce7
 
-  // 初期状態ではヒントがOFFであることを確認
   await expect(hintButton).toHaveText('ヒント: OFF');
 
-  // ヒントボタンをクリックしてONにする
   await hintButton.click();
   await expect(hintButton).toHaveText('ヒント: ON');
 
-  // 先手の雛 (2,1) を選択
   const chickCell = page.locator('[data-testid="cell-2-1"]');
   await chickCell.click();
   await expect(chickCell).toHaveCSS('background-color', selectedCellColor);
 
-  // 雛の移動可能なマス (1,1) がハイライトされることを確認
-  // (1,1) には後手の雛がいるので、有効な移動先としてハイライトされるはず
   await expect(page.locator('[data-testid="cell-1-1"]')).toHaveCSS('background-color', validMoveCellColor);
 
-  // ヒントボタンを再度クリックしてOFFにする
   await hintButton.click();
   await expect(hintButton).toHaveText('ヒント: OFF');
 
-  // ハイライトが消えることを確認
   await expect(page.locator('[data-testid="cell-1-1"]')).not.toHaveCSS('background-color', validMoveCellColor);
 });
 
+// test.describe('ゲーム終了とモーダル', () => {
+//   test('ライオンを捕獲して勝利する', async ({ page }) => {
+//     // 簡単な手順でライオンを捕獲できるシナリオ
+//     // 1. P1: Chick(2,1) -> (1,1) (P2のChickを捕獲)
+//     await page.locator('[data-testid="cell-2-1"]').click();
+//     await page.locator('[data-testid="cell-1-1"]').click();
+//     await expectCurrentPlayer(page, 'プレイヤー2');
+//     await expect(page.locator('[data-testid="captured-piece-SENTE-CHICK"]')).toBeVisible();
+
+//     // 2. P2: Elephant(0,0) -> (1,0)
+//     await page.locator('[data-testid="cell-0-0"]').click();
+//     await page.locator('[data-testid="cell-1-0"]').click();
+//     await expectCurrentPlayer(page, 'プレイヤー1');
+
+//     // 3. P1: Rooster(1,1) -> (0,1) (P2のLionを捕獲)
+//     await page.locator('[data-testid="cell-1-1"]').click();
+//     await page.locator('[data-testid="cell-0-1"]').click();
+
+//     // ゲーム終了モーダルが表示されることを確認
+//     await expect(page.locator('h2:has-text("ゲーム終了")')).toBeVisible();
+//     await expect(page.locator('p:has-text("プレイヤー1の勝ち！")')).toBeVisible();
+
+//     // 盤面が操作不能であることを確認
+//     await page.locator('[data-testid="cell-3-1"]').click();
+//     // 選択状態にならないことを確認 (背景色が変わらない)
+//     await expect(page.locator('[data-testid="cell-3-1"]')).not.toHaveCSS('background-color', 'rgb(191, 219, 254)');
+//   });
+
+//   test('トライして勝利する', async ({ page }) => {
+//     // ライオンが最終列に到達するシナリオ
+//     // このテストは、駒の移動を複数回行う必要があるため、少し長くなります
+//     await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
+//     await page.locator('[data-testid="cell-1-1"]').click(); // Move to capture P2 Chick
+//     await page.locator('[data-testid="cell-0-2"]').click(); // P2 Giraffe
+//     await page.locator('[data-testid="cell-1-2"]').click();
+//     await page.locator('[data-testid="cell-3-1"]').click(); // P1 Lion
+//     await page.locator('[data-testid="cell-2-1"]').click();
+//     await page.locator('[data-testid="cell-1-2"]').click(); // P2 Giraffe
+//     await page.locator('[data-testid="cell-2-2"]').click();
+//     await page.locator('[data-testid="cell-2-1"]').click(); // P1 Lion
+//     await page.locator('[data-testid="cell-1-2"]').click();
+//     await page.locator('[data-testid="cell-0-0"]').click(); // P2 Elephant
+//     await page.locator('[data-testid="cell-1-0"]').click();
+//     await page.locator('[data-testid="cell-1-2"]').click(); // P1 Lion
+//     await page.locator('[data-testid="cell-0-2"]').click(); // Try!
+
+//     // ゲーム終了モーダルが表示されることを確認
+//     await expect(page.locator('h2:has-text("ゲーム終了")')).toBeVisible();
+//     await expect(page.locator('p:has-text("プレイヤー1の勝ち！")')).toBeVisible();
+
+//     // モーダルのリセットボタンが機能することを確認
+//     await page.locator('button:has-text("もう一度遊ぶ")').click();
+//     await expect(page.locator('h2:has-text("ゲーム終了")')).not.toBeVisible();
+//     await expectCurrentPlayer(page, 'プレイヤー1');
+//   });
+// });
+
+
 // test('持ち駒を配置できること', async ({ page }) => {
-//   // beforeEach でページロードとリセットが行われるため、ここでは不要
-//   // await page.goto('/games/animal-chess');
-//   // await page.waitForLoadState('networkidle');
-// 
-//   // --- 駒を捕獲して持ち駒を生成するシナリオ --- 
-// 
-//   // 1. 先手のライオン (3,1) を (2,2) に移動 (空マスへの移動)
-//   const lionCell = page.locator('[data-testid="cell-3-1"]');
-//   const emptyCell1 = page.locator('[data-testid="cell-2-2"]');
-//   await lionCell.click();
-//   await emptyCell1.click();
-//   await expect(emptyCell1).toHaveText('獅'); // ライオンが移動したことを確認
-//   await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible(); // ターン交代を確認
-// 
-//   // 2. 後手のキリン (0,2) を (1,2) に移動 (空マスへの移動)
-//   const goteGiraffeCell = page.locator('[data-testid="cell-0-2"]');
-//   const emptyCell2 = page.locator('[data-testid="cell-1-2"]');
-//   await goteGiraffeCell.click();
-//   await emptyCell2.click();
-//   await expect(emptyCell2).toHaveText('麒'); // キリンが移動したことを確認
-//   await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible(); // ターン交代を確認
-// 
-//   // 3. 先手のライオン (2,2) を (1,2) に移動させて、後手のキリン (1,2) を捕獲する
-//   // これにより、先手の持ち駒にキリンが追加される
-//   const movedLionCell = page.locator('[data-testid="cell-2-2"]');
-//   const targetGiraffeCell = page.locator('[data-testid="cell-1-2"]'); // 捕獲対象のキリン
-//   await movedLionCell.click();
-//   await targetGiraffeCell.click();
-//   await expect(targetGiraffeCell).toHaveText('獅'); // ライオンが移動したことを確認
-//   await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible(); // ターン交代を確認
-// 
-//   // 先手の持ち駒にキリンが追加されていることを確認
-//   const senteCapturedGiraffe = page.locator('[data-testid="captured-piece-SENTE-GIRAFFE"]'); // セレクタ修正
-//   await expect(senteCapturedGiraffe).toBeVisible();
-// 
-//   // --- 後手のダミー移動でターンを先手に戻す ---
-//   const goteLionCell = page.locator('[data-testid="cell-0-1"]'); // 後手のライオン
-//   const goteEmptyCell = page.locator('[data-testid="cell-1-2"]'); // 空いているマス (有効な移動先)
-//   
-//   // 後手のライオンを選択
-//   await goteLionCell.click();
-//   await expect(goteLionCell).toHaveCSS('background-color', /rgb\(191, 219, 254\)/); // 選択状態の背景色を確認
-// 
-//   // 空いているマスに移動
-//   await goteEmptyCell.click();
-//   await expect(goteEmptyCell).toHaveText('獅'); // ライオンが移動したことを確認
-//   await expect(goteLionCell).toHaveText(''); // 元の場所が空になっていることを確認
-// 
-//   // ターン交代を確認
-//   await expect(page.locator('text="現在のプレイヤー: 先手"')).toBeVisible();
-// 
+//   // --- 駒を捕獲して持ち駒を生成するシナリオ ---
+//   // 1. P1: Chick(2,1) -> (1,1) (P2のChickを捕獲)
+//   await page.locator('[data-testid="cell-2-1"]').click();
+//   await page.locator('[data-testid="cell-1-1"]').click();
+//   await expectCurrentPlayer(page, 'プレイヤー2');
+//   const capturedChick = page.locator('[data-testid="captured-piece-SENTE-CHICK"]');
+//   await expect(capturedChick).toBeVisible();
+
+//   // 2. P2: Giraffe(0,2) -> (1,2)
+//   await page.locator('[data-testid="cell-0-2"]').click();
+//   await page.locator('[data-testid="cell-1-2"]').click();
+//   await expectCurrentPlayer(page, 'プレイヤー1');
+
 //   // --- 持ち駒を配置するシナリオ ---
-// 
-//   // 先手のターンで、先手の持ち駒のキリンを選択し、空いているマス (1,0) に配置する
-//   // 持ち駒のキリンをクリック
-//   await senteCapturedGiraffe.click();
-//   await expect(senteCapturedGiraffe).toHaveCSS('background-color', /rgb\(191, 219, 254\)/); // 選択状態の背景色を確認
-// 
-//   // 配置先のマスをクリック
-//   const dropTargetCell = page.locator('[data-testid="cell-1-0"]'); // 空いているマスに変更
+//   // 3. P1: 持ち駒のChickを選択
+//   await capturedChick.click();
+//   const selectedCapturedPieceColor = 'rgb(191, 219, 254)'; // #bfdbfe
+//   await expect(capturedChick).toHaveCSS('background-color', selectedCapturedPieceColor);
+
+//   // 4. P1: Chickを(2,2)に配置
+//   const dropTargetCell = page.locator('[data-testid="cell-2-2"]');
 //   await dropTargetCell.click();
-// 
-//   // キリンが配置先に存在することを確認
-//   await page.waitForTimeout(1000); // デバッグ用の一時的な待機
-//   await expect(dropTargetCell).toHaveText('麒');
-// 
-//   // 先手の持ち駒からキリンが減っていることを確認
-//   await expect(senteCapturedGiraffe).not.toBeVisible(); // キリンが消えていることを期待
-// 
-//   // プレイヤーが後手に変わっていることを確認
-//   await expect(page.locator('text="現在のプレイヤー: 後手"')).toBeVisible();
+
+//   // 5. 検証
+//   await expectPiece(page, 'cell-2-2', 'p1', 'chick');
+//   await expect(capturedChick).not.toBeVisible();
+//   await expectCurrentPlayer(page, 'プレイヤー2');
 // });

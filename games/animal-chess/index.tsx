@@ -2,15 +2,13 @@
 
 import React, { useState, CSSProperties } from 'react';
 import {
-  BOARD_ROWS,
   BOARD_COLS,
-  Player,
-  PieceType,
   Piece,
+  PieceType,
   GameState,
   createInitialState,
   handleCellClick as coreHandleCellClick,
-  handleCaptureClick,
+  handleCaptureClick as coreHandleCaptureClick,
   getValidMoves,
   getValidDrops,
   SENTE,
@@ -51,11 +49,33 @@ const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
   );
 };
 
+const GameOverModal: React.FC<{ status: GameState['status']; onReset: () => void }> = ({ status, onReset }) => {
+  if (status === 'playing') return null;
+
+  const winnerText = status === 'sente_win' ? 'プレイヤー1の勝ち！' : 'プレイヤー2の勝ち！';
+
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContent}>
+        <h2 style={styles.modalTitle}>ゲーム終了</h2>
+        <p style={styles.modalText}>{winnerText}</p>
+        <button style={styles.modalButton} onClick={onReset}>
+          もう一度遊ぶ
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const AnimalChessPage = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [showHints, setShowHints] = useState(false);
 
+  const isGameInProgress = gameState.status === 'playing';
+
   const onCellClick = (row: number, col: number) => {
+    if (!isGameInProgress) return;
+
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
       const newState = dropPiece(gameState, gameState.selectedCaptureIndex.player, pieceType, { row, col });
@@ -67,6 +87,14 @@ const AnimalChessPage = () => {
       if (newState) {
         setGameState(newState);
       }
+    }
+  };
+
+  const handleCaptureClick = (player: typeof SENTE | typeof GOTE, index: number) => {
+    if (!isGameInProgress) return;
+    const newState = coreHandleCaptureClick(gameState, player, index);
+    if (newState) {
+      setGameState(newState);
     }
   };
 
@@ -93,7 +121,8 @@ const AnimalChessPage = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Animal Chess</h1>
+      <h1 style={styles.title}>アニマルチェス</h1>
+      <GameOverModal status={gameState.status} onReset={handleReset} />
 
       <div style={styles.board}>
         {gameState.board.map((row, rowIndex) => (
@@ -104,8 +133,10 @@ const AnimalChessPage = () => {
               style={{
                 ...styles.cell,
                 backgroundColor: getCellBackgroundColor(rowIndex, colIndex),
+                cursor: isGameInProgress ? 'pointer' : 'default',
               }}
               onClick={() => onCellClick(rowIndex, colIndex)}
+              disabled={!isGameInProgress}
             >
               {cell && <PieceDisplay piece={cell} />}
             </button>
@@ -122,18 +153,13 @@ const AnimalChessPage = () => {
         </button>
       </div>
 
-      <p style={styles.statusText}>
-        現在のプレイヤー: {gameState.currentPlayer === SENTE ? '先手' : '後手'}
+      <p style={styles.statusText} data-testid="current-player-text">
+        いまのばん: {gameState.currentPlayer === SENTE ? 'プレイヤー1' : 'プレイヤー2'}
       </p>
-      {gameState.status !== 'playing' && (
-        <p style={styles.statusText}>
-          ゲーム終了: {gameState.status === 'sente_win' ? '先手の勝利' : '後手の勝利'}
-        </p>
-      )}
 
       <div style={styles.capturedPiecesContainer}>
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>先手の持ち駒</h3>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー1のとったこま</h3>
           <div style={styles.capturedPiecesList}>
             {gameState.capturedPieces[SENTE].map((pieceType, index) => (
               <button
@@ -141,14 +167,11 @@ const AnimalChessPage = () => {
                 style={{
                   ...styles.capturedPiece,
                   ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                  cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
                 data-testid={`captured-piece-${SENTE}-${pieceType}`}
-                onClick={() => {
-                  const newState = handleCaptureClick(gameState, SENTE, index);
-                  if (newState) {
-                    setGameState(newState);
-                  }
-                }}
+                onClick={() => handleCaptureClick(SENTE, index)}
+                disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: SENTE }} />
               </button>
@@ -156,19 +179,19 @@ const AnimalChessPage = () => {
           </div>
         </div>
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>後手の持ち駒</h3>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー2の とったこま</h3>
           <div style={styles.capturedPiecesList}>
             {gameState.capturedPieces[GOTE].map((pieceType, index) => (
               <button
                 key={`gote-${index}`}
-                style={styles.capturedPiece}
-                data-testid={`captured-piece-${GOTE}-${pieceType}`}
-                onClick={() => {
-                  const newState = handleCaptureClick(gameState, GOTE, index);
-                  if (newState) {
-                    setGameState(newState);
-                  }
+                style={{
+                  ...styles.capturedPiece,
+                  ...(gameState.selectedCaptureIndex?.player === GOTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                   cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
+                data-testid={`captured-piece-${GOTE}-${pieceType}`}
+                onClick={() => handleCaptureClick(GOTE, index)}
+                disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: GOTE }} />
               </button>
@@ -214,7 +237,6 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 'bold',
     borderRadius: '0.375rem',
     border: '1px solid #9ca3af',
-    cursor: 'pointer',
   },
   selectedCell: {
     backgroundColor: '#bfdbfe',
@@ -268,10 +290,48 @@ const styles: { [key: string]: CSSProperties } = {
     padding: '0.25rem 0.5rem',
     backgroundColor: '#f3f4f6',
     borderRadius: '0.25rem',
+    border: 'none',
   },
   selectedCapturedPiece: {
     backgroundColor: '#bfdbfe',
     boxShadow: '0 0 0 2px #3b82f6',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: '2rem',
+    borderRadius: '0.5rem',
+    textAlign: 'center',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  modalTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem',
+  },
+  modalText: {
+    fontSize: '1.125rem',
+    marginBottom: '1.5rem',
+  },
+  modalButton: {
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    borderRadius: '0.25rem',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1rem',
   },
 };
 

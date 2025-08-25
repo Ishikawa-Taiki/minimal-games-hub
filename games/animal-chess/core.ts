@@ -138,27 +138,37 @@ export function getValidDrops(state: GameState, player: Player): { row: number, 
 }
 
 
-function checkWinner(board: Board, currentPlayer: Player): 'playing' | 'sente_win' | 'gote_win' {
-    const opponent = getOpponent(currentPlayer);
-    let opponentLionOnBoard = false;
+function checkWinner(board: Board, mover: Player): 'playing' | 'sente_win' | 'gote_win' {
+    const opponent = getOpponent(mover);
 
-    // Check for Lion capture
+    // 1. Check for "Try" (Lion in the final rank)
+    for (let r = 0; r < BOARD_ROWS; r++) {
+        for (let c = 0; c < BOARD_COLS; c++) {
+            const piece = board[r][c];
+            if (piece && piece.type === LION && piece.owner === mover) {
+                const finalRank = mover === SENTE ? 0 : BOARD_ROWS - 1;
+                if (r === finalRank) {
+                    return mover === SENTE ? 'sente_win' : 'gote_win';
+                }
+            }
+        }
+    }
+
+    // 2. Check for Lion capture
+    let opponentLionOnBoard = false;
     for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
             const piece = board[r][c];
             if (piece && piece.type === LION && piece.owner === opponent) {
                 opponentLionOnBoard = true;
-            }
-            // Check for Lion "Try" (reaching the final rank)
-            if (piece && piece.type === LION) {
-                if (piece.owner === SENTE && r === 0) return 'sente_win';
-                if (piece.owner === GOTE && r === BOARD_ROWS - 1) return 'gote_win';
+                break;
             }
         }
+        if(opponentLionOnBoard) break;
     }
 
     if (!opponentLionOnBoard) {
-        return currentPlayer === SENTE ? 'sente_win' : 'gote_win';
+        return mover === SENTE ? 'sente_win' : 'gote_win';
     }
 
     return 'playing';
