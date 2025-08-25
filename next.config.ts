@@ -8,13 +8,12 @@ const nextConfig: NextConfig = {
   // 本番ビルド時（GitHub Pagesデプロイ時）のみ、リポジトリ名をパスに含める
   // CI環境ではテストのためにbasePathを無効化する
   basePath: isProd ? '/minimal-games-hub' : '',
-  assetPrefix: isProd ? '/minimal-games-hub/' : '',
   trailingSlash: true,
   images: {
     unoptimized: true,
   },
-  publicRuntimeConfig: { // 追加
-    basePath: isProd ? '/minimal-games-hub' : '', // 追加: isProdに応じて設定
+  publicRuntimeConfig: {
+    basePath: isProd ? '/minimal-games-hub' : '',
   },
   /* config options here */
 };
