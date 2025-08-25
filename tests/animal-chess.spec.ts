@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 
 test('Animal Chess Game ページにアクセスすると、タイトルが正しく表示される', async ({ page }) => {
   await expect(page).toHaveTitle(/アニマルチェス/);
-  await expect(page.locator('h1')).toHaveText('アニマルチェス');
+  await expect(page.getByRole('banner').getByRole('heading', { name: 'アニマルチェス', level: 1 })).toHaveText('アニマルチェス');
 });
 
 test('盤面が正しく表示される', async ({ page }) => {
