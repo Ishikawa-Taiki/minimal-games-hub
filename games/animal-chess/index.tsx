@@ -20,7 +20,7 @@ import {
   ROOSTER,
   dropPiece,
 } from './core';
-import { useRouter } from 'next/navigation';
+import getConfig from 'next/config';
 
 const pieceImageMap: Record<PieceType, string> = {
   LION: 'lion.png',
@@ -31,8 +31,8 @@ const pieceImageMap: Record<PieceType, string> = {
 };
 
 const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
-  const router = useRouter();
-  const basePath = router.basePath || '';
+  const { publicRuntimeConfig } = getConfig();
+  const basePath = publicRuntimeConfig.basePath || '';
 
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];

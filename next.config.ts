@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  publicRuntimeConfig: { // 追加
+    basePath: isProd ? '/minimal-games-hub' : '', // 追加: isProdに応じて設定
+  },
   /* config options here */
 };
 
