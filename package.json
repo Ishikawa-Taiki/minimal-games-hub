@@ -28,7 +28,6 @@
     "@eslint/eslintrc": "^3",
     "@google/gemini-cli": "^0.1.22",
     "@playwright/test": "^1.54.2",
-    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
