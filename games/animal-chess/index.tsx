@@ -38,12 +38,12 @@ const pieceImageMap: Record<PieceType, string> = {
 const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
   '[-1,0]': styles.indicatorN,
   '[-1,1]': styles.indicatorNE,
-  '[0,1]':  styles.indicatorE,
-  '[1,1]':  styles.indicatorSE,
-  '[1,0]':  styles.indicatorS,
+  '[0,1]': styles.indicatorE,
+  '[1,1]': styles.indicatorSE,
+  '[1,0]': styles.indicatorS,
   '[1,-1]': styles.indicatorSW,
   '[0,-1]': styles.indicatorW,
-  '[-1,-1]':styles.indicatorNW,
+  '[-1,-1]': styles.indicatorNW,
 };
 
 const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ piece, showIndicators }) => {
