@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { BaseGameState, BaseGameController } from '../../types/game';
+import { FloatingActionButton, BottomSheet } from './ui';
 import { gameLayoutStyles } from './styles';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
@@ -18,14 +19,12 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
   gameController: BaseGameController<TState, TAction>;
   slug: string;
   isVisible?: boolean;
-  onClose?: () => void;
 }
 
 function ControlPanel<TState extends BaseGameState, TAction>({
   gameController,
   slug,
-  isVisible = true,
-  onClose
+  isVisible = true
 }: ControlPanelProps<TState, TAction>) {
   const { gameState, resetGame } = gameController;
   
@@ -51,19 +50,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 
   return (
     <div style={gameLayoutStyles.controlPanel}>
-      {onClose && (
-        <div style={gameLayoutStyles.controlPanelHeader}>
-          <h3 style={gameLayoutStyles.controlPanelTitle}>コントロール</h3>
-          <button 
-            style={gameLayoutStyles.closeButton}
-            onClick={onClose}
-            aria-label="閉じる"
-          >
-            ×
-          </button>
-        </div>
-      )}
-      
       <div style={gameLayoutStyles.statusSection}>
         <h4 style={gameLayoutStyles.sectionTitle}>ゲーム状態</h4>
         <p style={gameLayoutStyles.statusText} data-testid="status">{getStatusText()}</p>
@@ -94,45 +80,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   );
 }
 
-// フローティングアクションボタン（FAB）
-interface FABProps {
-  onClick: () => void;
-  ariaLabel: string;
-}
 
-function FloatingActionButton({ onClick, ariaLabel }: FABProps) {
-  return (
-    <button
-      style={gameLayoutStyles.fab}
-      onClick={onClick}
-      aria-label={ariaLabel}
-    >
-      ⚙️
-    </button>
-  );
-}
-
-// ボトムシート/モーダル
-interface BottomSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-function BottomSheet({ isOpen, onClose, children }: BottomSheetProps) {
-  if (!isOpen) return null;
-
-  return (
-    <div style={gameLayoutStyles.bottomSheetOverlay} onClick={onClose}>
-      <div 
-        style={gameLayoutStyles.bottomSheet}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
 
 export default function GameLayout<TState extends BaseGameState, TAction>({
   gameName,
@@ -203,17 +151,18 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
         <FloatingActionButton
           onClick={handleFABClick}
           ariaLabel="コントロールパネルを開く"
+          icon="⚙️"
         />
 
         {/* ボトムシート */}
         <BottomSheet
           isOpen={isBottomSheetOpen}
           onClose={handleBottomSheetClose}
+          title="コントロール"
         >
           <ControlPanel
             gameController={gameController}
             slug={slug}
-            onClose={handleBottomSheetClose}
           />
         </BottomSheet>
       </div>
