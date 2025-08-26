@@ -99,15 +99,14 @@ describe('はさみ将棋コアロジック', () => {
 
   it('角の駒が正しくキャプチャされること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[0][1] = 'PLAYER1';
-    board[1][0] = 'PLAYER1';
     board[0][0] = 'PLAYER2'; // Piece to be captured at corner
-    board[8][0] = 'PLAYER1'; // Moving piece
+    board[0][1] = 'PLAYER1'; // Stationary P1 piece
+    board[8][0] = 'PLAYER1'; // Moving P1 piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
 
-    // A move by P1 anywhere (that doesn't change the corner) should trigger the capture check.
+    // Move P1 from (8,0) to (1,0) to capture the corner piece
     state = handleCellClick(state, 8, 0);
-    const nextState = handleCellClick(state, 7, 0);
+    const nextState = handleCellClick(state, 1, 0);
 
     expect(nextState.board[0][0]).toBeNull('Corner piece should be captured');
     expect(nextState.capturedPieces.PLAYER2).toBe(1);
@@ -115,15 +114,15 @@ describe('はさみ将棋コアロジック', () => {
 
   it('辺の駒が正しくキャプチャされること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
-    board[0][1] = 'PLAYER1';
-    board[0][3] = 'PLAYER1';
-    board[1][2] = 'PLAYER1';
     board[0][2] = 'PLAYER2'; // Piece to be captured at edge
-    board[8][0] = 'PLAYER1'; // Moving piece
+    board[0][1] = 'PLAYER1'; // Stationary P1 piece
+    board[1][2] = 'PLAYER1'; // Stationary P1 piece
+    board[8][3] = 'PLAYER1'; // Moving P1 piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
 
-    state = handleCellClick(state, 8, 0);
-    const nextState = handleCellClick(state, 7, 0);
+    // Move P1 from (8,3) to (0,3) to capture the edge piece
+    state = handleCellClick(state, 8, 3);
+    const nextState = handleCellClick(state, 0, 3);
 
     expect(nextState.board[0][2]).toBeNull('Edge piece should be captured');
     expect(nextState.capturedPieces.PLAYER2).toBe(1);
@@ -254,19 +253,20 @@ describe('はさみ将棋コアロジック', () => {
     // Setup a group of 2 opponent pieces
     board[0][1] = 'PLAYER2';
     board[0][2] = 'PLAYER2';
-    // Surround them
+    // Surround them, leaving one liberty at (1,2)
     board[0][0] = 'PLAYER1';
     board[0][3] = 'PLAYER1';
     board[1][1] = 'PLAYER1';
-    board[1][2] = 'PLAYER1';
-    board[8][0] = 'PLAYER1'; // Moving piece
+    // board[1][2] is the last liberty
+    board[8][2] = 'PLAYER1'; // Moving piece
     let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
 
-    state = handleCellClick(state, 8, 0);
-    const nextState = handleCellClick(state, 7, 0); // Any move triggers the check
+    // Move P1 into the last liberty space (1,2) to capture the group
+    state = handleCellClick(state, 8, 2);
+    const nextState = handleCellClick(state, 1, 2);
 
-    expect(nextState.board[0][1]).toBeNull();
-    expect(nextState.board[0][2]).toBeNull();
+    expect(nextState.board[0][1]).toBeNull('Group piece 1 should be captured');
+    expect(nextState.board[0][2]).toBeNull('Group piece 2 should be captured');
     expect(nextState.capturedPieces.PLAYER2).toBe(2);
   });
 
@@ -326,5 +326,36 @@ describe('はさみ将棋コアロジック', () => {
 
     expect(captures).toHaveLength(2);
     expect(captures).toEqual(expect.arrayContaining([[6,4], [8,2]]));
+  });
+
+  it('自ら挟まれにいった駒は、相手が次の手を指しても取られないこと', () => {
+    const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
+    // Player 2's pieces to form a sandwich
+    board[1][1] = 'PLAYER2';
+    board[1][3] = 'PLAYER2';
+    // Player 1's piece that will move into the sandwich
+    board[8][2] = 'PLAYER1';
+    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+
+    // 1. Player 1 moves from (8,2) to (1,2), into the sandwich
+    state = handleCellClick(state, 8, 2);
+    let nextState = handleCellClick(state, 1, 2);
+
+    // Assert that the piece is not captured on its own turn
+    expect(nextState.board[1][2]).toBe('PLAYER1');
+    expect(nextState.capturedPieces.PLAYER1).toBe(0);
+    expect(nextState.currentPlayer).toBe('PLAYER2');
+
+    // 2. Player 2 makes a move that does not form a capture
+    // Add a piece for Player 2 to move
+    nextState.board[0][0] = 'PLAYER2';
+    // Player 2 moves from (0,0) to (2,0)
+    nextState = handleCellClick(nextState, 0, 0);
+    nextState = handleCellClick(nextState, 2, 0);
+
+    // Assert that Player 1's piece at (1,2) is STILL not captured
+    expect(nextState.board[1][2]).toBe('PLAYER1');
+    expect(nextState.capturedPieces.PLAYER1).toBe(0);
+    expect(nextState.currentPlayer).toBe('PLAYER1');
   });
 });
