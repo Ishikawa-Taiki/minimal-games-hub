@@ -22,6 +22,8 @@ import {
 } from './core';
 import Image from 'next/image';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const pieceImageMap: Record<PieceType, string> = {
   LION: 'lion.png',
   GIRAFFE: 'giraffe.png',
@@ -33,7 +35,7 @@ const pieceImageMap: Record<PieceType, string> = {
 const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
-  const imagePath = `/games/animal-chess/img/${playerPrefix}${imageName}`;
+  const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
 
   const imageStyle: CSSProperties = {
     transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
