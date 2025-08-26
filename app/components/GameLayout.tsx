@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useResponsive, isMobile, isDesktop } from '../../hooks/useResponsive';
+import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { BaseGameState, BaseGameController } from '../../types/game';
 import { gameLayoutStyles } from './styles';
 
@@ -11,14 +11,11 @@ interface GameLayoutProps<TState extends BaseGameState, TAction> {
   slug: string;
   gameController?: BaseGameController<TState, TAction>;
   children: React.ReactNode;
-  // ゲーム固有のステータス表示コンポーネント（オプション）
-  statusComponent?: React.ComponentType<{ gameState: TState }>;
 }
 
 // コントロールパネルコンポーネント
 interface ControlPanelProps<TState extends BaseGameState, TAction> {
   gameController: BaseGameController<TState, TAction>;
-  gameName: string;
   slug: string;
   isVisible?: boolean;
   onClose?: () => void;
@@ -26,7 +23,6 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
 
 function ControlPanel<TState extends BaseGameState, TAction>({
   gameController,
-  gameName,
   slug,
   isVisible = true,
   onClose
@@ -39,8 +35,8 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       return `勝者: ${gameState.winner}`;
     } else if (gameState.status === 'ended') {
       // 引き分けの場合の処理を追加
-      const ticTacToeState = gameState as any;
-      if (ticTacToeState.isDraw) {
+      const extendedState = gameState as TState & { isDraw?: boolean };
+      if (extendedState.isDraw) {
         return '引き分け！';
       }
       return 'ゲーム終了';
@@ -142,8 +138,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
   gameName,
   slug,
   gameController,
-  children,
-  statusComponent: StatusComponent
+  children
 }: GameLayoutProps<TState, TAction>) {
   const responsiveState = useResponsive();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -190,7 +185,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
               `勝者: ${gameController.gameState.winner}`
             ) : gameController.gameState.status === 'ended' ? (
               // 引き分けの場合の処理を追加
-              (gameController.gameState as any).isDraw ? '引き分け！' : 'ゲーム終了'
+              (gameController.gameState as TState & { isDraw?: boolean }).isDraw ? '引き分け！' : 'ゲーム終了'
             ) : (gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer ? (
               `${gameController.gameState.currentPlayer}の番`
             ) : (
@@ -217,7 +212,6 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
         >
           <ControlPanel
             gameController={gameController}
-            gameName={gameName}
             slug={slug}
             onClose={handleBottomSheetClose}
           />
@@ -235,7 +229,6 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
           </div>
           <ControlPanel
             gameController={gameController}
-            gameName={gameName}
             slug={slug}
           />
         </aside>
