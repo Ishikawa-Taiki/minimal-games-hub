@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, CSSProperties } from 'react';
+import getConfig from 'next/config';
 import {
   BOARD_COLS,
   Piece,
@@ -189,7 +190,7 @@ const AnimalChessPage = () => {
                 style={{
                   ...styles.capturedPiece,
                   ...(gameState.selectedCaptureIndex?.player === GOTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
-                   cursor: isGameInProgress ? 'pointer' : 'default',
+                  cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
                 data-testid={`captured-piece-${GOTE}-${pieceType}`}
                 onClick={() => handleCaptureClick(GOTE, index)}
