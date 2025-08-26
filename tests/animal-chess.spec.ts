@@ -127,7 +127,7 @@ test('ヒントボタンが機能すること', async ({ page }) => {
   const hintButton = page.locator('button:has-text("ヒント")');
   const selectedCellColor = 'rgb(191, 219, 254)'; // #bfdbfe
   const validMoveCellColor = 'rgb(220, 252, 231)'; // #dcfce7
-  const capturableCellColor = 'rgb(254, 202, 202)'; // #fecaca
+  const capturableCellColor = 'rgb(186, 230, 253)'; // #bae6fd
 
   await expect(hintButton).toHaveText('ヒント: OFF');
 

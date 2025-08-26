@@ -38,12 +38,12 @@ const pieceImageMap: Record<PieceType, string> = {
 const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
   '[-1,0]': styles.indicatorN,
   '[-1,1]': styles.indicatorNE,
-  '[0,1]':  styles.indicatorE,
-  '[1,1]':  styles.indicatorSE,
-  '[1,0]':  styles.indicatorS,
+  '[0,1]': styles.indicatorE,
+  '[1,1]': styles.indicatorSE,
+  '[1,0]': styles.indicatorS,
   '[1,-1]': styles.indicatorSW,
   '[0,-1]': styles.indicatorW,
-  '[-1,-1]':styles.indicatorNW,
+  '[-1,-1]': styles.indicatorNW,
 };
 
 const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ piece, showIndicators }) => {
@@ -57,15 +57,18 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ pie
   };
 
   const baseMoves = MOVES[piece.type];
+  const ownerMoves = piece.owner === SENTE ? baseMoves : baseMoves.map(([r, c]) => [-r, -c] as [number, number]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} fill style={imageStyle} />
-      {showIndicators && baseMoves.map(move => {
+      {showIndicators && ownerMoves.map(move => {
         const key = JSON.stringify(move);
         const indicatorStyle = moveVectorToIndicatorMap[key];
         if (indicatorStyle) {
-          return <div key={key} style={{ ...styles.moveIndicator, ...indicatorStyle }} />;
+          const indicatorColor = piece.owner === SENTE ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)';
+          const dynamicStyle = { ...styles.moveIndicator, ...indicatorStyle, backgroundColor: indicatorColor };
+          return <div key={key} style={dynamicStyle} />;
         }
         return null;
       })}
@@ -181,35 +184,43 @@ const AnimalChessPage = () => {
   };
 
   const getCellStyle = (row: number, col: number): CSSProperties => {
-    const cellStyle: CSSProperties = {};
+    const cellStyle: CSSProperties = {}; // Start with an empty style object
     const piece = gameState.board[row][col];
 
-    if (showHints && piece && piece.owner === gameState.currentPlayer && isGameInProgress) {
-      Object.assign(cellStyle, styles.selectablePiece);
-    }
-
-    if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
-      Object.assign(cellStyle, styles.selectedCell);
-    }
-
+    // Apply hints for valid moves, captures, and threats first
     if (showHints) {
-      const isCapturable = hintedMoves.capturable.some(m => m.row === row && m.col === col);
-      const isThreatened = hintedMoves.threatened.some(m => m.row === row && m.col === col);
-      const isValid = hintedMoves.valid.some(m => m.row === row && m.col === col);
-      const isDrop = gameState.selectedCaptureIndex ? getValidDrops(gameState, gameState.currentPlayer).some(d => d.row === row && d.col === col) : false;
+      if (gameState.selectedCell) {
+        const isCapturable = hintedMoves.capturable.some(m => m.row === row && m.col === col);
+        const isValid = hintedMoves.valid.some(m => m.row === row && m.col === col);
+        if (isCapturable) {
+          cellStyle.backgroundColor = styles.capturableCell.backgroundColor;
+        } else if (isValid) {
+          cellStyle.backgroundColor = styles.validMoveCell.backgroundColor;
+        }
 
-      if (isCapturable) {
-        cellStyle.backgroundColor = styles.capturableCell.backgroundColor;
-      } else if (isValid) {
-        cellStyle.backgroundColor = styles.validMoveCell.backgroundColor;
-      } else if (isDrop) {
-        cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
+        const isThreatened = hintedMoves.threatened.some(m => m.row === row && m.col === col);
+        if (isThreatened) {
+          cellStyle.boxShadow = styles.threatenedCell.boxShadow;
+        }
       }
-
-      if (isThreatened) {
-        cellStyle.boxShadow = (cellStyle.boxShadow ? cellStyle.boxShadow + ', ' : '') + styles.threatenedCell.boxShadow;
+      if (gameState.selectedCaptureIndex) {
+        const isDrop = getValidDrops(gameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
+        if (isDrop) {
+          cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
+        }
       }
     }
+
+    // If the cell is not a move target, check if it contains a piece that can be selected
+    if (showHints && !cellStyle.backgroundColor && piece && piece.owner === gameState.currentPlayer && isGameInProgress) {
+      cellStyle.backgroundColor = styles.selectableCellHighlight.backgroundColor;
+    }
+
+    // The currently selected piece's highlight should have the highest priority
+    if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
+      cellStyle.backgroundColor = styles.selectedCell.backgroundColor;
+    }
+
     return cellStyle;
   };
 

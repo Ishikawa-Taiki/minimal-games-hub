@@ -48,16 +48,14 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     backgroundColor: '#fef9c3',
   },
   capturableCell: {
-    backgroundColor: '#fecaca', // Light red
+    backgroundColor: '#bae6fd', // Light blue
   },
   threatenedCell: {
     // Using an inset box-shadow allows combining with other background colors
-    boxShadow: 'inset 0 0 0 4px #d8b4fe', // Light purple
+    boxShadow: 'inset 0 0 0 4px #fca5a5', // Light red
   },
-  selectablePiece: {
-    // A subtle white glow, using a lighter border
-    outline: '2px solid rgba(255, 255, 255, 0.8)',
-    outlineOffset: '-2px',
+  selectableCellHighlight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   controls: {
     marginTop: '1rem',
@@ -155,39 +153,40 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     position: 'absolute',
     width: '14px',
     height: '14px',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     pointerEvents: 'none',
+    // Outline effect that works with clip-path
+    filter: 'drop-shadow(0 0 1px rgba(0, 0, 0, 0.7))',
   },
   indicatorN: {
     clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
     top: '3px', left: '50%', transform: 'translateX(-50%)',
   },
   indicatorNE: {
-    clipPath: 'polygon(100% 0, 100% 100%, 0 0)',
+    clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%)',
     top: '3px', right: '3px',
   },
   indicatorE: {
-    clipPath: 'polygon(100% 50%, 0 0, 0 100%)',
+    clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
     top: '50%', right: '3px', transform: 'translateY(-50%)',
   },
   indicatorSE: {
-    clipPath: 'polygon(100% 100%, 0 100%, 100% 0)',
+    clipPath: 'polygon(0% 100%, 100% 100%, 100% 0%)',
     bottom: '3px', right: '3px',
   },
   indicatorS: {
-    clipPath: 'polygon(50% 100%, 0 0, 100% 0)',
+    clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)',
     bottom: '3px', left: '50%', transform: 'translateX(-50%)',
   },
   indicatorSW: {
-    clipPath: 'polygon(0 100%, 0 0, 100% 0)',
+    clipPath: 'polygon(0% 0%, 0% 100%, 100% 100%)',
     bottom: '3px', left: '3px',
   },
   indicatorW: {
-    clipPath: 'polygon(0 50%, 100% 100%, 100% 0)',
+    clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)',
     top: '50%', left: '3px', transform: 'translateY(-50%)',
   },
   indicatorNW: {
-    clipPath: 'polygon(0 0, 0 100%, 100% 100%)',
+    clipPath: 'polygon(0% 0%, 100% 0%, 0% 100%)',
     top: '3px', left: '3px',
   },
 });
