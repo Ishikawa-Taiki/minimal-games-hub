@@ -183,6 +183,21 @@ export const gameLayoutStyles = StyleSheet.create({
     display: 'block',
     transition: 'background-color 0.2s',
   },
+  scoreInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  scoreDisplay: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '0.5rem',
+    backgroundColor: '#f9fafb',
+    borderRadius: '0.375rem',
+    border: '1px solid #e5e7eb',
+    fontSize: '0.875rem',
+    color: '#374151',
+  },
 
   // フローティングアクションボタン（FAB）
   fab: {

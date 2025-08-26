@@ -46,6 +46,40 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     }
   };
 
+  // リバーシ固有のスコア表示
+  const renderScoreInfo = () => {
+    const extendedState = gameState as TState & { scores?: { BLACK: number; WHITE: number } };
+    if (extendedState.scores) {
+      return (
+        <div style={gameLayoutStyles.scoreInfo}>
+          <h4 style={gameLayoutStyles.sectionTitle}>スコア</h4>
+          <div style={gameLayoutStyles.scoreDisplay}>
+            <span>黒: {extendedState.scores.BLACK}</span>
+            <span>白: {extendedState.scores.WHITE}</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // ヒント機能のボタン
+  const renderHintButton = () => {
+    const hintController = gameController as BaseGameController<TState, TAction> & { toggleHints?: () => void };
+    if (hintController.toggleHints) {
+      return (
+        <button 
+          style={gameLayoutStyles.controlButton}
+          onClick={hintController.toggleHints}
+          data-testid="hint-button"
+        >
+          ヒント切り替え
+        </button>
+      );
+    }
+    return null;
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -54,6 +88,8 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         <h4 style={gameLayoutStyles.sectionTitle}>ゲーム状態</h4>
         <p style={gameLayoutStyles.statusText} data-testid="status">{getStatusText()}</p>
       </div>
+
+      {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
         <Link 
@@ -69,6 +105,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         >
           リセット
         </button>
+        {renderHintButton()}
         <Link 
           href="/" 
           style={gameLayoutStyles.controlButton}

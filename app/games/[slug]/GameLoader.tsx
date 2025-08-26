@@ -19,7 +19,7 @@ const getGameComponent = (slug: string) => {
     return dynamic(() => import('../../../games/animal-chess/index'), { ssr: false });
   }
   if (slug === 'reversi') {
-    return dynamic(() => import('../../../games/reversi/index'), { ssr: false });
+    return dynamic(() => import('../../../games/reversi'), { ssr: false });
   }
   if (slug === 'hasami-shogi') {
     return dynamic(() => import('../../../games/hasami-shogi/index'), { ssr: false });
