@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, CSSProperties } from 'react';
-import getConfig from 'next/config';
 import {
   BOARD_COLS,
   Piece,
