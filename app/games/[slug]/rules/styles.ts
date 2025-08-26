@@ -1,4 +1,4 @@
-import StyleSheet from '../../../../styles/StyleSheet';
+import StyleSheet from '@/app/styles/StyleSheet';
 
 export const rulesPageStyles = StyleSheet.create({
   container: {
