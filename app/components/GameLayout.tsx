@@ -3,20 +3,26 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
-import { BaseGameState, BaseGameController } from '../../types/game';
+import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '../../types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
 import { gameLayoutStyles } from './styles';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
   gameName: string;
   slug: string;
-  gameController?: BaseGameController<TState, TAction>;
+  gameController?: BaseGameController<TState, TAction> | 
+                   HintableGameController<TState, TAction> | 
+                   HistoryGameController<TState, TAction> |
+                   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
   children: React.ReactNode;
 }
 
 // コントロールパネルコンポーネント
 interface ControlPanelProps<TState extends BaseGameState, TAction> {
-  gameController: BaseGameController<TState, TAction>;
+  gameController: BaseGameController<TState, TAction> | 
+                  HintableGameController<TState, TAction> | 
+                  HistoryGameController<TState, TAction> |
+                  (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
   slug: string;
   isVisible?: boolean;
 }
@@ -71,7 +77,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         <button 
           style={gameLayoutStyles.controlButton}
           onClick={hintController.toggleHints}
-          data-testid="hint-button"
+          data-testid="control-panel-hint-button"
         >
           ヒント切り替え
         </button>
@@ -101,7 +107,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         <button 
           style={gameLayoutStyles.controlButton}
           onClick={resetGame}
-          data-testid="reset-button"
+          data-testid="control-panel-reset-button"
         >
           リセット
         </button>
@@ -125,7 +131,9 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
   gameController,
   children
 }: GameLayoutProps<TState, TAction>) {
+  console.log('GameLayout rendered with:', { gameName, slug, gameController: !!gameController });
   const responsiveState = useResponsive();
+  console.log('Responsive state:', responsiveState);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
   const handleFABClick = () => {
@@ -138,6 +146,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
 
   // gameControllerが未定義の場合は従来のレイアウトを使用
   if (!gameController) {
+    console.log('Using legacy layout - gameController is undefined');
     return (
       <div style={gameLayoutStyles.container}>
         <header style={gameLayoutStyles.header}>
@@ -159,6 +168,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
   }
 
   if (isMobile(responsiveState)) {
+    console.log('Using mobile layout');
     // モバイルレイアウト: ミニマルレイアウト + FAB + ボトムシート
     return (
       <div style={gameLayoutStyles.mobileContainer}>
@@ -205,6 +215,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
       </div>
     );
   } else {
+    console.log('Using desktop layout');
     // PCレイアウト: サイドバーレイアウト
     return (
       <div style={gameLayoutStyles.desktopContainer}>

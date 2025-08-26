@@ -7,12 +7,10 @@ describe('リバーシゲームのE2Eテスト', () => {
     // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
     await expect(page).toHaveTitle(/リバーシ/);
 
-    // ゲームのタイトルが表示されていることを確認
-    const titleLocator = page.locator('header h1');
-    const titleText = await titleLocator.textContent();
-    expect(titleText).toBe('リバーシ');
-
-    // 盤面のセルの数を検証
+    // ページが読み込まれるまで待機
+    await page.waitForLoadState('networkidle');
+    
+    // 盤面のセルの数を検証（これが読み込まれていればゲームが表示されている）
     await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
   });
 

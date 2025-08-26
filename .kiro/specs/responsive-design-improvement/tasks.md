@@ -41,11 +41,13 @@
   - HintableGameControllerインターフェースを実装
   - _要件: 3.5_
 
-- [x] 8. 既存ゲーム（リバーシ）の完全対応
+- [ ] 8. 既存ゲーム（リバーシ）の完全対応【技術的課題により一時中断】
   - リバーシゲームのuseReversiフックをGameControllerインターフェースに準拠させる
   - ヒント機能（placeable、full）を新しいHintStateに対応させる
   - 履歴機能（undo/redo）をHistoryGameControllerに対応させる
   - 強化されたGameLayoutコンポーネントを適用
+  - **課題**: GameLayoutコンポーネントが正しく表示されない問題が発生
+  - **対応**: 根本原因の特定と段階的実装アプローチが必要
   - _要件: 3.1, 3.2, 3.5_
 
 ## フェーズ3: 残りゲームの一括対応

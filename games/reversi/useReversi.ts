@@ -300,7 +300,7 @@ export interface ReversiController extends
 
 // GameControllerインターフェースを実装したフック
 export function useReversi(): ReversiController {
-  const [gameState, dispatch] = useReducer(reversiReducer, null, createInitialReversiState);
+  const [gameState, dispatch] = useReducer(reversiReducer, undefined, createInitialReversiState);
   
   // ゲームリセット
   const resetGame = useCallback(() => {

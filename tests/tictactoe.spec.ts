@@ -78,8 +78,8 @@ describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-0-0').click();
     await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click();
-    await page.getByTestId('reset-button').waitFor();
-    await page.getByTestId('reset-button').click();
+    await page.getByTestId('control-panel-reset-button').waitFor();
+    await page.getByTestId('control-panel-reset-button').click();
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
     const status = await page.getByTestId('status').textContent();
@@ -171,7 +171,7 @@ describe('Tic-Tac-Toe Game', () => {
       await expect(status).toBeVisible();
       
       // リセットボタンが直接表示されることを確認（サイドバー内）
-      const resetButton = page.getByTestId('reset-button');
+      const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).toBeVisible();
       
       // ルールリンクが直接表示されることを確認
@@ -193,7 +193,7 @@ describe('Tic-Tac-Toe Game', () => {
       await expect(mobileStatus).toBeVisible();
       
       // リセットボタンが直接表示されないことを確認（ボトムシート内にある）
-      const resetButton = page.getByTestId('reset-button');
+      const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).not.toBeVisible();
     });
 
@@ -211,7 +211,7 @@ describe('Tic-Tac-Toe Game', () => {
       await expect(overlay).toBeVisible();
       
       // リセットボタンがボトムシート内に表示されることを確認
-      const resetButton = page.getByTestId('reset-button');
+      const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).toBeVisible();
       
       // ルールリンクが表示されることを確認
@@ -233,7 +233,7 @@ describe('Tic-Tac-Toe Game', () => {
       await overlay.click({ position: { x: 10, y: 10 } }); // ボトムシート外をクリック
       
       // リセットボタンが非表示になることを確認
-      const resetButton = page.getByTestId('reset-button');
+      const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).not.toBeVisible();
     });
 
@@ -243,7 +243,7 @@ describe('Tic-Tac-Toe Game', () => {
       await page.goto('/games/tictactoe');
       
       // リセットボタンが直接表示されることを確認（デスクトップレイアウト）
-      const resetButton = page.getByTestId('reset-button');
+      const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).toBeVisible();
       
       // FABが表示されないことを確認
