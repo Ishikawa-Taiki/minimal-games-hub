@@ -95,4 +95,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: '1rem',
   },
+  gameControls: {
+    marginTop: '1rem',
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '0.5rem',
+  },
 });

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ResponsiveState } from '../types/game';
+import { ResponsiveState, isMobile, isDesktop } from '../types/game';
+
+// ヘルパー関数を再エクスポート
+export { isMobile, isDesktop };
 
 /**
  * レスポンシブデザインのためのカスタムフック

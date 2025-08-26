@@ -1,6 +1,7 @@
 import StyleSheet from '../styles/StyleSheet';
 
 export const gameLayoutStyles = StyleSheet.create({
+  // レガシースタイル（後方互換性のため保持）
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -40,5 +41,189 @@ export const gameLayoutStyles = StyleSheet.create({
     flexGrow: 1,
     padding: '1rem', // p-4
     overflowY: 'auto',
+  },
+
+  // 新しいレスポンシブレイアウト用スタイル
+  
+  // PCレイアウト（サイドバー）
+  desktopContainer: {
+    display: 'flex',
+    height: '100vh',
+    backgroundColor: '#f3f4f6',
+  },
+  sidebar: {
+    width: '300px',
+    backgroundColor: '#ffffff',
+    boxShadow: '2px 0 4px rgba(0, 0, 0, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
+  },
+  sidebarHeader: {
+    padding: '1.5rem 1rem 1rem',
+    borderBottom: '1px solid #e5e7eb',
+  },
+  sidebarTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    margin: 0,
+  },
+  desktopMain: {
+    flex: 1,
+    padding: '2rem',
+    overflowY: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // モバイルレイアウト（ミニマル）
+  mobileContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    backgroundColor: '#f3f4f6',
+    position: 'relative',
+  },
+  mobileHeader: {
+    backgroundColor: '#ffffff',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    padding: '0.75rem 1rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: '60px',
+  },
+  mobileHeaderTitle: {
+    fontSize: '1.125rem',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    margin: 0,
+  },
+  mobileStatus: {
+    fontSize: '0.875rem',
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  mobileMain: {
+    flex: 1,
+    padding: '1rem',
+    overflowY: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // コントロールパネル
+  controlPanel: {
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  },
+  controlPanelHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: '0.5rem',
+    borderBottom: '1px solid #e5e7eb',
+  },
+  controlPanelTitle: {
+    fontSize: '1.125rem',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    margin: 0,
+  },
+  closeButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.5rem',
+    color: '#6b7280',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    borderRadius: '0.25rem',
+  },
+  statusSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  sectionTitle: {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#374151',
+    margin: 0,
+  },
+  statusText: {
+    fontSize: '0.875rem',
+    color: '#6b7280',
+    margin: 0,
+    padding: '0.5rem',
+    backgroundColor: '#f9fafb',
+    borderRadius: '0.375rem',
+    border: '1px solid #e5e7eb',
+  },
+  actionsSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  controlButton: {
+    padding: '0.75rem 1rem',
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '0.375rem',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    textAlign: 'center',
+    textDecoration: 'none',
+    display: 'block',
+    transition: 'background-color 0.2s',
+  },
+
+  // フローティングアクションボタン（FAB）
+  fab: {
+    position: 'fixed',
+    bottom: '1.5rem',
+    right: '1.5rem',
+    width: '56px',
+    height: '56px',
+    borderRadius: '50%',
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    border: 'none',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s',
+  },
+
+  // ボトムシート
+  bottomSheetOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 2000,
+    display: 'flex',
+    alignItems: 'flex-end',
+  },
+  bottomSheet: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: '1rem',
+    borderTopRightRadius: '1rem',
+    width: '100%',
+    maxHeight: '70vh',
+    overflowY: 'auto',
+    animation: 'slideUp 0.3s ease-out',
   },
 });
