@@ -3,6 +3,7 @@ import path from 'path';
 import Link from 'next/link';
 import { GameManifest } from '@/types/game';
 import MarkdownViewer from '@/app/components/MarkdownViewer';
+import { rulesPageStyles } from './styles';
 
 interface RulesPageProps {
   params: Promise<{ slug: string }>;
@@ -52,11 +53,11 @@ export default async function RulesPage({ params }: RulesPageProps) {
   const { gameName, combinedContent } = await getDocContents(slug);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">{gameName} ドキュメント</h1>
+    <div style={rulesPageStyles.container}>
+      <h1 style={rulesPageStyles.title}>{gameName} ドキュメント</h1>
       <MarkdownViewer content={combinedContent} />
-      <div className="mt-8">
-        <Link href={`/games/${slug}`} className="text-blue-500 hover:underline">
+      <div style={rulesPageStyles.backLinkContainer}>
+        <Link href={`/games/${slug}`} style={rulesPageStyles.backLink}>
           Back to Game
         </Link>
       </div>
