@@ -9,7 +9,7 @@ interface MarkdownViewerProps {
 
 export default function MarkdownViewer({ content }: MarkdownViewerProps) {
   return (
-    <div className="prose prose-sm max-w-none">
+    <div className="markdown-body">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {content}
       </ReactMarkdown>

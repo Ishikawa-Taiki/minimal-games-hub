@@ -1,74 +1,99 @@
+import StyleSheet from '../../app/styles/StyleSheet';
 import { CSSProperties } from 'react';
-import { BOARD_ROWS, BOARD_COLS } from './core';
+import { BOARD_COLS } from './core';
 
-export const styles: { [key: string]: CSSProperties } = {
-  gameContainer: {
-    // display: 'flex',
+export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
+  container: {
+    display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    fontFamily: 'sans-serif',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    padding: '2rem',
+    backgroundColor: '#f3f4f6',
+  },
+  title: {
+    fontSize: '2.25rem',
+    fontWeight: 'bold',
+    marginBottom: '2rem',
   },
   board: {
     display: 'grid',
-    gridTemplateRows: `repeat(${BOARD_ROWS}, 100px)`,
-    border: '2px solid black',
-    backgroundColor: '#f0d9b5',
-    margin: '10px 0',
-  },
-  boardRow: {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${BOARD_COLS}, 100px)`,
+    gridTemplateColumns: `repeat(${BOARD_COLS}, 1fr)`,
+    gap: '4px',
+    backgroundColor: '#4b5563',
+    padding: '4px',
+    borderRadius: '0.5rem',
   },
   cell: {
-    width: '100px',
-    height: '100px',
-    border: '1px solid #b58863',
+    width: '80px',
+    height: '80px',
+    backgroundColor: '#e5e7eb',
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
-    cursor: 'pointer',
-    boxSizing: 'border-box',
+    justifyContent: 'center',
+    fontSize: '1.875rem',
+    fontWeight: 'bold',
+    borderRadius: '0.375rem',
+    border: '1px solid #9ca3af',
   },
-  hintCell: {
-    backgroundColor: 'rgba(0, 255, 0, 0.3)',
+  selectedCell: {
+    backgroundColor: '#bfdbfe',
   },
-  piece: {
-    width: '90%',
-    height: '90%',
+  validMoveCell: {
+    backgroundColor: '#dcfce7',
   },
-  selectedPiece: {
-    backgroundColor: 'rgba(255, 255, 0, 0.5)',
-    borderRadius: '10px',
-  },
-  captureArea: {
-    width: `${BOARD_COLS * 100}px`,
-    minHeight: '100px',
-    padding: '5px',
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    borderColor: '#ccc',
-    borderRadius: '5px',
-    backgroundColor: '#eee',
-  },
-  captureBox: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '5px',
-    height: '100%',
-  },
-  activePlayerArea: {
-    borderColor: 'gold',
-    boxShadow: '0 0 10px gold',
+  validDropCell: {
+    backgroundColor: '#fef9c3',
   },
   controls: {
-    textAlign: 'center',
-    marginTop: '10px',
+    marginTop: '1rem',
+    display: 'flex',
+    gap: '1rem',
   },
   button: {
-    padding: '10px 20px',
-    fontSize: '16px',
+    padding: '0.5rem 1rem',
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    borderRadius: '0.25rem',
+    border: 'none',
     cursor: 'pointer',
-    margin: '5px',
+  },
+  statusText: {
+    marginTop: '1rem',
+    fontSize: '1.125rem',
+  },
+  capturedPiecesContainer: {
+    display: 'flex',
+    marginTop: '2rem',
+    gap: '2rem',
+  },
+  capturedPiecesBox: {
+    border: '1px solid #d1d5db',
+    padding: '1rem',
+    borderRadius: '0.5rem',
+    backgroundColor: '#ffffff',
+  },
+  capturedPiecesTitle: {
+    fontSize: '1.125rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+  },
+  capturedPiecesList: {
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap',
+  },
+  capturedPiece: {
+    fontSize: '1.5rem',
+    padding: '0.25rem 0.5rem',
+    backgroundColor: '#f3f4f6',
+    borderRadius: '0.25rem',
+    border: 'none',
+  },
+  selectedCapturedPiece: {
+    backgroundColor: '#bfdbfe',
+    boxShadow: '0 0 0 2px #3b82f6',
   },
   modalOverlay: {
     position: 'fixed',
@@ -84,8 +109,27 @@ export const styles: { [key: string]: CSSProperties } = {
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: '20px 40px',
-    borderRadius: '10px',
+    padding: '2rem',
+    borderRadius: '0.5rem',
     textAlign: 'center',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
   },
-};
+  modalTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem',
+  },
+  modalText: {
+    fontSize: '1.125rem',
+    marginBottom: '1.5rem',
+  },
+  modalButton: {
+    padding: '0.75rem 1.5rem',
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    borderRadius: '0.25rem',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1rem',
+  },
+});

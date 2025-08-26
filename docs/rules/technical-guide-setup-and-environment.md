@@ -63,7 +63,7 @@ npm run dev
 ## 3. 技術スタック
 -   **フレームワーク:** Next.js
 -   **言語:** TypeScript
--   **スタイリング:** 本プロジェクトでは、Tailwind CSSは使用しません。スタイリングは、インラインスタイルまたはCSS Modules、あるいは既存の慣習に沿った方法で行います。
+-   **スタイリング:** オブジェクトベースのCSS-in-JSアプローチを採用しています。詳細は `docs/rules/technical-guide-application-architecture.md` のスタイリングセクションを参照してください。
 -   **Node.jsバージョン管理:** `nodenv` (`.node-version` ファイルを参照)
 -   **リンティング & フォーマット:** `eslint.config.mjs` に定義されたルールに準拠します。
 

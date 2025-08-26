@@ -27,7 +27,9 @@ test('Animal Chess Game ページにアクセスすると、タイトルが正�
 });
 
 test('盤面が正しく表示される', async ({ page }) => {
-  const cells = await page.locator('[data-testid^="cell-"]').all();
+  const board = page.locator('[data-testid="animal-chess-board"]');
+  await expect(board).toBeVisible();
+  const cells = await board.locator('[data-testid^="cell-"]').all();
   expect(cells.length).toBe(12);
 });
 

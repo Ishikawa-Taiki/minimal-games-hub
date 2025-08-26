@@ -18,7 +18,6 @@
     "postinstall": "npx playwright install && npm run update:license"
   },
   "dependencies": {
-    "autoprefixer": "^10.4.21",
     "next": "15.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -29,8 +28,6 @@
     "@eslint/eslintrc": "^3",
     "@google/gemini-cli": "^0.1.22",
     "@playwright/test": "^1.54.2",
-    "@tailwindcss/postcss": "^4.1.11",
-    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -40,7 +37,6 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "license-checker": "^25.0.1",
-    "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
   },

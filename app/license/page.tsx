@@ -1,6 +1,7 @@
 import React from 'react';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { licensePageStyles } from './styles';
 
 const LicensePage: React.FC = async () => {
   const projectLicensePath = path.join(process.cwd(), 'LICENSE');
@@ -10,20 +11,20 @@ const LicensePage: React.FC = async () => {
   const thirdPartyLicenseText = await fs.readFile(thirdPartyLicensePath, 'utf-8');
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Licenses</h1>
+    <div style={licensePageStyles.container}>
+      <h1 style={licensePageStyles.title}>Licenses</h1>
       <p>This page lists the licenses of the third-party libraries used in this project.</p>
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-2">Project License</h2>
-        <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md text-sm overflow-auto whitespace-pre-wrap">
+      <div style={licensePageStyles.section}>
+        <h2 style={licensePageStyles.sectionTitle}>Project License</h2>
+        <pre style={licensePageStyles.pre}>
           {projectLicenseText}
         </pre>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-2">Third-Party Licenses</h2>
-        <p className="mb-4">The following licenses are believed to apply to the included third-party libraries. This list may not be exhaustive and is provided for informational purposes only.</p>
-        <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md text-sm overflow-auto whitespace-pre-wrap">
+      <div style={licensePageStyles.section}>
+        <h2 style={licensePageStyles.sectionTitle}>Third-Party Licenses</h2>
+        <p style={licensePageStyles.paragraph}>The following licenses are believed to apply to the included third-party libraries. This list may not be exhaustive and is provided for informational purposes only.</p>
+        <pre style={licensePageStyles.pre}>
           {thirdPartyLicenseText}
         </pre>
       </div>
