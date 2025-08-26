@@ -35,7 +35,7 @@ export interface GameState {
 }
 
 // Movement vectors [row, col] relative to the piece owner (SENTE)
-const MOVES: { [key in PieceType]: [number, number][] } = {
+export const MOVES: { [key in PieceType]: [number, number][] } = {
   [LION]:    [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]],
   [GIRAFFE]: [[-1, 0], [1, 0], [0, -1], [0, 1]],
   [ELEPHANT]:[[-1, -1], [-1, 1], [1, -1], [1, 1]],
@@ -96,13 +96,9 @@ function getPieceMoves(piece: Piece): [number, number][] {
     return moves;
 }
 
-// =============================================================================
-// Core Logic Functions
-// =============================================================================
-
-export function getValidMoves(state: GameState, fromRow: number, fromCol: number): { row: number, col: number }[] {
-  const piece = state.board[fromRow][fromCol];
-  if (!piece || piece.owner !== state.currentPlayer) return [];
+function getValidMovesForPiece(board: Board, player: Player, fromRow: number, fromCol: number): { row: number, col: number }[] {
+  const piece = board[fromRow][fromCol];
+  if (!piece || piece.owner !== player) return [];
 
   const validMoves: { row: number, col: number }[] = [];
   const moves = getPieceMoves(piece);
@@ -113,14 +109,44 @@ export function getValidMoves(state: GameState, fromRow: number, fromCol: number
 
     if (isOutOfBounds(toRow, toCol)) continue;
 
-    const destinationCell = state.board[toRow][toCol];
-    if (destinationCell && destinationCell.owner === state.currentPlayer) {
-      continue; // Cannot capture own piece
+    const destinationCell = board[toRow][toCol];
+    if (destinationCell && destinationCell.owner === player) {
+      continue;
     }
     validMoves.push({ row: toRow, col: toCol });
   }
 
   return validMoves;
+}
+
+function getAllPlayerMoves(board: Board, player: Player): { row: number, col: number }[] {
+    const allMoves: { row: number, col: number }[] = [];
+    for (let r = 0; r < BOARD_ROWS; r++) {
+        for (let c = 0; c < BOARD_COLS; c++) {
+            const piece = board[r][c];
+            if (piece && piece.owner === player) {
+                const moves = getValidMovesForPiece(board, player, r, c);
+                allMoves.push(...moves);
+            }
+        }
+    }
+    return allMoves;
+}
+
+export function isSquareThreatened(board: Board, row: number, col: number, player: Player): boolean {
+    const opponent = getOpponent(player);
+    const opponentMoves = getAllPlayerMoves(board, opponent);
+    return opponentMoves.some(move => move.row === row && move.col === col);
+}
+
+// =============================================================================
+// Core Logic Functions
+// =============================================================================
+
+export function getValidMoves(state: GameState, fromRow: number, fromCol: number): { row: number, col: number }[] {
+  const piece = state.board[fromRow][fromCol];
+  if (!piece || piece.owner !== state.currentPlayer) return [];
+  return getValidMovesForPiece(state.board, state.currentPlayer, fromRow, fromCol);
 }
 
 export function getValidDrops(state: GameState, player: Player): { row: number, col: number }[] {

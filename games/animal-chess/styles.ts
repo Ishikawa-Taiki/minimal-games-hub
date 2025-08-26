@@ -26,8 +26,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     borderRadius: '0.5rem',
   },
   cell: {
-    width: '80px',
-    height: '80px',
+    width: 'clamp(70px, 18vw, 120px)',
+    height: 'clamp(70px, 18vw, 120px)',
     backgroundColor: '#e5e7eb',
     display: 'flex',
     alignItems: 'center',
@@ -36,6 +36,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
     borderRadius: '0.375rem',
     border: '1px solid #9ca3af',
+    position: 'relative', // For move indicators
   },
   selectedCell: {
     backgroundColor: '#bfdbfe',
@@ -45,6 +46,18 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   validDropCell: {
     backgroundColor: '#fef9c3',
+  },
+  capturableCell: {
+    backgroundColor: '#fecaca', // Light red
+  },
+  threatenedCell: {
+    // Using an inset box-shadow allows combining with other background colors
+    boxShadow: 'inset 0 0 0 4px #d8b4fe', // Light purple
+  },
+  selectablePiece: {
+    // A subtle white glow, using a lighter border
+    outline: '2px solid rgba(255, 255, 255, 0.8)',
+    outlineOffset: '-2px',
   },
   controls: {
     marginTop: '1rem',
@@ -60,8 +73,9 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     cursor: 'pointer',
   },
   statusText: {
-    marginTop: '1rem',
-    fontSize: '1.125rem',
+    marginBottom: '1rem',
+    fontSize: '1.25rem',
+    fontWeight: 'bold',
   },
   capturedPiecesContainer: {
     display: 'flex',
@@ -85,11 +99,15 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     flexWrap: 'wrap',
   },
   capturedPiece: {
-    fontSize: '1.5rem',
-    padding: '0.25rem 0.5rem',
-    backgroundColor: '#f3f4f6',
-    borderRadius: '0.25rem',
+    width: 'clamp(50px, 12vw, 80px)',
+    height: 'clamp(50px, 12vw, 80px)',
+    padding: 0,
+    backgroundColor: 'transparent',
     border: 'none',
+    borderRadius: '0.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectedCapturedPiece: {
     backgroundColor: '#bfdbfe',
@@ -131,5 +149,45 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: 'none',
     cursor: 'pointer',
     fontSize: '1rem',
+  },
+  // Move Indicators
+  moveIndicator: {
+    position: 'absolute',
+    width: '14px',
+    height: '14px',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    pointerEvents: 'none',
+  },
+  indicatorN: {
+    clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+    top: '3px', left: '50%', transform: 'translateX(-50%)',
+  },
+  indicatorNE: {
+    clipPath: 'polygon(100% 0, 100% 100%, 0 0)',
+    top: '3px', right: '3px',
+  },
+  indicatorE: {
+    clipPath: 'polygon(100% 50%, 0 0, 0 100%)',
+    top: '50%', right: '3px', transform: 'translateY(-50%)',
+  },
+  indicatorSE: {
+    clipPath: 'polygon(100% 100%, 0 100%, 100% 0)',
+    bottom: '3px', right: '3px',
+  },
+  indicatorS: {
+    clipPath: 'polygon(50% 100%, 0 0, 100% 0)',
+    bottom: '3px', left: '50%', transform: 'translateX(-50%)',
+  },
+  indicatorSW: {
+    clipPath: 'polygon(0 100%, 0 0, 100% 0)',
+    bottom: '3px', left: '3px',
+  },
+  indicatorW: {
+    clipPath: 'polygon(0 50%, 100% 100%, 100% 0)',
+    top: '50%', left: '3px', transform: 'translateY(-50%)',
+  },
+  indicatorNW: {
+    clipPath: 'polygon(0 0, 0 100%, 100% 100%)',
+    top: '3px', left: '3px',
   },
 });

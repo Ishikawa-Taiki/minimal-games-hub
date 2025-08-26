@@ -127,6 +127,7 @@ test('ヒントボタンが機能すること', async ({ page }) => {
   const hintButton = page.locator('button:has-text("ヒント")');
   const selectedCellColor = 'rgb(191, 219, 254)'; // #bfdbfe
   const validMoveCellColor = 'rgb(220, 252, 231)'; // #dcfce7
+  const capturableCellColor = 'rgb(254, 202, 202)'; // #fecaca
 
   await expect(hintButton).toHaveText('ヒント: OFF');
 
@@ -137,11 +138,14 @@ test('ヒントボタンが機能すること', async ({ page }) => {
   await chickCell.click();
   await expect(chickCell).toHaveCSS('background-color', selectedCellColor);
 
-  await expect(page.locator('[data-testid="cell-1-1"]')).toHaveCSS('background-color', validMoveCellColor);
+  // This move is a capture, so it should be the capturable color.
+  await expect(page.locator('[data-testid="cell-1-1"]')).toHaveCSS('background-color', capturableCellColor);
 
   await hintButton.click();
   await expect(hintButton).toHaveText('ヒント: OFF');
 
+  // After turning hints off, the highlight should disappear.
+  await expect(page.locator('[data-testid="cell-1-1"]')).not.toHaveCSS('background-color', capturableCellColor);
   await expect(page.locator('[data-testid="cell-1-1"]')).not.toHaveCSS('background-color', validMoveCellColor);
 });
 
