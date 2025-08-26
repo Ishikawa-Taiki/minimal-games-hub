@@ -11,6 +11,8 @@ import {
   handleCaptureClick as coreHandleCaptureClick,
   getValidMoves,
   getValidDrops,
+  isSquareThreatened,
+  MOVES,
   SENTE,
   GOTE,
   LION,
@@ -33,21 +35,40 @@ const pieceImageMap: Record<PieceType, string> = {
   ROOSTER: 'chicken.png',
 };
 
-const PieceDisplay: React.FC<{ piece: Piece }> = ({ piece }) => {
+const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
+  '[-1,0]': styles.indicatorN,
+  '[-1,1]': styles.indicatorNE,
+  '[0,1]':  styles.indicatorE,
+  '[1,1]':  styles.indicatorSE,
+  '[1,0]':  styles.indicatorS,
+  '[1,-1]': styles.indicatorSW,
+  '[0,-1]': styles.indicatorW,
+  '[-1,-1]':styles.indicatorNW,
+};
+
+const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ piece, showIndicators }) => {
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
   const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
 
   const imageStyle: CSSProperties = {
     transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
-    width: '90%',
-    height: '90%',
     objectFit: 'contain',
   };
 
+  const baseMoves = MOVES[piece.type];
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
-      <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} width={60} height={60} style={imageStyle} />
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} fill style={imageStyle} />
+      {showIndicators && baseMoves.map(move => {
+        const key = JSON.stringify(move);
+        const indicatorStyle = moveVectorToIndicatorMap[key];
+        if (indicatorStyle) {
+          return <div key={key} style={{ ...styles.moveIndicator, ...indicatorStyle }} />;
+        }
+        return null;
+      })}
     </div>
   );
 };
@@ -73,59 +94,133 @@ const GameOverModal: React.FC<{ status: GameState['status']; onReset: () => void
 const AnimalChessPage = () => {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [showHints, setShowHints] = useState(false);
+  const [hintedMoves, setHintedMoves] = useState<{
+    valid: { row: number; col: number }[];
+    capturable: { row: number; col: number }[];
+    threatened: { row: number; col: number }[];
+  }>({ valid: [], capturable: [], threatened: [] });
 
   const isGameInProgress = gameState.status === 'playing';
+
+  const clearHints = () => {
+    setHintedMoves({ valid: [], capturable: [], threatened: [] });
+  };
+
+  const calculateAndSetHints = (state: GameState, from: { row: number; col: number }) => {
+    if (!showHints) return;
+
+    const validMoves = getValidMoves(state, from.row, from.col);
+
+    const capturableMoves = validMoves.filter(move => {
+      const destinationPiece = state.board[move.row][move.col];
+      return destinationPiece && destinationPiece.owner !== state.currentPlayer;
+    });
+
+    const threatenedMoves = validMoves.filter(move => {
+      const pieceToMove = state.board[from.row][from.col];
+      if (!pieceToMove) return false;
+      const tempBoard = state.board.map(r => [...r]);
+      tempBoard[move.row][move.col] = pieceToMove;
+      tempBoard[from.row][from.col] = null;
+      return isSquareThreatened(tempBoard, move.row, move.col, state.currentPlayer);
+    });
+
+    setHintedMoves({ valid: validMoves, capturable: capturableMoves, threatened: threatenedMoves });
+  };
 
   const onCellClick = (row: number, col: number) => {
     if (!isGameInProgress) return;
 
+    const piece = gameState.board[row][col];
+    const isReselecting = gameState.selectedCell?.row === row && gameState.selectedCell?.col === col;
+
+    if (isReselecting || (gameState.selectedCell && (!piece || piece.owner !== gameState.currentPlayer))) {
+      clearHints();
+    }
+
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
       const newState = dropPiece(gameState, gameState.selectedCaptureIndex.player, pieceType, { row, col });
-      if (newState) {
-        setGameState(newState);
-      }
-    } else {
-      const newState = coreHandleCellClick(gameState, row, col);
-      if (newState) {
-        setGameState(newState);
-      }
+      setGameState(newState);
+      clearHints();
+      return;
+    }
+
+    const newState = coreHandleCellClick(gameState, row, col);
+    setGameState(newState);
+
+    if (newState.selectedCell && (newState.selectedCell.row !== gameState.selectedCell?.row || newState.selectedCell.col !== gameState.selectedCell?.col)) {
+      calculateAndSetHints(newState, newState.selectedCell);
+    } else if (!newState.selectedCell) {
+      clearHints();
     }
   };
 
   const handleCaptureClick = (player: typeof SENTE | typeof GOTE, index: number) => {
     if (!isGameInProgress) return;
+    clearHints();
     const newState = coreHandleCaptureClick(gameState, player, index);
-    if (newState) {
-      setGameState(newState);
-    }
+    setGameState(newState);
   };
 
   const handleReset = () => {
     setGameState(createInitialState());
+    clearHints();
   };
 
-  const getCellBackgroundColor = (row: number, col: number): string => {
-    if (gameState.selectedCell && gameState.selectedCell.row === row && gameState.selectedCell.col === col) {
-      return styles.selectedCell.backgroundColor as string;
+  const toggleHints = () => {
+    const newShowHints = !showHints;
+    setShowHints(newShowHints);
+    if (!newShowHints) {
+      clearHints();
+    } else {
+      if (gameState.selectedCell) {
+        calculateAndSetHints(gameState, gameState.selectedCell);
+      }
     }
+  };
+
+  const getCellStyle = (row: number, col: number): CSSProperties => {
+    const cellStyle: CSSProperties = {};
+    const piece = gameState.board[row][col];
+
+    if (showHints && piece && piece.owner === gameState.currentPlayer && isGameInProgress) {
+      Object.assign(cellStyle, styles.selectablePiece);
+    }
+
+    if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
+      Object.assign(cellStyle, styles.selectedCell);
+    }
+
     if (showHints) {
-      const validMoves = gameState.selectedCell ? getValidMoves(gameState, gameState.selectedCell.row, gameState.selectedCell.col) : [];
-      if (validMoves.some(move => move.row === row && move.col === col)) {
-        return styles.validMoveCell.backgroundColor as string;
+      const isCapturable = hintedMoves.capturable.some(m => m.row === row && m.col === col);
+      const isThreatened = hintedMoves.threatened.some(m => m.row === row && m.col === col);
+      const isValid = hintedMoves.valid.some(m => m.row === row && m.col === col);
+      const isDrop = gameState.selectedCaptureIndex ? getValidDrops(gameState, gameState.currentPlayer).some(d => d.row === row && d.col === col) : false;
+
+      if (isCapturable) {
+        cellStyle.backgroundColor = styles.capturableCell.backgroundColor;
+      } else if (isValid) {
+        cellStyle.backgroundColor = styles.validMoveCell.backgroundColor;
+      } else if (isDrop) {
+        cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
       }
-      const validDrops = gameState.selectedCaptureIndex ? getValidDrops(gameState, gameState.currentPlayer) : [];
-      if (validDrops.some(drop => drop.row === row && drop.col === col)) {
-        return styles.validDropCell.backgroundColor as string;
+
+      if (isThreatened) {
+        cellStyle.boxShadow = (cellStyle.boxShadow ? cellStyle.boxShadow + ', ' : '') + styles.threatenedCell.boxShadow;
       }
     }
-    return styles.cell.backgroundColor as string;
+    return cellStyle;
   };
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>アニマルチェス</h1>
       <GameOverModal status={gameState.status} onReset={handleReset} />
+
+      <p style={styles.statusText} data-testid="current-player-text">
+        いまのばん: {gameState.currentPlayer === SENTE ? 'プレイヤー1' : 'プレイヤー2'}
+      </p>
 
       <div style={styles.board} data-testid="animal-chess-board">
         {gameState.board.map((row, rowIndex) => (
@@ -135,13 +230,13 @@ const AnimalChessPage = () => {
               data-testid={`cell-${rowIndex}-${colIndex}`}
               style={{
                 ...styles.cell,
-                backgroundColor: getCellBackgroundColor(rowIndex, colIndex),
+                ...getCellStyle(rowIndex, colIndex),
                 cursor: isGameInProgress ? 'pointer' : 'default',
               }}
               onClick={() => onCellClick(rowIndex, colIndex)}
               disabled={!isGameInProgress}
             >
-              {cell && <PieceDisplay piece={cell} />}
+              {cell && <PieceDisplay piece={cell} showIndicators={true} />}
             </button>
           ))
         ))}
@@ -151,14 +246,10 @@ const AnimalChessPage = () => {
         <button style={styles.button} onClick={handleReset}>
           リセット
         </button>
-        <button style={styles.button} onClick={() => setShowHints(!showHints)}>
+        <button style={styles.button} onClick={toggleHints}>
           ヒント: {showHints ? 'ON' : 'OFF'}
         </button>
       </div>
-
-      <p style={styles.statusText} data-testid="current-player-text">
-        いまのばん: {gameState.currentPlayer === SENTE ? 'プレイヤー1' : 'プレイヤー2'}
-      </p>
 
       <div style={styles.capturedPiecesContainer}>
         <div style={styles.capturedPiecesBox}>
@@ -176,7 +267,7 @@ const AnimalChessPage = () => {
                 onClick={() => handleCaptureClick(SENTE, index)}
                 disabled={!isGameInProgress}
               >
-                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} />
+                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
               </button>
             ))}
           </div>
@@ -196,7 +287,7 @@ const AnimalChessPage = () => {
                 onClick={() => handleCaptureClick(GOTE, index)}
                 disabled={!isGameInProgress}
               >
-                <PieceDisplay piece={{ type: pieceType, owner: GOTE }} />
+                <PieceDisplay piece={{ type: pieceType, owner: GOTE }} showIndicators={false} />
               </button>
             ))}
           </div>
