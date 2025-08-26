@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, CSSProperties } from 'react';
-import getConfig from 'next/config';
 import {
   BOARD_COLS,
   Piece,
@@ -23,8 +22,7 @@ import {
 } from './core';
 import Image from 'next/image';
 
-const { publicRuntimeConfig } = getConfig() || { publicRuntimeConfig: { basePath: '' } };
-const basePath = publicRuntimeConfig.basePath || '';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 const pieceImageMap: Record<PieceType, string> = {
   LION: 'lion.png',
@@ -191,7 +189,7 @@ const AnimalChessPage = () => {
                 style={{
                   ...styles.capturedPiece,
                   ...(gameState.selectedCaptureIndex?.player === GOTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
-                   cursor: isGameInProgress ? 'pointer' : 'default',
+                  cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
                 data-testid={`captured-piece-${GOTE}-${pieceType}`}
                 onClick={() => handleCaptureClick(GOTE, index)}
