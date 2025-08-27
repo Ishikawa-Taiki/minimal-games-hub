@@ -28,8 +28,8 @@ function createInitialReversiState(): ReversiGameState {
   return {
     ...coreState,
     // BaseGameState required fields
+    status: 'playing' as GameStatus,
     winner: null,
-    isGameOver: false,
     // ヒント関連
     hintLevel: 'none',
     selectedHintCell: null,
@@ -65,8 +65,8 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
       return {
         ...state,
         ...newCoreState,
+        status: newCoreState.gameStatus === 'GAME_OVER' ? 'ended' : 'playing',
         winner,
-        isGameOver: newCoreState.gameStatus === 'GAME_OVER',
         selectedHintCell: null, // 移動後はヒント選択をリセット
       };
     }
