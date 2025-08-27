@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position } from '../../types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '../../types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -138,6 +138,8 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
     getHintLevel: () => 'off' | 'on';
     // 状態表示
     getDisplayStatus: () => string;
+    // スコア情報
+    getScoreInfo: () => ScoreInfo | null;
   };
 
 export function useAnimalChess(): AnimalChessController {
@@ -230,6 +232,16 @@ export function useAnimalChess(): AnimalChessController {
     }
   }, [gameState]);
 
+  const getScoreInfo = useCallback((): ScoreInfo | null => {
+    return {
+      title: '捕獲駒数',
+      items: [
+        { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
+        { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }
+      ]
+    };
+  }, [gameState.capturedPieces]);
+
   return {
     gameState,
     dispatch,
@@ -243,6 +255,7 @@ export function useAnimalChess(): AnimalChessController {
     getBoard,
     getHintLevel,
     getDisplayStatus,
+    getScoreInfo,
     // HintableGameController
     hintState,
     toggleHints,

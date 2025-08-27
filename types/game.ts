@@ -19,6 +19,15 @@ export interface BaseGameState {
   winner: Player | 'DRAW' | null;
 }
 
+// スコア/統計情報の表示用型定義
+export interface ScoreInfo {
+  title: string;
+  items: Array<{
+    label: string;
+    value: string | number;
+  }>;
+}
+
 // ゲームコントローラーの共通インターフェース（厳密な型設計）
 export interface BaseGameController<TState extends BaseGameState, TAction> {
   gameState: TState;
@@ -26,6 +35,8 @@ export interface BaseGameController<TState extends BaseGameState, TAction> {
   resetGame: () => void;
   // ゲーム固有の状態表示ロジック
   getDisplayStatus: () => string;
+  // ゲーム固有のスコア/統計情報（オプショナル）
+  getScoreInfo?: () => ScoreInfo | null;
 }
 
 // ヒント機能の共通型定義

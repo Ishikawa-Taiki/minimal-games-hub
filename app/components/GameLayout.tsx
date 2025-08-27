@@ -62,9 +62,26 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     }
   };
 
-  // ゲーム固有のスコア表示
+  // ゲーム固有のスコア表示（ポリモーフィック設計）
   const renderScoreInfo = () => {
-    // リバーシのスコア表示
+    // 新しい設計: 各ゲームコントローラーが自身のスコア情報を提供
+    if ('getScoreInfo' in gameController && typeof gameController.getScoreInfo === 'function') {
+      const scoreInfo = gameController.getScoreInfo();
+      if (scoreInfo) {
+        return (
+          <div style={gameLayoutStyles.scoreInfo}>
+            <h4 style={gameLayoutStyles.sectionTitle}>{scoreInfo.title}</h4>
+            <div style={gameLayoutStyles.scoreDisplay}>
+              {scoreInfo.items.map((item, index) => (
+                <span key={index}>{item.label}: {item.value}</span>
+              ))}
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // レガシー対応: リバーシ（まだ新しい設計に対応していない）
     const reversiState = gameState as TState & { scores?: { BLACK: number; WHITE: number } };
     if (reversiState.scores) {
       return (
@@ -73,34 +90,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
           <div style={gameLayoutStyles.scoreDisplay}>
             <span>黒: {reversiState.scores.BLACK}</span>
             <span>白: {reversiState.scores.WHITE}</span>
-          </div>
-        </div>
-      );
-    }
-
-    // アニマルチェスの捕獲数表示（配列形式の判定を先に行う）
-    const animalChessState = gameState as TState & { capturedPieces?: { SENTE: string[]; GOTE: string[] } };
-    if (animalChessState.capturedPieces && Array.isArray(animalChessState.capturedPieces.SENTE)) {
-      return (
-        <div style={gameLayoutStyles.scoreInfo}>
-          <h4 style={gameLayoutStyles.sectionTitle}>捕獲駒数</h4>
-          <div style={gameLayoutStyles.scoreDisplay}>
-            <span>プレイヤー1: {animalChessState.capturedPieces.SENTE.length}個</span>
-            <span>プレイヤー2: {animalChessState.capturedPieces.GOTE.length}個</span>
-          </div>
-        </div>
-      );
-    }
-
-    // はさみ将棋の捕獲数表示（数値形式）
-    const hasamiShogiState = gameState as TState & { capturedPieces?: { PLAYER1: number; PLAYER2: number } };
-    if (hasamiShogiState.capturedPieces && typeof hasamiShogiState.capturedPieces.PLAYER1 === 'number') {
-      return (
-        <div style={gameLayoutStyles.scoreInfo}>
-          <h4 style={gameLayoutStyles.sectionTitle}>捕獲数</h4>
-          <div style={gameLayoutStyles.scoreDisplay}>
-            <span>「歩」: {hasamiShogiState.capturedPieces.PLAYER2}</span>
-            <span>「と」: {hasamiShogiState.capturedPieces.PLAYER1}</span>
           </div>
         </div>
       );
