@@ -14,7 +14,7 @@ test.beforeAll(() => {
 test.beforeEach(async ({ page }) => {
   await page.goto('/games/animal-chess');
   await page.waitForLoadState('networkidle');
-  const resetButton = page.locator('button:has-text("リセット")');
+  const resetButton = page.locator('[data-testid="control-panel-reset-button"]');
   if (await resetButton.isVisible()) {
     await resetButton.click();
     await page.waitForLoadState('networkidle');
@@ -52,7 +52,7 @@ const expectEmpty = async (page: Page, cellTestId: string) => {
 
 // ヘルパー関数: 現在のプレイヤー表示を検証
 const expectCurrentPlayer = async (page: Page, player: 'プレイヤー1' | 'プレイヤー2') => {
-  const locator = page.locator('[data-testid="current-player-text"]');
+  const locator = page.locator('[data-testid="status"]');
   await expect(locator).toHaveText(`いまのばん: ${player}`);
 };
 
@@ -115,7 +115,7 @@ test('リセットボタンが機能すること', async ({ page }) => {
 
   await expectCurrentPlayer(page, 'プレイヤー2');
 
-  await page.locator('button:has-text("リセット")').click();
+  await page.locator('[data-testid="control-panel-reset-button"]').click();
   await page.waitForLoadState('networkidle');
 
   await expectCurrentPlayer(page, 'プレイヤー1');
@@ -124,15 +124,15 @@ test('リセットボタンが機能すること', async ({ page }) => {
 });
 
 test('ヒントボタンが機能すること', async ({ page }) => {
-  const hintButton = page.locator('button:has-text("ヒント")');
+  const hintButton = page.locator('[data-testid="control-panel-hint-button"]');
   const selectedCellColor = 'rgb(191, 219, 254)'; // #bfdbfe
   const validMoveCellColor = 'rgb(220, 252, 231)'; // #dcfce7
   const capturableCellColor = 'rgb(186, 230, 253)'; // #bae6fd
 
-  await expect(hintButton).toHaveText('ヒント: OFF');
+  await expect(hintButton).toHaveText('ヒント切り替え');
 
   await hintButton.click();
-  await expect(hintButton).toHaveText('ヒント: ON');
+  await expect(hintButton).toHaveText('ヒント切り替え');
 
   const chickCell = page.locator('[data-testid="cell-2-1"]');
   await chickCell.click();
@@ -142,7 +142,7 @@ test('ヒントボタンが機能すること', async ({ page }) => {
   await expect(page.locator('[data-testid="cell-1-1"]')).toHaveCSS('background-color', capturableCellColor);
 
   await hintButton.click();
-  await expect(hintButton).toHaveText('ヒント: OFF');
+  await expect(hintButton).toHaveText('ヒント切り替え');
 
   // After turning hints off, the highlight should disappear.
   await expect(page.locator('[data-testid="cell-1-1"]')).not.toHaveCSS('background-color', capturableCellColor);
