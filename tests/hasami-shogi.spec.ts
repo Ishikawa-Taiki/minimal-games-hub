@@ -25,7 +25,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
       // 現在のターン表示を確認
       const statusText = page.locator('[data-testid="status"]');
       const statusContent = await statusText.textContent();
-      expect(statusContent).toContain('PLAYER1の番');
+      expect(statusContent).toContain('「歩」の番');
 
       // スコア表示を確認（新しいGameLayoutの構造）
       const scoreSection = page.locator('h4:has-text("捕獲数")').locator('..');
@@ -87,9 +87,9 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
       await piece.click();
       await destination.click();
 
-      // ターン表示が「PLAYER2の番」に変わることを確認
+      // ターン表示が「「と」の番」に変わることを確認
       const statusContent = await statusText.textContent() ?? '';
-      expect(statusContent).toContain('PLAYER2の番');
+      expect(statusContent).toContain('「と」の番');
     });
 
     test('他の駒を飛び越えて移動することはできない', async ({ page }) => {
@@ -131,7 +131,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
 
       // 獲得した駒の数が1になっていることを確認
       const scoreSection = page.locator('h4:has-text("捕獲数")').locator('..');
-      await expect(scoreSection).toContainText('「と」: 1');
+      await expect(scoreSection).toContainText('「歩」: 1');
 
       // 相手の盤面の駒が8個になっていることを確認
       const opponentPieces = await page.locator('[data-testid^="cell-"] >> div:has-text("と")').all();
@@ -151,16 +151,16 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
 
       // ターンが相手になっていることを確認
       let statusText = page.locator('[data-testid="status"]');
-      await expect(statusText).toContainText('PLAYER2の番');
+      await expect(statusText).toContainText('「と」の番');
 
       // 「はじめから」ボタンをクリック
       await page.locator('[data-testid="control-panel-reset-button"]').click();
 
       // --- リセット後の状態を検証 ---
 
-      // ターンが先手（PLAYER1）に戻っていることを確認
+      // ターンが先手（「歩」）に戻っていることを確認
       statusText = page.locator('[data-testid="status"]');
-      await expect(statusText).toContainText('PLAYER1の番');
+      await expect(statusText).toContainText('「歩」の番');
 
       // 駒の位置が初期配置に戻っていることを確認
       // (動かした駒が元の位置に戻っているか)
