@@ -96,7 +96,17 @@ const AnimalChessPage = () => {
   const calculateHints = (from: { row: number; col: number }) => {
     if (!showHints) return { valid: [], capturable: [], threatened: [] };
 
-    const validMoves = getValidMoves(gameState, from.row, from.col);
+    // GameControllerのgameStateをコアロジックのGameState型に変換
+    const coreGameState: GameState = {
+      board: gameState.board,
+      currentPlayer: gameState.currentPlayer,
+      capturedPieces: gameState.capturedPieces,
+      status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
+      selectedCell: gameState.selectedCell,
+      selectedCaptureIndex: gameState.selectedCaptureIndex
+    };
+
+    const validMoves = getValidMoves(coreGameState, from.row, from.col);
 
     const capturableMoves = validMoves.filter(move => {
       const destinationPiece = gameState.board[move.row][move.col];
