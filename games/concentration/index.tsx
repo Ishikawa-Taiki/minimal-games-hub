@@ -1,65 +1,49 @@
 "use client";
 
-import React, { useState, useEffect, CSSProperties } from 'react';
+import React, { CSSProperties } from 'react';
 import {
-  GameState,
-  createInitialState,
-  handleCardClick,
-  clearNonMatchingFlippedCards,
   BoardCard,
   Suit,
   Player,
   Difficulty,
 } from './core';
 import { styles } from './styles';
+import { useConcentration } from './useConcentration';
 
-const Concentration = () => {
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
-  const [gameState, setGameState] = useState<GameState>(createInitialState(difficulty));
-  const [showHints, setShowHints] = useState(false);
 
-  useEffect(() => {
-    if (gameState.status === 'evaluating') {
-      const timeoutId = setTimeout(() => {
-        setGameState(clearNonMatchingFlippedCards(gameState));
-      }, 1200); // 1.2秒待ってからカードを裏返す
-      return () => clearTimeout(timeoutId);
-    }
-  }, [gameState]);
+interface ConcentrationProps {
+  controller?: ReturnType<typeof useConcentration>;
+  slug?: string;
+}
+
+const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProps) => {
+  const gameController = controller || useConcentration('easy');
+  const {
+    gameState,
+    handleCardClick,
+    setDifficulty,
+    getDifficulty,
+    getBoard,
+    getHintedIndices,
+    getShowHints,
+    isGameStarted,
+    isEvaluating,
+    resetGame
+  } = gameController;
 
   const onCardClick = (index: number) => {
-    // 評価中はクリックを無視
-    if (gameState.status === 'evaluating') return;
-    setGameState(handleCardClick(gameState, index));
-  };
-
-  const handleReset = () => {
-    setGameState(createInitialState(difficulty));
+    handleCardClick(index);
   };
 
   const handleDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDifficulty = e.target.value as Difficulty;
     setDifficulty(newDifficulty);
-    setGameState(createInitialState(newDifficulty));
   };
 
-  const isGameStarted = gameState.flippedIndices.length > 0 || gameState.revealedIndices.length > 0 || gameState.scores.player1 > 0 || gameState.scores.player2 > 0;
-
-  const getStatusMessage = (): string => {
-    switch (gameState.status) {
-      case 'player1_turn':
-        return "プレイヤー1の番";
-      case 'player2_turn':
-        return "プレイヤー2の番";
-      case 'evaluating':
-        return "...";
-      case 'game_over':
-        if (gameState.winner === 'draw') return "引き分け！";
-        return `プレイヤー${gameState.winner}の勝ち！`;
-      default:
-        return "";
-    }
-  };
+  const difficulty = getDifficulty();
+  const board = getBoard();
+  const hintedIndices = getHintedIndices();
+  const showHints = getShowHints();
 
   const getSuitSymbol = (suit: Suit | 'Joker'): string => {
     if (suit === 'S') return '♠';
@@ -101,7 +85,7 @@ const Concentration = () => {
         Object.assign(style, styles.cardSelected);
       }
 
-    } else if (showHints && gameState.hintedIndices.includes(index)) {
+    } else if (showHints && hintedIndices.includes(index)) {
       style.backgroundColor = styles.cardHintStrong.backgroundColor;
     } else if (showHints && gameState.revealedIndices.includes(index)) {
       style.backgroundColor = styles.cardHint.backgroundColor;
@@ -130,65 +114,42 @@ const Concentration = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.gameContent}>
       <div style={styles.difficultySelector} data-testid="difficulty-selector">
         <h2 style={styles.difficultyTitle}>難易度選択</h2>
         <div style={styles.radioGroup}>
           <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
             かんたん
           </label>
           <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
             ふつう
           </label>
           <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted} />
+            <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
             むずかしい
           </label>
         </div>
       </div>
-      <div style={styles.statusBar}>
-        <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer1}} data-testid="score-player1">
-          <p>プレイヤー1</p>
-          <p style={styles.scoreText}>{gameState.scores.player1}</p>
-        </div>
-        <div style={styles.turnBox} data-testid="status-message">
-          <p>{getStatusMessage()}</p>
-        </div>
-        <div style={{...styles.scoreBox, ...styles.scoreBoxPlayer2}} data-testid="score-player2">
-           <p>プレイヤー2</p>
-           <p style={styles.scoreText}>{gameState.scores.player2}</p>
-        </div>
-      </div>
       <div style={getBoardStyle()}>
-        {gameState.board.map((card, index) => (
+        {board.map((card, index) => (
           <CardComponent key={card.id} card={card} index={index} />
         ))}
       </div>
-      <div style={styles.buttonContainer}>
-        <button style={styles.resetButton} onClick={handleReset} data-testid="reset-button">
-          ゲームをリセット
-        </button>
-        <button
-          style={styles.toggleButton}
-          onClick={() => setShowHints(!showHints)}
-          data-testid="hint-button"
-        >
-          ヒント: {showHints ? 'ON' : 'OFF'}
-        </button>
-      </div>
-      <GameOverModal winner={gameState.winner} onReset={handleReset} />
+      <GameOverModal winner={gameState.winner} onReset={() => resetGame()} />
     </div>
   );
 };
 
-const GameOverModal = ({ winner, onReset }: { winner: Player | 'draw' | null, onReset: () => void }) => {
+const GameOverModal = ({ winner, onReset }: { winner: Player | 'DRAW' | null, onReset: () => void }) => {
   if (!winner) return null;
 
   const getWinnerText = () => {
-    if (winner === 'draw') return "引き分け！";
-    return `プレイヤー${winner}の勝ち！`;
+    if (winner === 'DRAW') return "引き分け！";
+    if (winner === 'player1') return "プレイヤー1の勝ち！";
+    if (winner === 'player2') return "プレイヤー2の勝ち！";
+    return `${winner}の勝ち！`;
   };
 
   return (
@@ -205,3 +166,4 @@ const GameOverModal = ({ winner, onReset }: { winner: Player | 'draw' | null, on
 };
 
 export default Concentration;
+export { useConcentration };

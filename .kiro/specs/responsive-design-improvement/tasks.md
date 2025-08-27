@@ -79,7 +79,7 @@
   - **実装内容**: BaseGameController + HintableGameControllerインターフェース準拠、捕獲駒数表示、包括的なユニットテスト
   - _要件: 3.1, 3.2, 3.5_
 
-- [ ] 11. 既存ゲーム（神経衰弱）のGameController対応
+- [x] 11. 既存ゲーム（神経衰弱）のGameController対応
   - 神経衰弱ゲームのuseConcentrationフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
