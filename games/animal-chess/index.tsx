@@ -4,6 +4,7 @@ import React, { CSSProperties } from 'react';
 import {
   Piece,
   PieceType,
+  GameState,
   getValidMoves,
   getValidDrops,
   isSquareThreatened,
@@ -92,19 +93,19 @@ const AnimalChessPage = () => {
   const showHints = getHintLevel() === 'on';
   const isGameInProgress = gameState.status === 'playing';
 
+  // GameControllerのgameStateをコアロジックのGameState型に変換
+  const coreGameState: GameState = {
+    board: gameState.board,
+    currentPlayer: gameState.currentPlayer,
+    capturedPieces: gameState.capturedPieces,
+    status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
+    selectedCell: gameState.selectedCell,
+    selectedCaptureIndex: gameState.selectedCaptureIndex
+  };
+
   // ヒント計算のヘルパー関数
   const calculateHints = (from: { row: number; col: number }) => {
     if (!showHints) return { valid: [], capturable: [], threatened: [] };
-
-    // GameControllerのgameStateをコアロジックのGameState型に変換
-    const coreGameState: GameState = {
-      board: gameState.board,
-      currentPlayer: gameState.currentPlayer,
-      capturedPieces: gameState.capturedPieces,
-      status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
-      selectedCell: gameState.selectedCell,
-      selectedCaptureIndex: gameState.selectedCaptureIndex
-    };
 
     const validMoves = getValidMoves(coreGameState, from.row, from.col);
 
@@ -114,12 +115,12 @@ const AnimalChessPage = () => {
     });
 
     const threatenedMoves = validMoves.filter(move => {
-      const pieceToMove = gameState.board[from.row][from.col];
+      const pieceToMove = coreGameState.board[from.row][from.col];
       if (!pieceToMove) return false;
-      const tempBoard = gameState.board.map(r => [...r]);
+      const tempBoard = coreGameState.board.map(r => [...r]);
       tempBoard[move.row][move.col] = pieceToMove;
       tempBoard[from.row][from.col] = null;
-      return isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
+      return isSquareThreatened(tempBoard, move.row, move.col, coreGameState.currentPlayer);
     });
 
     return { valid: validMoves, capturable: capturableMoves, threatened: threatenedMoves };
@@ -157,7 +158,7 @@ const AnimalChessPage = () => {
         }
       }
       if (gameState.selectedCaptureIndex) {
-        const isDrop = getValidDrops(gameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
+        const isDrop = getValidDrops(coreGameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
         if (isDrop) {
           cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
         }

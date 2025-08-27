@@ -223,6 +223,7 @@ export function useAnimalChess(): AnimalChessController {
       } else if (gameState.winner === GOTE) {
         return '勝者: プレイヤー2';
       }
+      return 'ゲーム終了'; // その他の勝者の場合
     } else if (gameState.status === 'ended') {
       return 'ゲーム終了';
     } else if (gameState.status === 'playing' && gameState.currentPlayer) {

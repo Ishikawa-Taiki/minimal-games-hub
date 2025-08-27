@@ -185,6 +185,7 @@ export function useHasamiShogi(): HasamiShogiController {
       } else if (gameState.winner === 'PLAYER2') {
         return '勝者: 「と」';
       }
+      return 'ゲーム終了'; // その他の勝者の場合
     } else if (gameState.gameStatus === 'GAME_OVER') {
       return 'ゲーム終了';
     } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
