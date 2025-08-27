@@ -3,12 +3,11 @@
 import React, { useState, useCallback, CSSProperties } from 'react';
 import {
   Player,
-  GameState,
   WinCondition,
-  createInitialState,
-  handleCellClick as handleCellClickCore,
-  setWinCondition,
 } from './core';
+import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
+import GameLayout from '../../app/components/GameLayout';
+import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { styles } from './styles';
 
 // Piece component for the game board
@@ -33,36 +32,44 @@ const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
 };
 
 
-const HasamiShogi: React.FC = () => {
-  const [gameState, setGameState] = useState<GameState>(createInitialState());
-  const [hintLevel, setHintLevel] = useState<'on' | 'off'>('off');
+// プロップスでコントローラーを受け取るバージョン
+interface HasamiShogiProps {
+  controller?: HasamiShogiController;
+}
 
-  const initializeGame = useCallback(() => {
-    setGameState(createInitialState());
-  }, []);
+const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) => {
+  // 外部からコントローラーが渡された場合はそれを使用、そうでなければ内部で作成
+  const internalController = useHasamiShogi();
+  const controller = externalController || internalController;
+  
+  const gameState = controller.gameState;
+  const hintLevel = controller.getHintLevel();
+  const responsiveState = useResponsive();
+  const isMobileLayout = isMobile(responsiveState);
 
   const onCellClick = (r: number, c: number) => {
     if (gameState.gameStatus === 'GAME_OVER') return;
-    const newState = handleCellClickCore(gameState, r, c);
-    setGameState(newState);
+    controller.makeMove(r, c);
   };
 
   const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCondition = e.target.value as WinCondition;
-    const newState = setWinCondition(gameState, newCondition);
-    setGameState(newState);
+    controller.setWinCondition(newCondition);
   };
 
-  const toggleHintLevel = () => {
-    setHintLevel(prev => prev === 'on' ? 'off' : 'on');
-  };
-
-  const isGameStarted = gameState.capturedPieces.PLAYER1 > 0 || gameState.capturedPieces.PLAYER2 > 0 || !gameState.board.every((row, r) => row.every((cell, c) => cell === createInitialState().board[r][c]));
+  const isGameStarted = gameState.capturedPieces.PLAYER1 > 0 || gameState.capturedPieces.PLAYER2 > 0 || !gameState.board.every((row, r) => row.every((cell, c) => {
+    // 初期状態のボードと比較
+    if (r === 0) return cell === 'PLAYER2';
+    if (r === 8) return cell === 'PLAYER1';
+    return cell === null;
+  }));
 
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cell, position: 'relative' };
-    const { selectedPiece, validMoves, potentialCaptures } = gameState;
+    const selectedPiece = controller.getSelectedPiece();
+    const validMoves = controller.getValidMoves();
+    const potentialCaptures = controller.getPotentialCaptures();
     const moveKey = `${r},${c}`;
 
     // Style for selected piece
@@ -87,17 +94,13 @@ const HasamiShogi: React.FC = () => {
   };
 
   const winner = gameState.winner;
-  const turnText = gameState.currentPlayer === 'PLAYER1'
-    ? '「歩」のばん'
-    : <span style={{display: 'inline-flex', alignItems: 'center', color: '#e53e3e'}}>
-        <span>「と」のばん</span>
-      </span>;
 
-  return (
-    <div style={styles.container}>
+  // GameLayoutを使用したレンダリング
+  const gameContent = (
+    <>
       <div style={styles.winConditionSelector} data-testid="win-condition-selector">
         <h2 style={styles.winConditionTitle}>かちかたのルール</h2>
-        <div style={styles.radioGroup}>
+        <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>
           <label style={styles.radioLabel}>
             <input type="radio" name="win-condition" value="standard" checked={gameState.winCondition === 'standard'} onChange={onWinConditionChange} disabled={isGameStarted} />
             ふつうのルール
@@ -119,7 +122,7 @@ const HasamiShogi: React.FC = () => {
           <span data-testid="opponent-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER1}</span>
         </div>
         <div data-testid="turn-indicator" style={{...styles.turnIndicator, ...styles.infoPanelItem}}>
-          {winner ? 'おしまい' : turnText}
+          {winner ? 'おしまい' : (gameState.currentPlayer === 'PLAYER1' ? '「歩」のばん' : '「と」のばん')}
         </div>
         <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-end'}}>
           <IndicatorPiece player="PLAYER1" />
@@ -147,14 +150,15 @@ const HasamiShogi: React.FC = () => {
         )}
       </div>
 
-      <div style={styles.buttonGroup}>
-        <button data-testid="reset-button" onClick={initializeGame} style={styles.resetButton}>
-          はじめから
-        </button>
+      {/* ゲーム内ヒント切り替えボタン */}
+      <div style={isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop}>
         <button
           data-testid="hint-button"
-          onClick={toggleHintLevel}
-          style={{...styles.resetButton, backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'}}
+          onClick={controller.toggleHints}
+          style={{
+            ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop), 
+            backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
+          }}
         >
           ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
         </button>
@@ -171,14 +175,27 @@ const HasamiShogi: React.FC = () => {
               }
               <span>のかち！</span>
             </div>
-            <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
+            <button data-testid="play-again-button" onClick={controller.resetGame} style={isMobileLayout ? styles.resetButton : styles.resetButtonDesktop}>
               もういちど
             </button>
           </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <GameLayout
+      gameName="はさみ将棋"
+      slug="hasami-shogi"
+      gameController={controller}
+    >
+      {gameContent}
+    </GameLayout>
   );
 };
+
+// GameControllerを外部に公開するためのラッパーコンポーネント
+export { useHasamiShogi };
 
 export default HasamiShogi;

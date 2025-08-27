@@ -59,11 +59,12 @@
 - **参考実装**: リバーシ（useReversi.ts）と○×ゲーム（useTicTacToeController）の実装パターンを参考
 - **共通パターン**: BaseGameController、HintableGameController、HistoryGameControllerインターフェースへの準拠
 
-- [ ] 9. 既存ゲーム（はさみ将棋）のGameController対応
+- [x] 9. 既存ゲーム（はさみ将棋）のGameController対応【完了】
   - はさみ将棋ゲームのuseHasamiShogiフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
-  - **必須**: @testing-library/reactによるフックテスト実装
+  - **完了**: @testing-library/reactによるフックテスト実装（11テスト全て通過）
+  - **実装内容**: BaseGameController + HintableGameControllerインターフェース準拠、ヒント機能の統合、GameLayoutの適用、包括的なユニットテスト
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 10. 既存ゲーム（アニマルチェス）のGameController対応
