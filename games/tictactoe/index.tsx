@@ -56,6 +56,20 @@ function useTicTacToeController(): BaseGameController<TicTacToeGameState, TicTac
     setShowHints(!showHints);
   };
   
+  const getDisplayStatus = () => {
+    if (gameState.winner) {
+      return `勝者: ${gameState.winner}`;
+    } else if ((gameState as any).isDraw) {
+      return '引き分け！';
+    } else if (gameState.status === 'ended') {
+      return 'ゲーム終了';
+    } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
+      return `${gameState.currentPlayer}の番`;
+    } else {
+      return 'ゲーム開始';
+    }
+  };
+  
   return {
     gameState,
     dispatch,
@@ -63,6 +77,7 @@ function useTicTacToeController(): BaseGameController<TicTacToeGameState, TicTac
     makeMove,
     showHints,
     toggleHints,
+    getDisplayStatus,
   };
 }
 

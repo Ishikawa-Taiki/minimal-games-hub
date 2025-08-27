@@ -185,6 +185,25 @@ describe('useHasamiShogi', () => {
       expect(result.current.getValidMoves()).toBeInstanceOf(Map);
       expect(result.current.getHintLevel()).toBe('off');
     });
+
+    it('getDisplayStatusが正しい状態表示を返す', () => {
+      const { result } = renderHook(() => useHasamiShogi());
+      
+      // 初期状態
+      expect(result.current.getDisplayStatus()).toBe('「歩」の番');
+      
+      // 移動後の状態変化をテスト
+      act(() => {
+        result.current.makeMove(8, 0); // 駒を選択
+      });
+      
+      act(() => {
+        result.current.makeMove(7, 0); // 移動実行
+      });
+      
+      // 手番が変わったことを確認
+      expect(result.current.getDisplayStatus()).toBe('「と」の番');
+    });
   });
 
   describe('GameControllerインターフェース準拠', () => {

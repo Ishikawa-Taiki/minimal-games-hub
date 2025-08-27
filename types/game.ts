@@ -24,6 +24,8 @@ export interface BaseGameController<TState extends BaseGameState, TAction> {
   gameState: TState;
   dispatch: React.Dispatch<TAction>;
   resetGame: () => void;
+  // ゲーム固有の状態表示ロジック
+  getDisplayStatus: () => string;
 }
 
 // ヒント機能の共通型定義

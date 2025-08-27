@@ -115,6 +115,8 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getPotentialCaptures: () => [number, number][];
     // ヒント関連
     getHintLevel: () => 'off' | 'on';
+    // 状態表示
+    getDisplayStatus: () => string;
   };
 
 export function useHasamiShogi(): HasamiShogiController {
@@ -174,6 +176,26 @@ export function useHasamiShogi(): HasamiShogiController {
   const getPotentialCaptures = useCallback(() => gameState.potentialCaptures, [gameState.potentialCaptures]);
   const getHintLevel = useCallback(() => gameState.hintLevel, [gameState.hintLevel]);
 
+  const getDisplayStatus = useCallback(() => {
+    if (gameState.winner) {
+      if (gameState.winner === 'PLAYER1') {
+        return '勝者: 「歩」';
+      } else if (gameState.winner === 'PLAYER2') {
+        return '勝者: 「と」';
+      }
+    } else if (gameState.gameStatus === 'GAME_OVER') {
+      return 'ゲーム終了';
+    } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
+      return `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番`;
+    } else if (gameState.status === 'ended') {
+      return 'ゲーム終了';
+    } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
+      return `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番`;
+    } else {
+      return 'ゲーム開始';
+    }
+  }, [gameState]);
+
   return {
     gameState,
     dispatch,
@@ -187,6 +209,7 @@ export function useHasamiShogi(): HasamiShogiController {
     getSelectedPiece,
     getPotentialCaptures,
     getHintLevel,
+    getDisplayStatus,
     // HintableGameController
     hintState,
     toggleHints,

@@ -36,55 +36,26 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 }: ControlPanelProps<TState, TAction>) {
   const { gameState, resetGame } = gameController;
 
-  // ゲーム状態の表示テキストを生成
+  // ゲーム状態の表示テキストを生成（ポリモーフィック設計）
   const getStatusText = () => {
-    // リバーシ固有の状態チェック
-    const reversiState = gameState as TState & {
-      gameStatus?: 'PLAYING' | 'SKIPPED' | 'GAME_OVER';
-      currentPlayer?: 'BLACK' | 'WHITE';
-    };
-
-    // はさみ将棋固有の状態チェック
-    const hasamiShogiState = gameState as TState & {
-      gameStatus?: 'PLAYING' | 'GAME_OVER';
-      currentPlayer?: 'PLAYER1' | 'PLAYER2';
-      winCondition?: string;
-    };
-
+    // 各ゲームコントローラーが自身の状態表示ロジックを持つ
+    if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
+      return gameController.getDisplayStatus();
+    }
+    
+    // フォールバック: 汎用的な状態表示
     if (gameState.winner) {
       if (gameState.winner === 'DRAW') {
         return '引き分け！';
       }
-      // はさみ将棋の勝者表示
-      if (gameState.winner === 'PLAYER1') {
-        return '勝者: 歩';
-      } else if (gameState.winner === 'PLAYER2') {
-        return '勝者: と';
-      }
-      return `勝者: ${gameState.winner === 'BLACK' ? '黒' : gameState.winner === 'WHITE' ? '白' : gameState.winner}`;
-    } else if (reversiState.gameStatus === 'GAME_OVER' || hasamiShogiState.gameStatus === 'GAME_OVER') {
-      return 'ゲーム終了';
-    } else if (reversiState.gameStatus === 'SKIPPED') {
-      const skippedPlayer = reversiState.currentPlayer === 'BLACK' ? '白' : '黒';
-      return `${skippedPlayer}はパス - ${reversiState.currentPlayer === 'BLACK' ? '黒' : '白'}の番`;
-    } else if (hasamiShogiState.gameStatus === 'PLAYING' && hasamiShogiState.currentPlayer) {
-      return `「${hasamiShogiState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番`;
-    } else if (reversiState.gameStatus === 'PLAYING' && reversiState.currentPlayer) {
-      return `${reversiState.currentPlayer === 'BLACK' ? '黒' : '白'}の番`;
+      return `勝者: ${gameState.winner}`;
     } else if (gameState.status === 'ended') {
-      // 引き分けの場合の処理を追加
       const extendedState = gameState as TState & { isDraw?: boolean };
       if (extendedState.isDraw) {
         return '引き分け！';
       }
       return 'ゲーム終了';
     } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-      // はさみ将棋のプレイヤー名変換
-      if (gameState.currentPlayer === 'PLAYER1') {
-        return '「歩」の番';
-      } else if (gameState.currentPlayer === 'PLAYER2') {
-        return '「と」の番';
-      }
       return `${gameState.currentPlayer}の番`;
     } else {
       return 'ゲーム開始';
@@ -242,32 +213,21 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
           <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
           <div style={gameLayoutStyles.mobileStatus} data-testid="status">
             {(() => {
+              // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
+              if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
+                return gameController.getDisplayStatus();
+              }
+              
+              // フォールバック: 汎用的な状態表示
               if (gameController.gameState.winner) {
                 if (gameController.gameState.winner === 'DRAW') {
                   return '引き分け！';
-                } else if (gameController.gameState.winner === 'PLAYER1') {
-                  return '勝者: 「歩」';
-                } else if (gameController.gameState.winner === 'PLAYER2') {
-                  return '勝者: 「と」';
-                } else if (gameController.gameState.winner === 'BLACK') {
-                  return '勝者: 黒';
-                } else if (gameController.gameState.winner === 'WHITE') {
-                  return '勝者: 白';
                 }
                 return `勝者: ${gameController.gameState.winner}`;
               } else if (gameController.gameState.status === 'ended') {
                 const extendedState = gameController.gameState as TState & { isDraw?: boolean };
                 return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
               } else if ((gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer) {
-                if (gameController.gameState.currentPlayer === 'PLAYER1') {
-                  return '「歩」の番';
-                } else if (gameController.gameState.currentPlayer === 'PLAYER2') {
-                  return '「と」の番';
-                } else if (gameController.gameState.currentPlayer === 'BLACK') {
-                  return '黒の番';
-                } else if (gameController.gameState.currentPlayer === 'WHITE') {
-                  return '白の番';
-                }
                 return `${gameController.gameState.currentPlayer}の番`;
               } else {
                 return 'ゲーム開始';
