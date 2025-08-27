@@ -67,11 +67,16 @@
   - **実装内容**: BaseGameController + HintableGameControllerインターフェース準拠、ヒント機能の統合、GameLayoutの適用、包括的なユニットテスト
   - _要件: 3.1, 3.2, 3.5_
 
-- [x] 10. 既存ゲーム（アニマルチェス）のGameController対応
+- [x] 10. 既存ゲーム（アニマルチェス）のGameController対応【完了】
   - アニマルチェスゲームのuseAnimalChessフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
-  - **必須**: @testing-library/reactによるフックテスト実装
+  - **完了**: @testing-library/reactによるフックテスト実装（17テスト全て通過）
+  - **重要な成果**: GameLayoutのポリモーフィック設計改善を実施
+    - getScoreInfo()メソッドによる拡張可能な設計に変更
+    - 新しいゲーム追加時にGameLayoutの修正が不要になった
+    - はさみ将棋とアニマルチェスでgetScoreInfo()実装済み
+  - **実装内容**: BaseGameController + HintableGameControllerインターフェース準拠、捕獲駒数表示、包括的なユニットテスト
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 11. 既存ゲーム（神経衰弱）のGameController対応
@@ -79,14 +84,16 @@
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
   - **必須**: @testing-library/reactによるフックテスト実装
-  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠
+  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠（スコア表示の自動化）
+  - **注意**: GameLayoutの修正は不要（ポリモーフィック設計により自動対応）
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 12. 既存ゲーム（棒取りゲーム）のGameController対応
   - 棒取りゲームのuseStickTakingフックをGameControllerインターフェースに準拠させる
   - 新しいGameLayoutコンポーネントを適用
   - **必須**: @testing-library/reactによるフックテスト実装
-  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠
+  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠（スコア表示の自動化）
+  - **注意**: GameLayoutの修正は不要（ポリモーフィック設計により自動対応）
   - _要件: 3.1, 3.2, 3.5_
 
 ## フェーズ4: 全体最適化とホームページ対応

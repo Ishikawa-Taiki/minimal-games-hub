@@ -130,9 +130,71 @@ interface BaseGameController<TState extends BaseGameState, TAction> {
 3. **段階的移行**: テストを実行しながら段階的に移行
 4. **動作確認**: PC・モバイル両環境での動作確認
 
-### 2.6. トラブルシューティング
+### 2.6. ポリモーフィック設計（2025年8月更新）
 
-#### 2.6.1. よくある問題
+#### 2.6.1. 概要
+
+GameLayoutは、ポリモーフィック設計により各ゲーム固有の情報を自動的に表示します。**新しいゲームを追加する際、GameLayoutの修正は不要**です。
+
+#### 2.6.2. getScoreInfo()メソッドの実装
+
+スコア表示が必要なゲームは、GameControllerに`getScoreInfo()`メソッドを実装してください：
+
+```typescript
+// 実装例: はさみ将棋
+const getScoreInfo = useCallback((): ScoreInfo | null => {
+  return {
+    title: '捕獲数',
+    items: [
+      { label: '「歩」', value: gameState.capturedPieces.PLAYER2 },
+      { label: '「と」', value: gameState.capturedPieces.PLAYER1 }
+    ]
+  };
+}, [gameState.capturedPieces]);
+
+// 実装例: アニマルチェス
+const getScoreInfo = useCallback((): ScoreInfo | null => {
+  return {
+    title: '捕獲駒数',
+    items: [
+      { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
+      { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }
+    ]
+  };
+}, [gameState.capturedPieces]);
+```
+
+#### 2.6.3. ScoreInfo型の定義
+
+```typescript
+export interface ScoreInfo {
+  title: string;
+  items: Array<{
+    label: string;
+    value: string | number;
+  }>;
+}
+```
+
+#### 2.6.4. 自動表示の仕組み
+
+GameLayoutは、以下のロジックで各ゲームのスコア情報を自動表示します：
+
+1. GameControllerに`getScoreInfo`メソッドが存在するかチェック
+2. 存在する場合、メソッドを呼び出してScoreInfoを取得
+3. 取得したScoreInfoを統一されたUIで表示
+4. 存在しない場合、スコア表示をスキップ
+
+#### 2.6.5. 利点
+
+- **拡張性**: 新しいゲーム追加時にGameLayoutの修正が不要
+- **一貫性**: 統一されたスコア表示UI
+- **型安全性**: TypeScriptによる型チェック
+- **保守性**: 各ゲームが自身のスコア表示ロジックを完全制御
+
+### 2.7. トラブルシューティング
+
+#### 2.7.1. よくある問題
 
 **問題**: GameLayoutが表示されない
 **原因**: GameControllerが正しく実装されていない、またはpropsが不正
@@ -147,6 +209,13 @@ interface BaseGameController<TState extends BaseGameState, TAction> {
 - ブラウザのリサイズテスト実行
 - useResponsiveフックの動作確認
 - GameLayoutのログ出力確認
+
+**問題**: スコア情報が表示されない
+**原因**: getScoreInfo()メソッドが正しく実装されていない
+**解決**:
+- getScoreInfo()メソッドの実装確認
+- ScoreInfo型への準拠確認
+- メソッドの戻り値がnullでないことを確認
 
 #### 2.6.2. デバッグ方法
 
