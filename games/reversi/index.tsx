@@ -266,7 +266,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       <div style={styles.historyControls}>
         <button 
           data-testid="history-first-button"
-          onClick={() => {/* TODO: 履歴機能の実装 */}}
+          onClick={() => controller.goToHistoryIndex(0)}
           disabled={!controller.canUndo}
           style={{ ...styles.historyButton, ...(!controller.canUndo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
@@ -281,7 +281,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
           もどる
         </button>
         <span data-testid="history-counter" style={styles.historyText}>
-          1 / 1
+          {controller.currentHistoryIndex + 1} / {controller.gameHistory.length}
         </span>
         <button 
           data-testid="history-forward-button"
@@ -293,7 +293,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         </button>
         <button 
           data-testid="history-last-button"
-          onClick={() => {/* TODO: 履歴機能の実装 */}}
+          onClick={() => controller.goToHistoryIndex(controller.gameHistory.length - 1)}
           disabled={!controller.canRedo}
           style={{ ...styles.historyButton, ...(!controller.canRedo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >

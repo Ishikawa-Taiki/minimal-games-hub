@@ -119,12 +119,16 @@ export type ReversiController = BaseGameController<ReversiGameState, ReversiActi
     getValidMoves: () => Map<string, [number, number][]>;
     getCurrentPlayer: () => Player;
     getScores: () => { BLACK: number; WHITE: number };
+    // 履歴関連
+    goToHistoryIndex: (index: number) => void;
+    gameHistory: ReversiGameState[];
+    currentHistoryIndex: number;
   };
 
 export function useReversi(): ReversiController {
-  const [gameState, dispatch] = useReducer(reversiReducer, undefined, createInitialReversiState);
-  const [gameHistory, setGameHistory] = useState<ReversiGameState[]>([]);
+  const [gameHistory, setGameHistory] = useState<ReversiGameState[]>([createInitialReversiState()]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
+  const gameState = gameHistory[currentHistoryIndex];
   
   // ログ機能
   const logger = useGameStateLogger('useReversi', gameState, {
@@ -136,8 +140,8 @@ export function useReversi(): ReversiController {
 
   const resetGame = useCallback(() => {
     logger.log('RESET_GAME_CALLED', {});
-    dispatch({ type: 'RESET_GAME' });
-    setGameHistory([]);
+    const initialState = createInitialReversiState();
+    setGameHistory([initialState]);
     setCurrentHistoryIndex(0);
   }, [logger]);
 
@@ -152,43 +156,48 @@ export function useReversi(): ReversiController {
         // 2回目のタップ: 実際に移動を実行
         logger.log('EXECUTING_FULL_HINT_MOVE', { row, col });
         
-        // 履歴に追加（移動前の状態を保存）
-        setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), gameState]);
-        setCurrentHistoryIndex(prev => prev + 1);
+        // 新しい状態を計算
+        const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
         
-        // 移動を実行（選択状態もクリアされる）
-        dispatch({ type: 'MAKE_MOVE', row, col });
+        // 履歴に追加
+        setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), newState]);
+        setCurrentHistoryIndex(prev => prev + 1);
       } else {
         // 1回目のタップ: セルを選択
-        dispatch({ type: 'SET_SELECTED_HINT_CELL', cell: [row, col] });
+        const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell: [row, col] });
+        setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
         logger.log('HINT_CELL_SELECTED', { row, col });
       }
     } else {
       // 通常の移動
       logger.log('EXECUTING_NORMAL_MOVE', { row, col });
       
-      // 履歴に追加（移動前の状態を保存）
-      setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), gameState]);
-      setCurrentHistoryIndex(prev => prev + 1);
+      // 新しい状態を計算
+      const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
       
-      dispatch({ type: 'MAKE_MOVE', row, col });
+      // 履歴に追加
+      setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), newState]);
+      setCurrentHistoryIndex(prev => prev + 1);
     }
   }, [gameState, currentHistoryIndex, logger]);
 
   const toggleHintLevel = useCallback(() => {
     logger.log('TOGGLE_HINT_CALLED', { currentLevel: gameState.hintLevel });
-    dispatch({ type: 'TOGGLE_HINT' });
-  }, [gameState.hintLevel, logger]);
+    const newState = reversiReducer(gameState, { type: 'TOGGLE_HINT' });
+    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+  }, [gameState, currentHistoryIndex, logger]);
 
   const setHintLevel = useCallback((level: 'none' | 'placeable' | 'full') => {
     logger.log('SET_HINT_LEVEL_CALLED', { level });
-    dispatch({ type: 'SET_HINT_LEVEL', level });
-  }, [logger]);
+    const newState = reversiReducer(gameState, { type: 'SET_HINT_LEVEL', level });
+    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+  }, [gameState, currentHistoryIndex, logger]);
 
   const setSelectedHintCell = useCallback((cell: [number, number] | null) => {
     logger.log('SET_SELECTED_HINT_CELL_CALLED', { cell });
-    dispatch({ type: 'SET_SELECTED_HINT_CELL', cell });
-  }, [logger]);
+    const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell });
+    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+  }, [gameState, currentHistoryIndex, logger]);
 
   // ヒント関連
   const hintState = useMemo(() => ({
@@ -206,20 +215,31 @@ export function useReversi(): ReversiController {
     toggleHintLevel();
   }, [toggleHintLevel]);
 
-  // 履歴関連（一時的に無効化）
-  const canUndo = false;
-  const canRedo = false;
+  // 履歴関連
+  const canUndo = currentHistoryIndex > 0;
+  const canRedo = currentHistoryIndex < gameHistory.length - 1;
 
-  // 履歴機能は一時的に無効化（TODO: 後で実装）
   const undoMove = useCallback(() => {
-    logger.log('UNDO_CALLED_BUT_DISABLED', { currentIndex: currentHistoryIndex });
-    // TODO: 履歴機能の完全な実装
-  }, [currentHistoryIndex, logger]);
+    if (canUndo) {
+      logger.log('UNDO_MOVE', { fromIndex: currentHistoryIndex, toIndex: currentHistoryIndex - 1 });
+      setCurrentHistoryIndex(prev => prev - 1);
+    }
+  }, [canUndo, currentHistoryIndex, logger]);
 
   const redoMove = useCallback(() => {
-    logger.log('REDO_CALLED_BUT_DISABLED', { currentIndex: currentHistoryIndex });
-    // TODO: 履歴機能の完全な実装
-  }, [currentHistoryIndex, logger]);
+    if (canRedo) {
+      logger.log('REDO_MOVE', { fromIndex: currentHistoryIndex, toIndex: currentHistoryIndex + 1 });
+      setCurrentHistoryIndex(prev => prev + 1);
+    }
+  }, [canRedo, currentHistoryIndex, logger]);
+
+  // 履歴の特定位置にジャンプ
+  const goToHistoryIndex = useCallback((index: number) => {
+    if (index >= 0 && index < gameHistory.length) {
+      logger.log('GOTO_HISTORY_INDEX', { fromIndex: currentHistoryIndex, toIndex: index });
+      setCurrentHistoryIndex(index);
+    }
+  }, [currentHistoryIndex, gameHistory.length, logger]);
 
 
 
@@ -230,7 +250,7 @@ export function useReversi(): ReversiController {
 
   return {
     gameState,
-    dispatch,
+    dispatch: () => {}, // dispatchは直接使用しない
     resetGame,
     makeMove,
     toggleHintLevel,
@@ -247,5 +267,9 @@ export function useReversi(): ReversiController {
     redoMove,
     canUndo,
     canRedo,
+    // 履歴関連の追加メソッド
+    goToHistoryIndex,
+    gameHistory,
+    currentHistoryIndex,
   };
 }
