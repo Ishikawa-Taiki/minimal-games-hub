@@ -59,7 +59,7 @@ export function useGameStateLogger(
   gameState: BaseGameState | any,
   additionalData?: any
 ) {
-  const prevStateRef = useRef<any>();
+  const prevStateRef = useRef<any>(null);
   const mountedRef = useRef(false);
 
   useEffect(() => {

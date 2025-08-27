@@ -267,35 +267,35 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         <button 
           data-testid="history-first-button"
           onClick={() => {/* TODO: 履歴機能の実装 */}}
-          disabled={!controller.canUndo()}
-          style={{ ...styles.historyButton, ...(!controller.canUndo() ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          disabled={!controller.canUndo}
+          style={{ ...styles.historyButton, ...(!controller.canUndo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           はじめ
         </button>
         <button 
           data-testid="history-back-button"
-          onClick={controller.undo}
-          disabled={!controller.canUndo()}
-          style={{ ...styles.historyButton, ...(!controller.canUndo() ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={controller.undoMove}
+          disabled={!controller.canUndo}
+          style={{ ...styles.historyButton, ...(!controller.canUndo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           もどる
         </button>
         <span data-testid="history-counter" style={styles.historyText}>
-          {controller.getHistoryState().currentIndex + 1} / {controller.getHistoryState().totalSteps + 1}
+          1 / 1
         </span>
         <button 
           data-testid="history-forward-button"
-          onClick={controller.redo}
-          disabled={!controller.canRedo()}
-          style={{ ...styles.historyButton, ...(!controller.canRedo() ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={controller.redoMove}
+          disabled={!controller.canRedo}
+          style={{ ...styles.historyButton, ...(!controller.canRedo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           すすむ
         </button>
         <button 
           data-testid="history-last-button"
           onClick={() => {/* TODO: 履歴機能の実装 */}}
-          disabled={!controller.canRedo()}
-          style={{ ...styles.historyButton, ...(!controller.canRedo() ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          disabled={!controller.canRedo}
+          style={{ ...styles.historyButton, ...(!controller.canRedo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           さいご
         </button>
@@ -331,7 +331,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
             <div data-testid="winner-message" style={styles.winnerText}>
               {winner === 'DRAW' ? '引き分け' : (
                 <>
-                  <DiscIcon player={winner} />
+                  <DiscIcon player={winner as Player} />
                   <span>の勝ち!</span>
                 </>
               )}

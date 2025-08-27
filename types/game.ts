@@ -16,7 +16,7 @@ export type Player = string; // 'black', 'white', 'player1', etc.
 export interface BaseGameState {
   status: GameStatus;
   currentPlayer: Player | null;
-  winner: Player | null;
+  winner: Player | 'DRAW' | null;
 }
 
 // ゲームコントローラーの共通インターフェース（厳密な型設計）

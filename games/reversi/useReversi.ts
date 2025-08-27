@@ -1,4 +1,4 @@
-import { useReducer, useState, useCallback } from 'react';
+import { useReducer, useState, useCallback, useMemo } from 'react';
 import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '../../types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player } from './core';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
@@ -108,8 +108,8 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
 }
 
 export type ReversiController = BaseGameController<ReversiGameState, ReversiAction> & 
-  HintableGameController & 
-  HistoryGameController & {
+  HintableGameController<ReversiGameState, ReversiAction> & 
+  HistoryGameController<ReversiGameState, ReversiAction> & {
     // リバーシ固有のメソッド
     makeMove: (row: number, col: number) => void;
     toggleHintLevel: () => void;
@@ -191,13 +191,15 @@ export function useReversi(): ReversiController {
   }, [logger]);
 
   // ヒント関連
-  const getHintState = useCallback(() => ({
-    isEnabled: gameState.hintLevel !== 'none',
-    level: gameState.hintLevel,
-    data: {
-      validMoves: Array.from(gameState.validMoves.entries()),
-      selectedCell: gameState.selectedHintCell
-    }
+  const hintState = useMemo(() => ({
+    level: gameState.hintLevel === 'none' ? 'off' as const : 
+           gameState.hintLevel === 'placeable' ? 'basic' as const : 'advanced' as const,
+    highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
+      const [row, col] = key.split(',').map(Number);
+      return { row, col };
+    }),
+    selectedCell: gameState.selectedHintCell ? 
+      { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
   }), [gameState.hintLevel, gameState.validMoves, gameState.selectedHintCell]);
 
   const toggleHints = useCallback(() => {
@@ -205,26 +207,21 @@ export function useReversi(): ReversiController {
   }, [toggleHintLevel]);
 
   // 履歴関連（一時的に無効化）
-  const canUndo = useCallback(() => false, []);
-  const canRedo = useCallback(() => false, []);
+  const canUndo = false;
+  const canRedo = false;
 
   // 履歴機能は一時的に無効化（TODO: 後で実装）
-  const undo = useCallback(() => {
+  const undoMove = useCallback(() => {
     logger.log('UNDO_CALLED_BUT_DISABLED', { currentIndex: currentHistoryIndex });
     // TODO: 履歴機能の完全な実装
   }, [currentHistoryIndex, logger]);
 
-  const redo = useCallback(() => {
+  const redoMove = useCallback(() => {
     logger.log('REDO_CALLED_BUT_DISABLED', { currentIndex: currentHistoryIndex });
     // TODO: 履歴機能の完全な実装
   }, [currentHistoryIndex, logger]);
 
-  const getHistoryState = useCallback(() => ({
-    canUndo: canUndo(),
-    canRedo: canRedo(),
-    currentIndex: currentHistoryIndex,
-    totalSteps: gameHistory.length
-  }), [canUndo, canRedo, currentHistoryIndex, gameHistory.length]);
+
 
   // アクセサーメソッド
   const getValidMoves = useCallback(() => gameState.validMoves, [gameState.validMoves]);
@@ -243,13 +240,12 @@ export function useReversi(): ReversiController {
     getCurrentPlayer,
     getScores,
     // HintableGameController
-    getHintState,
+    hintState,
     toggleHints,
     // HistoryGameController
-    undo,
-    redo,
+    undoMove,
+    redoMove,
     canUndo,
     canRedo,
-    getHistoryState,
   };
 }
