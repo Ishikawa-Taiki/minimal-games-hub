@@ -178,7 +178,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         style.border = styles.selectedHintPreviewCell.border;
       }
 
-      if (stonesToFlip?.some(([fr, fc]) => fr === r && fc === c)) {
+      if (stonesToFlip?.some(([fr, fc]: [number, number]) => fr === r && fc === c)) {
         style.backgroundColor = styles.highlightedCell.backgroundColor;
       } else if (cellContent === opponent) {
         style.backgroundColor = styles.dimmedCell.backgroundColor;
