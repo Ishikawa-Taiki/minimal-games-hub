@@ -52,27 +52,38 @@
 
 ## フェーズ3: 残りゲームの一括対応
 
+**重要な考慮事項**:
+- **テスト戦略**: 各ゲーム移行時に必ずユニットテスト + E2Eテストを実装
+- **段階的実装**: 1ゲームずつ移行し、各段階でテスト確認
+- **既存機能保持**: 移行前の機能が全て動作することを確認
+- **参考実装**: リバーシ（useReversi.ts）と○×ゲーム（useTicTacToeController）の実装パターンを参考
+- **共通パターン**: BaseGameController、HintableGameController、HistoryGameControllerインターフェースへの準拠
+
 - [ ] 9. 既存ゲーム（はさみ将棋）のGameController対応
   - はさみ将棋ゲームのuseHasamiShogiフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
+  - **必須**: @testing-library/reactによるフックテスト実装
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 10. 既存ゲーム（アニマルチェス）のGameController対応
   - アニマルチェスゲームのuseAnimalChessフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
+  - **必須**: @testing-library/reactによるフックテスト実装
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 11. 既存ゲーム（神経衰弱）のGameController対応
   - 神経衰弱ゲームのuseConcentrationフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
+  - **必須**: @testing-library/reactによるフックテスト実装
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 12. 既存ゲーム（棒取りゲーム）のGameController対応
   - 棒取りゲームのuseStickTakingフックをGameControllerインターフェースに準拠させる
   - 新しいGameLayoutコンポーネントを適用
+  - **必須**: @testing-library/reactによるフックテスト実装
   - _要件: 3.1, 3.2, 3.5_
 
 ## フェーズ4: 全体最適化とホームページ対応
