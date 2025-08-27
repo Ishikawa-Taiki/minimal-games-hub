@@ -5,7 +5,7 @@ import { GameManifest } from '@/types/game';
 import GameLoader from './GameLoader';
 import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToeController } from '@/games/tictactoe/index';
-import Reversi from '@/games/reversi';
+import Reversi, { useReversi } from '@/games/reversi';
 
 interface GameClientPageProps {
   manifest: GameManifest;
@@ -28,8 +28,18 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
 });
 
 // リバーシ用の新しいレイアウト対応コンポーネント
-const ReversiWithNewLayout = memo(function ReversiWithNewLayout() {
-  return <Reversi />;
+const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug }: GameClientPageProps) {
+  const controller = useReversi();
+  
+  return (
+    <GameLayout 
+      gameName={manifest.displayName} 
+      slug={slug}
+      gameController={controller}
+    >
+      <Reversi controller={controller} />
+    </GameLayout>
+  );
 });
 
 const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
@@ -40,7 +50,7 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClie
   
   // リバーシの場合は新しいレイアウトを使用
   if (slug === 'reversi') {
-    return <ReversiWithNewLayout />;
+    return <ReversiWithNewLayout manifest={manifest} slug={slug} />;
   }
   
   // 他のゲームは従来のレイアウトを使用

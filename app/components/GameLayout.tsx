@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '../../types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
+import GameStateDebugger from './GameStateDebugger';
+import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
@@ -36,8 +38,24 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   
   // ゲーム状態の表示テキストを生成
   const getStatusText = () => {
+    // リバーシ固有の状態チェック
+    const reversiState = gameState as TState & { 
+      gameStatus?: 'PLAYING' | 'SKIPPED' | 'GAME_OVER';
+      currentPlayer?: 'BLACK' | 'WHITE';
+    };
+    
     if (gameState.winner) {
-      return `勝者: ${gameState.winner}`;
+      if (gameState.winner === 'DRAW') {
+        return '引き分け！';
+      }
+      return `勝者: ${gameState.winner === 'BLACK' ? '黒' : gameState.winner === 'WHITE' ? '白' : gameState.winner}`;
+    } else if (reversiState.gameStatus === 'GAME_OVER') {
+      return 'ゲーム終了';
+    } else if (reversiState.gameStatus === 'SKIPPED') {
+      const skippedPlayer = reversiState.currentPlayer === 'BLACK' ? '白' : '黒';
+      return `${skippedPlayer}はパス - ${reversiState.currentPlayer === 'BLACK' ? '黒' : '白'}の番`;
+    } else if (reversiState.gameStatus === 'PLAYING' && reversiState.currentPlayer) {
+      return `${reversiState.currentPlayer === 'BLACK' ? '黒' : '白'}の番`;
     } else if (gameState.status === 'ended') {
       // 引き分けの場合の処理を追加
       const extendedState = gameState as TState & { isDraw?: boolean };
@@ -135,12 +153,22 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
   const responsiveState = useResponsive();
   console.log('Responsive state:', responsiveState);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  
+  // ログ機能
+  const logger = useGameStateLogger('GameLayout', gameController?.gameState || {}, {
+    gameName,
+    slug,
+    responsiveState,
+    hasGameController: !!gameController
+  });
 
   const handleFABClick = () => {
+    logger.log('FAB_CLICKED', { isBottomSheetOpen });
     setIsBottomSheetOpen(true);
   };
 
   const handleBottomSheetClose = () => {
+    logger.log('BOTTOM_SHEET_CLOSED', {});
     setIsBottomSheetOpen(false);
   };
 
@@ -212,6 +240,12 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             slug={slug}
           />
         </BottomSheet>
+        
+        {/* デバッガー（開発環境でのみ表示） */}
+        <GameStateDebugger 
+          isVisible={process.env.NODE_ENV === 'development'} 
+          position="bottom-left" 
+        />
       </div>
     );
   } else {
@@ -234,6 +268,12 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
         <main style={gameLayoutStyles.desktopMain}>
           {children}
         </main>
+        
+        {/* デバッガー（開発環境でのみ表示） */}
+        <GameStateDebugger 
+          isVisible={process.env.NODE_ENV === 'development'} 
+          position="bottom-right" 
+        />
       </div>
     );
   }
