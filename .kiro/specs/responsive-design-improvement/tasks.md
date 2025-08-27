@@ -67,7 +67,7 @@
   - **実装内容**: BaseGameController + HintableGameControllerインターフェース準拠、ヒント機能の統合、GameLayoutの適用、包括的なユニットテスト
   - _要件: 3.1, 3.2, 3.5_
 
-- [ ] 10. 既存ゲーム（アニマルチェス）のGameController対応
+- [x] 10. 既存ゲーム（アニマルチェス）のGameController対応
   - アニマルチェスゲームのuseAnimalChessフックをGameControllerインターフェースに準拠させる
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用

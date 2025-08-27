@@ -78,9 +78,23 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       );
     }
 
-    // はさみ将棋の捕獲数表示
+    // アニマルチェスの捕獲数表示（配列形式の判定を先に行う）
+    const animalChessState = gameState as TState & { capturedPieces?: { SENTE: string[]; GOTE: string[] } };
+    if (animalChessState.capturedPieces && Array.isArray(animalChessState.capturedPieces.SENTE)) {
+      return (
+        <div style={gameLayoutStyles.scoreInfo}>
+          <h4 style={gameLayoutStyles.sectionTitle}>捕獲駒数</h4>
+          <div style={gameLayoutStyles.scoreDisplay}>
+            <span>プレイヤー1: {animalChessState.capturedPieces.SENTE.length}個</span>
+            <span>プレイヤー2: {animalChessState.capturedPieces.GOTE.length}個</span>
+          </div>
+        </div>
+      );
+    }
+
+    // はさみ将棋の捕獲数表示（数値形式）
     const hasamiShogiState = gameState as TState & { capturedPieces?: { PLAYER1: number; PLAYER2: number } };
-    if (hasamiShogiState.capturedPieces) {
+    if (hasamiShogiState.capturedPieces && typeof hasamiShogiState.capturedPieces.PLAYER1 === 'number') {
       return (
         <div style={gameLayoutStyles.scoreInfo}>
           <h4 style={gameLayoutStyles.sectionTitle}>捕獲数</h4>
