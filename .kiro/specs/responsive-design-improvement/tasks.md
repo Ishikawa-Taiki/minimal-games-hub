@@ -79,12 +79,14 @@
   - ヒント機能を新しいHintStateに対応させる
   - 新しいGameLayoutコンポーネントを適用
   - **必須**: @testing-library/reactによるフックテスト実装
+  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠
   - _要件: 3.1, 3.2, 3.5_
 
 - [ ] 12. 既存ゲーム（棒取りゲーム）のGameController対応
   - 棒取りゲームのuseStickTakingフックをGameControllerインターフェースに準拠させる
   - 新しいGameLayoutコンポーネントを適用
   - **必須**: @testing-library/reactによるフックテスト実装
+  - **重要**: getScoreInfo()メソッドを実装してポリモーフィック設計に準拠
   - _要件: 3.1, 3.2, 3.5_
 
 ## フェーズ4: 全体最適化とホームページ対応

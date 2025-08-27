@@ -23,6 +23,13 @@
 - ControlPanelに「ヒント」ボタンを共通配置
 - ヒント表示は各ゲームのUI内でオーバーレイ表示
 
+#### ポリモーフィック設計の採用
+GameLayoutコンポーネントは各ゲーム固有の処理を直接持たず、ポリモーフィズムを活用した設計を採用：
+- `BaseGameController`に`getScoreInfo()`メソッドを追加
+- 各ゲームコントローラーが自身のスコア表示ロジックを実装
+- GameLayoutは汎用的な表示ロジックのみを持つ
+- 新しいゲーム追加時にGameLayoutの修正が不要
+
 #### UIコンポーネント統一の必要性
 既存ゲーム全体のレイアウト見直しに伴い、UIコンポーネントの一貫性確保は**本設計に含めるべき**です。理由：
 - レスポンシブレイアウトと密接に関連
@@ -233,7 +240,30 @@ export function GameLayout<TState extends BaseGameState, TAction>(
 ): JSX.Element;
 ```
 
-### 4. コントロールパネルコンポーネント
+### 4. スコア情報の型定義（新規追加）
+
+```typescript
+// スコア/統計情報の表示用型定義
+export interface ScoreInfo {
+  title: string;
+  items: Array<{
+    label: string;
+    value: string | number;
+  }>;
+}
+
+// BaseGameControllerの拡張
+export interface BaseGameController<TState extends BaseGameState, TAction> {
+  gameState: TState;
+  dispatch: React.Dispatch<TAction>;
+  resetGame: () => void;
+  getDisplayStatus: () => string;
+  // 新規追加: ゲーム固有のスコア/統計情報（オプショナル）
+  getScoreInfo?: () => ScoreInfo | null;
+}
+```
+
+### 5. コントロールパネルコンポーネント
 
 ```typescript
 interface ControlPanelProps<TState extends BaseGameState, TAction> {
