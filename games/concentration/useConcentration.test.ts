@@ -16,7 +16,7 @@ describe('useConcentration', () => {
       const { result } = renderHook(() => useConcentration());
       
       expect(result.current.gameState.status).toBe('playing');
-      expect(result.current.gameState.currentPlayer).toBe(1);
+      expect(result.current.gameState.currentPlayer).toBe('player1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.getDifficulty()).toBe('easy');
       expect(result.current.getBoard().length).toBe(20); // easy: 20枚
@@ -119,7 +119,7 @@ describe('useConcentration', () => {
       });
       
       expect(result.current.gameState.status).toBe('playing');
-      expect(result.current.gameState.currentPlayer).toBe(1);
+      expect(result.current.gameState.currentPlayer).toBe('player1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.getScores()).toEqual({ player1: 0, player2: 0 });
       expect(result.current.getFlippedIndices()).toEqual([]);
