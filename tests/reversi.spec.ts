@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeEach } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-describe('リバーシゲームのE2Eテスト', () => {
-  beforeEach(async ({ page }) => {
+test.describe('リバーシゲームのE2Eテスト', () => {
+  test.beforeEach(async ({ page }) => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
     // ページのタイトルにデフォルトのサイト名が含まれていることを確認する

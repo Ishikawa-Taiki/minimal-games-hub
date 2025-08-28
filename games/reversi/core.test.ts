@@ -24,6 +24,9 @@ describe('Reversi Core Logic', () => {
     // Initial valid moves for Black: [2,3], [3,2], [4,5], [5,4]
     const newGameState = handleCellClick(gameState, 3, 2); // Black places at (3,2)
 
+    expect(newGameState).not.toBeNull();
+    if (!newGameState) return;
+
     expect(newGameState.board[3][2]).toBe('BLACK');
     expect(newGameState.board[3][3]).toBe('BLACK'); // Flipped
     expect(newGameState.scores.BLACK).toBe(4);

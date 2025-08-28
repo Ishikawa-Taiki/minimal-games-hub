@@ -1,11 +1,11 @@
-import { test, expect, describe, beforeEach } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-describe('はさみ将棋ゲームのE2Eテスト', () => {
-  beforeEach(async ({ page }) => {
+test.describe('はさみ将棋ゲームのE2Eテスト', () => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/games/hasami-shogi');
   });
 
-  describe('初期表示', () => {
+  test.describe('初期表示', () => {
     test('盤面と駒が正しく表示される', async ({ page }) => {
       // 9x9のマスが存在することを確認
       await page.waitForSelector('[data-testid="cell-0-0"]');
@@ -47,7 +47,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
   });
 
-  describe('駒の移動と選択', () => {
+  test.describe('駒の移動と選択', () => {
     test('駒を選択するとハイライトされ、再度クリックすると選択が解除される', async ({ page }) => {
       const piece = page.locator('[data-testid="cell-8-0"]');
 
@@ -109,7 +109,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
   });
 
-  describe('駒の捕獲', () => {
+  test.describe('駒の捕獲', () => {
     test('相手の駒を挟むと、その駒を捕獲できる', async ({ page }) => {
       // 捕獲のセットアップ
       // 1. 先手: (8,1) -> (1,1)
@@ -143,7 +143,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
   // 複雑なゲームシーケンスをE2Eテストで再現するのは不安定であり、
   // コアロジックの単体テストの方がロバスト性が高いためです。
 
-  describe('ゲームリセット機能', () => {
+  test.describe('ゲームリセット機能', () => {
     test('「はじめから」ボタンをクリックすると、ゲームが初期状態に戻る', async ({ page }) => {
       // 駒を動かしてゲームの状態を変更
       await page.locator('[data-testid="cell-8-0"]').click();
@@ -180,7 +180,7 @@ describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
   });
 
-  describe('ヒント機能', () => {
+  test.describe('ヒント機能', () => {
     test('ヒントボタンをONにすると、移動可能なマスがハイライトされる', async ({ page }) => {
       // ヒントをONにする
       await page.locator('[data-testid="control-panel-hint-button"]').click();

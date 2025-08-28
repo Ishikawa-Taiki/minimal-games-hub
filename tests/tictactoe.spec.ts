@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeEach } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-describe('Tic-Tac-Toe Game', () => {
-  beforeEach(async ({ page }) => {
+test.describe('Tic-Tac-Toe Game', () => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/games/tictactoe');
     await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(9);
   });
@@ -112,7 +112,7 @@ describe('Tic-Tac-Toe Game', () => {
     await expect(hintCell).toHaveCSS('background-color', 'rgb(254, 249, 195)'); // light yellow from styles.reachingCell
   });
 
-  describe('Game Over Modal', () => {
+  test.describe('Game Over Modal', () => {
     test('should show game over modal when a player wins', async ({ page }) => {
       await page.locator('[data-testid="cell-0-0"]').click(); // O
       await page.locator('[data-testid="cell-1-0"]').click(); // X
@@ -156,7 +156,7 @@ describe('Tic-Tac-Toe Game', () => {
     });
   });
 
-  describe('Responsive Layout', () => {
+  test.describe('Responsive Layout', () => {
     test('should show desktop layout on wide screens', async ({ page }) => {
       // デスクトップサイズに設定
       await page.setViewportSize({ width: 1024, height: 768 });

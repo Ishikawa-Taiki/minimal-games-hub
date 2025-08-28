@@ -142,7 +142,7 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
   );
 };
 
-const GameOverModal = ({ winner, onReset }: { winner: Player | 'DRAW' | null, onReset: () => void }) => {
+const GameOverModal = ({ winner, onReset }: { winner: string | 'DRAW' | null, onReset: () => void }) => {
   if (!winner) return null;
 
   const getWinnerText = () => {

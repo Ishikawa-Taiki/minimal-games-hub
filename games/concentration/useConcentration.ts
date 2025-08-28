@@ -13,7 +13,7 @@ import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 // 神経衰弱固有の状態をBaseGameStateに適合させる
 interface ConcentrationGameState extends BaseGameState {
   board: GameState['board'];
-  currentPlayer: Player;
+  currentPlayer: string | null;
   scores: GameState['scores'];
   flippedIndices: GameState['flippedIndices'];
   revealedIndices: GameState['revealedIndices'];
@@ -36,7 +36,7 @@ function createInitialConcentrationState(difficulty: Difficulty = 'easy'): Conce
   const coreState = createInitialState(difficulty);
   return {
     board: coreState.board,
-    currentPlayer: coreState.currentPlayer,
+    currentPlayer: 'player1',
     scores: coreState.scores,
     flippedIndices: coreState.flippedIndices,
     revealedIndices: coreState.revealedIndices,
@@ -59,7 +59,7 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
     case 'CARD_CLICK': {
       const coreState: GameState = {
         board: state.board,
-        currentPlayer: state.currentPlayer,
+        currentPlayer: state.currentPlayer === 'player1' ? 1 : 2,
         scores: state.scores,
         flippedIndices: state.flippedIndices,
         revealedIndices: state.revealedIndices,
@@ -75,7 +75,7 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
       return {
         ...state,
         board: newCoreState.board,
-        currentPlayer: newCoreState.currentPlayer,
+        currentPlayer: newCoreState.currentPlayer === 1 ? 'player1' : 'player2',
         scores: newCoreState.scores,
         flippedIndices: newCoreState.flippedIndices,
         revealedIndices: newCoreState.revealedIndices,
@@ -92,7 +92,7 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
     case 'CLEAR_NON_MATCHING': {
       const coreState: GameState = {
         board: state.board,
-        currentPlayer: state.currentPlayer,
+        currentPlayer: state.currentPlayer === 'player1' ? 1 : 2,
         scores: state.scores,
         flippedIndices: state.flippedIndices,
         revealedIndices: state.revealedIndices,
@@ -108,7 +108,7 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
       return {
         ...state,
         board: newCoreState.board,
-        currentPlayer: newCoreState.currentPlayer,
+        currentPlayer: newCoreState.currentPlayer === 1 ? 'player1' : 'player2',
         scores: newCoreState.scores,
         flippedIndices: newCoreState.flippedIndices,
         revealedIndices: newCoreState.revealedIndices,
@@ -142,12 +142,14 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
 
 export type ConcentrationController = BaseGameController<ConcentrationGameState, ConcentrationAction> & 
   HintableGameController<ConcentrationGameState, ConcentrationAction> & {
+    // resetGame を上書き
+    resetGame: (difficulty?: Difficulty) => void;
     // 神経衰弱固有のメソッド
     handleCardClick: (index: number) => void;
     clearNonMatchingCards: () => void;
     setDifficulty: (difficulty: Difficulty) => void;
     // 状態アクセサー
-    getCurrentPlayer: () => Player;
+    getCurrentPlayer: () => string | null;
     getScores: () => GameState['scores'];
     getFlippedIndices: () => number[];
     getRevealedIndices: () => number[];

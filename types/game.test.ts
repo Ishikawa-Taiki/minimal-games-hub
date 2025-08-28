@@ -79,6 +79,7 @@ describe('ヒント機能の型定義', () => {
       },
       dispatch: () => {},
       resetGame: () => {},
+      getDisplayStatus: () => 'dummy status',
       toggleHints: () => {},
       hintState: { level: 'off' },
       clearHints: () => {}
@@ -95,7 +96,8 @@ describe('ヒント機能の型定義', () => {
     const baseController: BaseGameController<BaseGameState, any> = {
       gameState: { status: 'waiting', currentPlayer: null, winner: null },
       dispatch: () => {},
-      resetGame: () => {}
+      resetGame: () => {},
+      getDisplayStatus: () => 'dummy status'
     };
 
     // ヒント機能付きコントローラー
@@ -108,6 +110,7 @@ describe('ヒント機能の型定義', () => {
       },
       dispatch: () => {},
       resetGame: () => {},
+      getDisplayStatus: () => 'dummy status',
       toggleHints: () => {},
       hintState: { level: 'basic' }
     };

@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { GameManifest } from '@/types/game';
+import { BaseGameState, GameManifest } from '@/types/game';
 import GameLoader from './GameLoader';
 import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToeController } from '@/games/tictactoe/index';
@@ -76,7 +76,7 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClie
   
   // 他のゲームは従来のレイアウトを使用
   return (
-    <GameLayout 
+    <GameLayout<BaseGameState, never> 
       gameName={manifest.displayName} 
       slug={slug}
     >
