@@ -50,39 +50,56 @@ describe('useConcentration', () => {
       expect(result.current.isGameStarted()).toBe(true);
     });
 
-    // TODO: 後ほど追加調整する
-    // it('2枚目のカードをめくると評価状態になる', () => {
-    //   const { result } = renderHook(() => useConcentration());
-      
-    //   act(() => {
-    //     result.current.handleCardClick(0);
-    //     result.current.handleCardClick(1);
-    //   });
-      
-    //   expect(result.current.getFlippedIndices().length).toBe(2);
-    //   expect(result.current.isEvaluating()).toBe(true);
-    // });
+    it('2枚目のカードをめくると評価状態になる', () => {
+      const { result } = renderHook(() => useConcentration());
 
-    // TODO: 後ほど追加調整する
-    // it('評価中はカードクリックが無視される', () => {
-    //   const { result } = renderHook(() => useConcentration());
-      
-    //   // 2枚めくって評価状態にする
-    //   act(() => {
-    //     result.current.handleCardClick(0);
-    //     result.current.handleCardClick(1);
-    //   });
-      
-    //   const flippedIndicesBefore = result.current.getFlippedIndices();
-      
-    //   // 評価中に別のカードをクリック
-    //   act(() => {
-    //     result.current.handleCardClick(2);
-    //   });
-      
-    //   // 状態が変わらないことを確認
-    //   expect(result.current.getFlippedIndices()).toEqual(flippedIndicesBefore);
-    // });
+      act(() => {
+        result.current.handleCardClick(0);
+      });
+      expect(result.current.isEvaluating()).toBe(false);
+
+      act(() => {
+        result.current.handleCardClick(1);
+      });
+      expect(result.current.getFlippedIndices().length).toBe(2);
+      expect(result.current.isEvaluating()).toBe(true);
+    });
+
+    it('評価中はカードクリックが無視される', async () => { // async を追加
+      const { result } = renderHook(() => useConcentration());
+
+      // 2枚めくって評価状態にする
+      act(() => {
+        result.current.handleCardClick(0);
+        result.current.handleCardClick(1);
+      });
+
+      // 評価状態になったことを確認
+      // setTimeout が実行されるのを待つ
+      await new Promise(resolve => setTimeout(resolve, 0)); // 0ms 待つことで、setTimeout のコールバックが実行されるのを待つ
+
+      expect(result.current.isEvaluating()).toBe(true);
+
+      const flippedIndicesBefore = result.current.getFlippedIndices();
+      const revealedIndicesBefore = result.current.getRevealedIndices();
+
+      // 評価中に別のカードをクリック
+      act(() => {
+        result.current.handleCardClick(2);
+      });
+
+      // 状態が変わらないことを確認
+      expect(result.current.getFlippedIndices()).toEqual(flippedIndicesBefore);
+      expect(result.current.getRevealedIndices()).toEqual(revealedIndicesBefore);
+      expect(result.current.isEvaluating()).toBe(true); // 評価状態のまま
+
+      // setTimeout が完了するのを待つ (useConcentration.ts の useEffect のため)
+      await new Promise(resolve => setTimeout(resolve, 1300)); // 1.2秒 + 余裕
+
+      // 評価が完了し、カードが裏返った後の状態を確認
+      expect(result.current.isEvaluating()).toBe(false);
+      expect(result.current.getFlippedIndices().length).toBe(0);
+    });
 
     it('すでにめくられたカードはクリックできない', () => {
       const { result } = renderHook(() => useConcentration());

@@ -2,16 +2,17 @@ import StyleSheet from '../../app/styles/StyleSheet';
 import { CSSProperties } from 'react';
 
 export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
-  gameContent: {
+    gameContent: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
-    maxWidth: '900px',
+    height: '100%',
     margin: '0 auto',
-    padding: '10px',
+    padding: '0',
     boxSizing: 'border-box',
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: '100%',
   },
   difficultySelector: {
     marginBottom: '1.5rem',
@@ -19,7 +20,9 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '1px solid #ccc',
     borderRadius: '8px',
     backgroundColor: '#f7fafc',
-    width: '100%',
+    width: 'auto',
+    boxSizing: 'border-box',
+    flexShrink: 0,
   },
   difficultyTitle: {
     margin: '0 0 0.5rem 0',
@@ -78,6 +81,9 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     gridTemplateColumns: 'repeat(9, 1fr)',
     gap: '5px',
     width: '100%',
+    flexGrow: 1,
+    maxHeight: 'calc(100vh - 200px)', // 例: 画面の高さからヘッダーや難易度選択の領域を引いた値
+    overflow: 'auto',
   },
   card: {
     width: '100%',
