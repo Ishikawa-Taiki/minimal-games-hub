@@ -7,6 +7,7 @@ import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToeController } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
 import Concentration, { useConcentration } from '@/games/concentration/index';
+import StickTaking, { useStickTaking } from '@/games/stick-taking';
 
 interface GameClientPageProps {
   manifest: GameManifest;
@@ -58,7 +59,27 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
   );
 });
 
+// 棒取りゲーム用の新しいレイアウト対応コンポーネント
+const StickTakingWithNewLayout = ({ manifest, slug }: GameClientPageProps) => {
+  const controller = useStickTaking();
+
+  return (
+    <GameLayout
+      gameName={manifest.displayName}
+      slug={slug}
+      gameController={controller}
+    >
+      <StickTaking controller={controller} />
+    </GameLayout>
+  );
+};
+
 const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
+  // 棒取りゲームの場合は新しいレイアウトを使用
+  if (slug === 'stick-taking') {
+    return <StickTakingWithNewLayout manifest={manifest} slug={slug} />;
+  }
+
   // 三目並べの場合は新しいレイアウトを使用
   if (slug === 'tictactoe') {
     return <TicTacToeWithNewLayout manifest={manifest} slug={slug} />;

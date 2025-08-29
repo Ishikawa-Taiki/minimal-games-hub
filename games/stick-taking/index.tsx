@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useState, CSSProperties, useEffect } from 'react';
-import {
-  Difficulty,
-  GameState,
-  Stick,
-  createInitialState,
-  selectStick,
-  handleTakeSticks,
-  toggleHintVisibility,
-  getHintData,
-} from './core';
+import React, { useState, useEffect, memo } from 'react';
+import { Stick, Difficulty } from './core';
+import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 
-const StickTakingGame = () => {
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-  const [gameState, setGameState] = useState<GameState | null>(null);
+interface StickTakingGameProps {
+  controller?: StickTakingController;
+}
+
+const StickTakingGame = ({ controller: externalController }: StickTakingGameProps) => {
+  const internalController = useStickTaking();
+  const controller = externalController || internalController;
+
+  const { gameState, selectStick, takeSticks, startGame, difficulty } = controller;
+
   const [showModal, setShowModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -23,46 +22,37 @@ const StickTakingGame = () => {
   useEffect(() => {
     if (gameState?.winner) {
       setShowModal(true);
+    } else {
+      setShowModal(false);
     }
   }, [gameState?.winner]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
-    setDifficulty(selectedDifficulty);
-    setGameState(createInitialState(selectedDifficulty));
-  };
-
-  const handleStickClick = (rowIndex: number, stickId: number) => {
-    if (gameState) {
-      setGameState(selectStick(gameState, rowIndex, stickId));
-    }
+    startGame(selectedDifficulty);
   };
 
   const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
     setIsDragging(true);
-    const stick = gameState?.rows[rowIndex].find(s => s.id === stickId);
+    const stick = gameState?.rows?.[rowIndex]?.find(s => s.id === stickId);
     if (!stick || stick.isTaken) return;
 
-    const isSelected = gameState?.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
+    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
     const currentDragAction = isSelected ? 'deselect' : 'select';
     setDragAction(currentDragAction);
-
-    // Apply the initial action immediately
-    if (gameState) {
-      setGameState(selectStick(gameState, rowIndex, stickId));
-    }
+    selectStick(rowIndex, stickId);
   };
 
   const handleStickInteractionMove = (rowIndex: number, stickId: number) => {
-    if (isDragging && gameState) {
-      const stick = gameState.rows[rowIndex].find(s => s.id === stickId);
+    if (isDragging && gameState?.rows) {
+      const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
       if (!stick || stick.isTaken) return;
 
       const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
 
       if (dragAction === 'select' && !isSelected) {
-        setGameState(selectStick(gameState, rowIndex, stickId));
+        selectStick(rowIndex, stickId);
       } else if (dragAction === 'deselect' && isSelected) {
-        setGameState(selectStick(gameState, rowIndex, stickId));
+        selectStick(rowIndex, stickId);
       }
     }
   };
@@ -72,27 +62,9 @@ const StickTakingGame = () => {
     setDragAction(null);
   };
 
-
-  const handleTakeButtonClick = () => {
-    if (gameState && gameState.selectedSticks.length > 0) {
-      setGameState(handleTakeSticks(gameState));
-    }
-  };
-
-  const handleToggleHint = () => {
-    if (gameState) {
-      setGameState(toggleHintVisibility(gameState));
-    }
-  };
-
   const handlePlayAgain = () => {
-    setDifficulty(null);
-    setGameState(null);
     setShowModal(false);
-  };
-
-  const handleBackToTitle = () => {
-    window.location.reload();
+    controller.resetGame();
   };
 
   const renderDifficultyScreen = () => (
@@ -107,8 +79,8 @@ const StickTakingGame = () => {
     </div>
   );
 
-  const renderStick = (stick: Stick, rowIndex: number, stickIndex: number) => {
-    const isSelected = gameState?.selectedSticks.some(s => s.row === rowIndex && s.stickId === stick.id);
+  const renderStick = (stick: Stick, rowIndex: number) => {
+    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stick.id);
     const stickStyle = {
       ...styles.stick,
       ...(stick.isTaken ? styles.takenStick : {}),
@@ -150,68 +122,34 @@ const StickTakingGame = () => {
   };
 
   const renderGameScreen = () => {
-    if (!gameState) return null;
-
-    const turnIndicatorStyle = {
-      ...styles.turnIndicator,
-      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
-    };
+    if (!gameState || !gameState.rows) return null;
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
-        <h2 style={turnIndicatorStyle}>{gameState.winner ? 'おしまい！' : `${gameState.currentPlayer}のばん`}</h2>
-        <div style={styles.topBar}>
-          <div style={styles.hintBoxLeft}>
-            {gameState.isHintVisible && (
-              <div data-testid="hint-box-left">
-                <p>のこりのぼう</p>
-                <p style={styles.hintValue}>{getHintData(gameState).remainingSticksCount}本</p>
-              </div>
-            )}
-          </div>
-          <div style={styles.hintBoxRight}>
-            {gameState.isHintVisible && (
-              <div data-testid="hint-box-right">
-                <p>かたまりの数</p>
-                <p style={styles.hintValue}>{getHintData(gameState).totalChunkCount}個</p>
-              </div>
-            )}
-          </div>
-        </div>
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
-              {row.map((stick, stickIndex) => renderStick(stick, rowIndex, stickIndex))}
+              {row.map((stick) => renderStick(stick, rowIndex))}
             </div>
           ))}
         </div>
         <div style={styles.controls}>
           <button
             style={styles.button}
-            onClick={handleTakeButtonClick}
-            disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
+            onClick={takeSticks}
+            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
           >
             えらんだぼうをとる
-          </button>
-        </div>
-        <div style={styles.hintButtonContainer}>
-          <button
-            style={{...styles.button, ...styles.hintButton}}
-            onClick={handleToggleHint}
-            data-testid="hint-button"
-          >
-            ヒント: {gameState.isHintVisible ? 'ON' : 'OFF'}
           </button>
         </div>
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
             <div style={styles.gameOverModal}>
               <h2 style={styles.gameOverTitle}>けっか</h2>
-              <p style={styles.winnerText}>かったのは {gameState.winner}！</p>
+              <p style={styles.winnerText}>{controller.getDisplayStatus()}</p>
               <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
               <div style={styles.modalButtons}>
                 <button data-testid="play-again-button" style={styles.button} onClick={handlePlayAgain}>もういっかい</button>
-                <button style={styles.button} onClick={handleBackToTitle}>タイトルにもどる</button>
               </div>
             </div>
           </div>
@@ -220,7 +158,12 @@ const StickTakingGame = () => {
     );
   };
 
-  return difficulty ? renderGameScreen() : renderDifficultyScreen();
+  if (gameState.status === 'waiting') {
+    return renderDifficultyScreen();
+  }
+
+  return renderGameScreen();
 };
 
+export { useStickTaking };
 export default StickTakingGame;

@@ -51,7 +51,11 @@ describe('useConcentration', () => {
     });
 
     it('2枚目のカードをめくると評価状態になる', () => {
-      const { result } = renderHook(() => useConcentration());
+      const { result } = renderHook(() => useConcentration('easy'));
+
+      const board = result.current.getBoard();
+      const firstCard = board[0];
+      const secondCardIndex = board.findIndex(card => card.matchId !== firstCard.matchId);
 
       act(() => {
         result.current.handleCardClick(0);
@@ -59,25 +63,36 @@ describe('useConcentration', () => {
       expect(result.current.isEvaluating()).toBe(false);
 
       act(() => {
-        result.current.handleCardClick(1);
+        if (secondCardIndex !== -1) {
+          result.current.handleCardClick(secondCardIndex);
+        } else {
+          // Fallback if all cards are the same (highly unlikely in this test setup)
+          result.current.handleCardClick(1);
+        }
       });
+
       expect(result.current.getFlippedIndices().length).toBe(2);
       expect(result.current.isEvaluating()).toBe(true);
     });
 
     it('評価中はカードクリックが無視される', async () => { // async を追加
-      const { result } = renderHook(() => useConcentration());
+      const { result } = renderHook(() => useConcentration('easy'));
+
+      const board = result.current.getBoard();
+      const firstCard = board[0];
+      const secondCardIndex = board.findIndex(card => card.matchId !== firstCard.matchId);
 
       // 2枚めくって評価状態にする
       act(() => {
         result.current.handleCardClick(0);
-        result.current.handleCardClick(1);
+        if (secondCardIndex !== -1) {
+          result.current.handleCardClick(secondCardIndex);
+        } else {
+          result.current.handleCardClick(1);
+        }
       });
 
       // 評価状態になったことを確認
-      // setTimeout が実行されるのを待つ
-      await new Promise(resolve => setTimeout(resolve, 0)); // 0ms 待つことで、setTimeout のコールバックが実行されるのを待つ
-
       expect(result.current.isEvaluating()).toBe(true);
 
       const flippedIndicesBefore = result.current.getFlippedIndices();
@@ -248,13 +263,21 @@ describe('useConcentration', () => {
     });
 
     it('評価状態を正しく判定する', () => {
-      const { result } = renderHook(() => useConcentration());
+      const { result } = renderHook(() => useConcentration('easy'));
       
       expect(result.current.isEvaluating()).toBe(false);
       
+      const board = result.current.getBoard();
+      const firstCard = board[0];
+      const secondCardIndex = board.findIndex(card => card.matchId !== firstCard.matchId);
+
       act(() => {
         result.current.handleCardClick(0);
-        result.current.handleCardClick(1);
+        if (secondCardIndex !== -1) {
+          result.current.handleCardClick(secondCardIndex);
+        } else {
+          result.current.handleCardClick(1);
+        }
       });
       
       expect(result.current.isEvaluating()).toBe(true);
