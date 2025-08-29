@@ -188,6 +188,17 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
     console.log('Using legacy layout - gameController is undefined');
     return (
       <div style={gameLayoutStyles.container}>
+        <header style={gameLayoutStyles.header}>
+          <h1 style={gameLayoutStyles.headerTitle}>{gameName}</h1>
+          <div style={gameLayoutStyles.linksContainer}>
+            <Link href={`/games/${slug}/rules`} style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.rulesLink }}>
+              Rules
+            </Link>
+            <Link href="/" style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.homeLink }}>
+              Back to Home
+            </Link>
+          </div>
+        </header>
         <main style={gameLayoutStyles.main}>
           {children}
         </main>
@@ -266,6 +277,9 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
       <div style={gameLayoutStyles.desktopContainer}>
         {/* サイドバー（コントロールパネル） */}
         <aside style={gameLayoutStyles.sidebar}>
+          <div style={gameLayoutStyles.sidebarHeader}>
+            <h1 style={gameLayoutStyles.sidebarTitle}>{gameName}</h1>
+          </div>
           <ControlPanel
             gameController={gameController}
             slug={slug}

@@ -260,4 +260,5 @@ const AnimalChessPage = () => {
   );
 };
 
+export { useAnimalChess };
 export default AnimalChessPage;
