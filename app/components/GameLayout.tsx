@@ -200,6 +200,34 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
     // モバイルレイアウト: ミニマルレイアウト + FAB + ボトムシート
     return (
       <div style={gameLayoutStyles.mobileContainer}>
+        {/* スリムヘッダー */}
+        <header style={gameLayoutStyles.mobileHeader}>
+          <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
+          <div style={gameLayoutStyles.mobileStatus} data-testid="status">
+            {(() => {
+              // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
+              if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
+                return gameController.getDisplayStatus();
+              }
+
+              // フォールバック: 汎用的な状態表示
+              if (gameController.gameState.winner) {
+                if (gameController.gameState.winner === 'DRAW') {
+                  return '引き分け！';
+                }
+                return `勝者: ${gameController.gameState.winner}`;
+              } else if (gameController.gameState.status === 'ended') {
+                const extendedState = gameController.gameState as TState & { isDraw?: boolean };
+                return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
+              } else if ((gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer) {
+                return `${gameController.gameState.currentPlayer}の番`;
+              } else {
+                return 'ゲーム開始';
+              }
+            })()}
+          </div>
+        </header>
+
         {/* ゲームボード（フルエリア） */}
         <main style={gameLayoutStyles.mobileMain}>
           {children}

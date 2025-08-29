@@ -8,6 +8,8 @@ import TicTacToe, { useTicTacToeController } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
 import Concentration, { useConcentration } from '@/games/concentration/index';
 import StickTaking, { useStickTaking } from '@/games/stick-taking';
+import AnimalChess, { useAnimalChess } from '@/games/animal-chess';
+import HasamiShogi, { useHasamiShogi } from '@/games/hasami-shogi';
 
 interface GameClientPageProps {
   manifest: GameManifest;
@@ -74,6 +76,36 @@ const StickTakingWithNewLayout = ({ manifest, slug }: GameClientPageProps) => {
   );
 };
 
+// アニマルチェス用の新しいレイアウト対応コンポーネント
+const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manifest, slug }: GameClientPageProps) {
+  const controller = useAnimalChess();
+
+  return (
+    <GameLayout
+      gameName={manifest.displayName}
+      slug={slug}
+      gameController={controller}
+    >
+      <AnimalChess controller={controller} />
+    </GameLayout>
+  );
+});
+
+// はさみ将棋用の新しいレイアウト対応コンポーネント
+const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manifest, slug }: GameClientPageProps) {
+  const controller = useHasamiShogi();
+
+  return (
+    <GameLayout
+      gameName={manifest.displayName}
+      slug={slug}
+      gameController={controller}
+    >
+      <HasamiShogi controller={controller} />
+    </GameLayout>
+  );
+});
+
 const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
   // 棒取りゲームの場合は新しいレイアウトを使用
   if (slug === 'stick-taking') {
@@ -93,6 +125,14 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClie
   // 神経衰弱の場合は新しいレイアウトを使用
   if (slug === 'concentration') {
     return <ConcentrationWithNewLayout manifest={manifest} slug={slug} />;
+  }
+
+  if (slug === 'animal-chess') {
+    return <AnimalChessWithNewLayout manifest={manifest} slug={slug} />;
+  }
+
+  if (slug === 'hasami-shogi') {
+    return <HasamiShogiWithNewLayout manifest={manifest} slug={slug} />;
   }
   
   // 他のゲームは従来のレイアウトを使用
