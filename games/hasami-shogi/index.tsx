@@ -215,15 +215,7 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     </>
   );
 
-  return (
-    <GameLayout
-      gameName="はさみ将棋"
-      slug="hasami-shogi"
-      gameController={controller}
-    >
-      {gameContent}
-    </GameLayout>
-  );
+  return gameContent;
 };
 
 // GameControllerを外部に公開するためのラッパーコンポーネント

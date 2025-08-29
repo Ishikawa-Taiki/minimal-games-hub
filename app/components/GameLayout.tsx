@@ -220,7 +220,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
               if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
                 return gameController.getDisplayStatus();
               }
-              
+
               // フォールバック: 汎用的な状態表示
               if (gameController.gameState.winner) {
                 if (gameController.gameState.winner === 'DRAW') {
