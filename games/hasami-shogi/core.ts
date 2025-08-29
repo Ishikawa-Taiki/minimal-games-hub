@@ -232,8 +232,11 @@ function isMoveUnsafe(board: Board, player: Player, fromR: number, fromC: number
   return false;
 }
 
-function checkWinCondition(state: GameState): Player | null {
-  const { capturedPieces, winCondition, board } = state;
+function checkWinCondition(
+  board: Board,
+  winCondition: WinCondition,
+  capturedPieces: { PLAYER1: number; PLAYER2: number }
+): Player | null {
   const p1PiecesCapturedByP2 = capturedPieces.PLAYER1;
   const p2PiecesCapturedByP1 = capturedPieces.PLAYER2;
 
@@ -267,6 +270,11 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
   const { board, currentPlayer, gameStatus, selectedPiece } = currentState;
   if (gameStatus === 'GAME_OVER') return currentState;
 
+  // If clicking the currently selected piece, deselect it.
+  if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
+    return { ...currentState, selectedPiece: null, validMoves: new Map(), potentialCaptures: [] };
+  }
+
   if (board[r][c] === currentPlayer) {
     const validMoves = new Map<string, Move>();
     const captureSet = new Set<string>();
@@ -293,14 +301,11 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
       if (currentPlayer === 'PLAYER1') newCapturedCount.PLAYER2 += captured.length;
       else newCapturedCount.PLAYER1 += captured.length;
 
-      const tempState: GameState = {
+      const winner = checkWinCondition(newBoard, currentState.winCondition, newCapturedCount);
+      return {
         ...currentState,
         board: newBoard,
         capturedPieces: newCapturedCount,
-      };
-      const winner = checkWinCondition(tempState);
-      return {
-        ...tempState,
         currentPlayer: getOpponent(currentPlayer),
         selectedPiece: null,
         validMoves: new Map(),

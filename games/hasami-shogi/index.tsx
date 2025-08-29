@@ -126,10 +126,13 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {
+            const selectedPiece = getSelectedPiece();
+            const isSelected = !!(selectedPiece && selectedPiece.r === r && selectedPiece.c === c);
             return (
               <div
                 key={`${r}-${c}`}
                 data-testid={`cell-${r}-${c}`}
+                data-selected={isSelected}
                 style={getCellStyle(r, c)}
                 onClick={() => onCellClick(r, c)}
               >

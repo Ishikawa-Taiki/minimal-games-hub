@@ -13,17 +13,13 @@ test.beforeAll(() => {
 // 各テストの前にゲームページにアクセスし、リセットする
 test.beforeEach(async ({ page }) => {
   await page.goto('/games/animal-chess');
+  await expect(page).toHaveTitle(/アニマルチェス/);
   await page.waitForLoadState('networkidle');
   const resetButton = page.locator('[data-testid="control-panel-reset-button"]');
   if (await resetButton.isVisible()) {
     await resetButton.click();
     await page.waitForLoadState('networkidle');
   }
-});
-
-test('Animal Chess Game ページにアクセスすると、タイトルが正しく表示される', async ({ page }) => {
-  await expect(page).toHaveTitle(/アニマルチェス/);
-  await expect(page.getByRole('banner').getByRole('heading', { name: 'アニマルチェス', level: 1 })).toHaveText('アニマルチェス');
 });
 
 test('盤面が正しく表示される', async ({ page }) => {

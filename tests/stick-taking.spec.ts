@@ -65,23 +65,29 @@ test.describe('棒消しゲーム', () => {
   });
 
   // TODO: GameLayoutとの連携起因でコンポーネントが再レンダリングされずテストが失敗する。要調査。
-  // test('「もういっかい」ボタンでゲームがリスタートすること', async ({ page }) => {
-  //   test.slow();
-  //   await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
+  test('「もういっかい」ボタンでゲームがリスタートすること', async ({ page }) => {
+    test.slow();
+    await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
 
-  //   // ゲームが終了するまでループ
-  //   for (let i = 0; i < 10; i++) { // 10ターンあれば必ず終わる
-  //     const modalVisible = await page.getByTestId('game-over-modal').isVisible();
-  //     if (modalVisible) break;
+    // ゲームが終了するまでループ
+    for (let i = 0; i < 10; i++) { // 10ターンあれば必ず終わる
+      const modalVisible = await page.getByTestId('game-over-modal').isVisible();
+      if (modalVisible) break;
 
-  //     const availableSticks = page.locator('[data-testid^="stick-"]:not([style*="background-color: rgb(211, 211, 211)"])');
-  //     await availableSticks.first().click();
-  //     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
-  //   }
+      const availableSticks = page.locator('[data-testid^="stick-"]:not([style*="background-color: rgb(211, 211, 211)"])');
+      await availableSticks.first().click();
+      await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
+      // ターン表示が切り替わるのを少し待つ
+      await page.waitForTimeout(100);
+    }
 
-  //   await page.getByTestId('play-again-button').click();
-  //   await expect(page.getByRole('heading', { name: 'かんたん (3だん)' })).toBeVisible();
-  // });
+    await expect(page.getByTestId('game-over-modal')).toBeVisible();
+    await page.getByTestId('play-again-button').click();
+
+    // ゲームがリセットされ、モーダルが消え、難易度選択画面に戻ることを確認
+    await expect(page.getByTestId('game-over-modal')).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
+  });
 
   // TODO: GameLayoutとの連携起因でコンポーネントが再レンダリングされずテストが失敗する。要調査。
   // test('ヒントボタンが機能すること', async ({ page }) => {
