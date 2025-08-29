@@ -8,6 +8,8 @@ import {
   handleCellClick as handleCellClickCore,
   Board, // Import Board type
 } from './core';
+import { useReversi, ReversiController } from './useReversi';
+import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { styles } from './styles';
 
 // 駒のアイコンコンポーネント
@@ -23,144 +25,160 @@ const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player,
 
 type HintLevel = 'none' | 'placeable' | 'full';
 
-const Reversi: React.FC = () => {
-  const [gameStateHistory, setGameStateHistory] = useState<GameState[]>([createInitialState()]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
-  const gameState = gameStateHistory[currentHistoryIndex];
+interface ReversiProps {
+  controller?: ReversiController;
+}
+
+const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => {
+  // 外部からコントローラーが渡された場合はそれを使用、そうでなければ内部で作成
+  const internalController = useReversi();
+  const controller = externalController || internalController;
+  
+  // ログ機能
+  const logger = useGameStateLogger('Reversi', controller.gameState, {
+    hintLevel: controller.gameState.hintLevel,
+    validMovesCount: controller.gameState.validMoves.size
+  });
 
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [hintLevel, setHintLevel] = useState<HintLevel>('none'); // Default to full for dev
-  const [selectedHintCell, setSelectedHintCell] = useState<[number, number] | null>(null);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
-  const [visualBoard, setVisualBoard] = useState<Board>(gameState.board);
+  const [visualBoard, setVisualBoard] = useState<Board>(controller.gameState.board);
 
   useEffect(() => {
-    setVisualBoard(gameState.board);
-  }, [gameState.board]);
+    setVisualBoard(controller.gameState.board);
+  }, [controller.gameState.board]);
 
   const initializeGame = useCallback(() => {
-    const initialState = createInitialState();
-    setGameStateHistory([initialState]);
-    setCurrentHistoryIndex(0); // Start at the actual initial game state
+    logger.log('INITIALIZE_GAME_CALLED', {});
+    controller.resetGame();
     setFlippingCells([]);
     setIsFlipping(false);
-    setHintLevel('none');
-    setSelectedHintCell(null);
     setShowResetConfirmModal(false); // Close modal on game init
-  }, []);
-
-  useEffect(() => {
-    initializeGame();
-  }, [initializeGame]);
-
-  const toggleHintLevel = () => {
-    setHintLevel(prev => {
-      if (prev === 'none') return 'placeable';
-      if (prev === 'placeable') return 'full';
-      return 'none';
-    });
-    setSelectedHintCell(null); // Reset selection when changing hint level
-  };
+  }, [controller, logger]);
 
   const handleCellClick = async (r: number, c: number) => {
     const moveKey = `${r},${c}`;
-    const stonesToFlip = gameState.validMoves.get(moveKey);
-    if (gameState.gameStatus === 'GAME_OVER' || isFlipping || !stonesToFlip) return;
+    const stonesToFlip = controller.gameState.validMoves.get(moveKey);
+    if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
 
-    // Full hint mode logic
-    if (hintLevel === 'full') {
-      if (selectedHintCell && selectedHintCell[0] === r && selectedHintCell[1] === c) {
-        // Second tap on the same cell: execute the move
-        setSelectedHintCell(null);
-      } else {
-        // First tap or tap on a different cell: just highlight
-        setSelectedHintCell([r, c]);
-        return; // Don't execute the move yet
-      }
-    }
+    logger.log('CELL_CLICK', { row: r, col: c, hintLevel: controller.gameState.hintLevel, hasValidMove: !!stonesToFlip });
 
-    setIsFlipping(true);
-
-    // Place the stone immediately on visualBoard
-    setVisualBoard(prevBoard => {
-      const newBoard = prevBoard.map(row => [...row]);
-      newBoard[r][c] = gameState.currentPlayer;
-      return newBoard;
-    });
-
-    // Animate flipping
-    for (let i = 0; i < stonesToFlip.length; i++) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setFlippingCells(prev => [...prev, stonesToFlip[i]]);
-        await new Promise(resolve => setTimeout(resolve, 150));
+    // フルヒントモードの場合の特別な処理
+    if (controller.gameState.hintLevel === 'full') {
+      if (controller.gameState.selectedHintCell && 
+          controller.gameState.selectedHintCell[0] === r && 
+          controller.gameState.selectedHintCell[1] === c) {
+        // 2回目のタップ: アニメーション付きで移動を実行
+        if (!stonesToFlip) return;
         
-        const [fr, fc] = stonesToFlip[i];
+        setIsFlipping(true);
+        logger.log('EXECUTING_ANIMATED_MOVE', { row: r, col: c });
+
+        // Place the stone immediately on visualBoard
         setVisualBoard(prevBoard => {
           const newBoard = prevBoard.map(row => [...row]);
-          newBoard[fr][fc] = gameState.currentPlayer;
+          newBoard[r][c] = controller.gameState.currentPlayer;
           return newBoard;
         });
-        setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
-    }
 
-    const newState = handleCellClickCore(gameState, r, c);
-    if (newState) {
-      setGameStateHistory(prevHistory => {
-        const newHistory = prevHistory.slice(0, currentHistoryIndex + 1);
-        newHistory.push(newState);
-        return newHistory;
+        // Animate flipping
+        for (let i = 0; i < stonesToFlip.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            setFlippingCells(prev => [...prev, stonesToFlip[i]]);
+            await new Promise(resolve => setTimeout(resolve, 150));
+            
+            const [fr, fc] = stonesToFlip[i];
+            setVisualBoard(prevBoard => {
+              const newBoard = prevBoard.map(row => [...row]);
+              newBoard[fr][fc] = controller.gameState.currentPlayer;
+              return newBoard;
+            });
+            setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
+        }
+
+        // コントローラーを使用して移動を実行
+        controller.makeMove(r, c);
+        setVisualBoard(controller.gameState.board); // Sync visualBoard with actual game state after move
+        setIsFlipping(false);
+      } else {
+        // 1回目のタップ: セルを選択（有効な移動の場合のみ）
+        if (stonesToFlip) {
+          controller.makeMove(r, c); // これは選択のみを行う
+        }
+      }
+    } else {
+      // 通常の移動（placeable、noneヒント）
+      if (!stonesToFlip) return;
+      
+      setIsFlipping(true);
+
+      // Place the stone immediately on visualBoard
+      setVisualBoard(prevBoard => {
+        const newBoard = prevBoard.map(row => [...row]);
+        newBoard[r][c] = controller.gameState.currentPlayer;
+        return newBoard;
       });
-      setCurrentHistoryIndex(prevIndex => prevIndex + 1);
-      setVisualBoard(newState.board); // Sync visualBoard with actual game state after move
+
+      // Animate flipping
+      for (let i = 0; i < stonesToFlip.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          setFlippingCells(prev => [...prev, stonesToFlip[i]]);
+          await new Promise(resolve => setTimeout(resolve, 150));
+          
+          const [fr, fc] = stonesToFlip[i];
+          setVisualBoard(prevBoard => {
+            const newBoard = prevBoard.map(row => [...row]);
+            newBoard[fr][fc] = controller.gameState.currentPlayer;
+            return newBoard;
+          });
+          setFlippingCells(prev => prev.filter(cell => cell[0] !== fr || cell[1] !== fc));
+      }
+
+      // コントローラーを使用して移動を実行
+      controller.makeMove(r, c);
+      setVisualBoard(controller.gameState.board); // Sync visualBoard with actual game state after move
+      setIsFlipping(false);
     }
-    setIsFlipping(false);
   };
 
-  const getWinner = (): Player | 'DRAW' | null => {
-    if (gameState.gameStatus !== 'GAME_OVER') return null;
-    if (gameState.scores.BLACK > gameState.scores.WHITE) return 'BLACK';
-    if (gameState.scores.WHITE > gameState.scores.BLACK) return 'WHITE';
-    return 'DRAW';
-  };
-
-  const winner = getWinner();
-  const isBlackWinning = gameState.scores.BLACK > gameState.scores.WHITE;
-  const isWhiteWinning = gameState.scores.WHITE > gameState.scores.BLACK;
+  const winner = controller.gameState.winner;
+  const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
+  const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
 
   const getHintButtonText = () => {
-    if (hintLevel === 'none') return 'ヒントなし';
-    if (hintLevel === 'placeable') return 'おけるばしょ';
+    if (controller.gameState.hintLevel === 'none') return 'ヒントなし';
+    if (controller.gameState.hintLevel === 'placeable') return 'おけるばしょ';
     return 'ぜんぶヒント';
   };
 
   const getHintButtonStyle = (): CSSProperties => {
     const baseStyle = styles.hintButton;
-    if (hintLevel === 'none') return { ...baseStyle, ...styles.hintButtonNone };
-    if (hintLevel === 'placeable') return { ...baseStyle, ...styles.hintButtonPlaceable };
+    if (controller.gameState.hintLevel === 'none') return { ...baseStyle, ...styles.hintButtonNone };
+    if (controller.gameState.hintLevel === 'placeable') return { ...baseStyle, ...styles.hintButtonPlaceable };
     return { ...baseStyle, ...styles.hintButtonFull };
   };
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cellContainer };
-    const cellContent = gameState.board[r][c];
-    const opponent = gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK';
+    const cellContent = controller.gameState.board[r][c];
+    const opponent = controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK';
 
     // Highlight placeable cells when hint is active
-    if (hintLevel !== 'none' && gameState.validMoves.has(`${r},${c}`)) {
+    if (controller.gameState.hintLevel !== 'none' && controller.gameState.validMoves.has(`${r},${c}`)) {
       style.backgroundColor = '#68d391'; // A slightly different green for placeable cells
     }
 
-    if (hintLevel === 'full' && selectedHintCell) {
-      const [selectedR, selectedC] = selectedHintCell;
+    if (controller.gameState.hintLevel === 'full' && controller.gameState.selectedHintCell) {
+      const [selectedR, selectedC] = controller.gameState.selectedHintCell;
       const moveKey = `${selectedR},${selectedC}`;
-      const stonesToFlip = gameState.validMoves.get(moveKey);
+      const stonesToFlip = controller.gameState.validMoves.get(moveKey);
 
       if (r === selectedR && c === selectedC) {
         style.border = styles.selectedHintPreviewCell.border;
       }
 
-      if (stonesToFlip?.some(([fr, fc]) => fr === r && fc === c)) {
+      if (stonesToFlip?.some(([fr, fc]: [number, number]) => fr === r && fc === c)) {
         style.backgroundColor = styles.highlightedCell.backgroundColor;
       } else if (cellContent === opponent) {
         style.backgroundColor = styles.dimmedCell.backgroundColor;
@@ -176,17 +194,17 @@ const Reversi: React.FC = () => {
         <div style={styles.score}>
           <DiscIcon player="BLACK" />
           <span data-testid="score-black" style={isBlackWinning ? styles.winningScore : {}}>
-            {gameState.scores.BLACK}
+            {controller.gameState.scores.BLACK}
           </span>
         </div>
         <div data-testid="turn-indicator" style={styles.turnIndicator}>
-          <DiscIcon player={gameState.currentPlayer} style={styles.turnIndicatorDisc} />
+          <DiscIcon player={controller.gameState.currentPlayer} style={styles.turnIndicatorDisc} />
           <span>のばん</span>
         </div>
         <div style={styles.score}>
           <DiscIcon player="WHITE" />
           <span data-testid="score-white" style={isWhiteWinning ? styles.winningScore : {}}>
-            {gameState.scores.WHITE}
+            {controller.gameState.scores.WHITE}
           </span>
         </div>
       </div>
@@ -195,7 +213,7 @@ const Reversi: React.FC = () => {
         {visualBoard.map((row, r) =>
           row.map((cell, c) => {
             const isFlipping = flippingCells.some(([fr, fc]) => fr === r && fc === c);
-            const moveInfo = gameState.validMoves.get(`${r},${c}`);
+            const moveInfo = controller.gameState.validMoves.get(`${r},${c}`);
             return (
               <div
                 key={`${r}-${c}`}
@@ -212,18 +230,18 @@ const Reversi: React.FC = () => {
                    }}
                  />
                 )}
-                {hintLevel !== 'none' && moveInfo && (
+                {controller.gameState.hintLevel !== 'none' && moveInfo && (
                   <>
-                    {hintLevel === 'placeable' && 
+                    {controller.gameState.hintLevel === 'placeable' && 
                       <div
                         data-testid={`placeable-hint-${r}-${c}`}
                         style={{
                           ...styles.placeableHint,
-                          backgroundColor: gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
+                          backgroundColor: controller.gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
                         }}
                       />
                     }
-                    {hintLevel === 'full' && 
+                    {controller.gameState.hintLevel === 'full' && 
                       <span className="moveHint" style={styles.moveHint}>
                         {moveInfo.length}
                       </span>
@@ -240,7 +258,7 @@ const Reversi: React.FC = () => {
         <button data-testid="reset-button" onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
           はじめから<br />やりなおす
         </button>
-        <button data-testid="hint-button" onClick={toggleHintLevel} style={getHintButtonStyle()}>
+        <button data-testid="hint-button" onClick={controller.toggleHintLevel} style={getHintButtonStyle()}>
           おしえて！<br /><span data-testid="hint-level-text">({getHintButtonText()})</span>
         </button>
       </div>
@@ -248,44 +266,44 @@ const Reversi: React.FC = () => {
       <div style={styles.historyControls}>
         <button 
           data-testid="history-first-button"
-          onClick={() => setCurrentHistoryIndex(0)}
-          disabled={currentHistoryIndex === 0}
-          style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={() => controller.goToHistoryIndex(0)}
+          disabled={!controller.canUndo}
+          style={{ ...styles.historyButton, ...(!controller.canUndo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           はじめ
         </button>
         <button 
           data-testid="history-back-button"
-          onClick={() => setCurrentHistoryIndex(prev => Math.max(0, prev - 1))}
-          disabled={currentHistoryIndex === 0}
-          style={{ ...styles.historyButton, ...(currentHistoryIndex === 0 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={controller.undoMove}
+          disabled={!controller.canUndo}
+          style={{ ...styles.historyButton, ...(!controller.canUndo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           もどる
         </button>
         <span data-testid="history-counter" style={styles.historyText}>
-          {currentHistoryIndex + 1} / {gameStateHistory.length}
+          {controller.currentHistoryIndex + 1} / {controller.gameHistory.length}
         </span>
         <button 
           data-testid="history-forward-button"
-          onClick={() => setCurrentHistoryIndex(prev => Math.min(gameStateHistory.length - 1, prev + 1))}
-          disabled={currentHistoryIndex === gameStateHistory.length - 1}
-          style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={controller.redoMove}
+          disabled={!controller.canRedo}
+          style={{ ...styles.historyButton, ...(!controller.canRedo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           すすむ
         </button>
         <button 
           data-testid="history-last-button"
-          onClick={() => setCurrentHistoryIndex(gameStateHistory.length - 1)}
-          disabled={currentHistoryIndex === gameStateHistory.length - 1}
-          style={{ ...styles.historyButton, ...(currentHistoryIndex === gameStateHistory.length - 1 ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
+          onClick={() => controller.goToHistoryIndex(controller.gameHistory.length - 1)}
+          disabled={!controller.canRedo}
+          style={{ ...styles.historyButton, ...(!controller.canRedo ? { backgroundColor: '#a0aec0', cursor: 'not-allowed' } : {}) }}
         >
           さいご
         </button>
       </div>
 
-      {gameState.gameStatus === 'SKIPPED' && (
+      {controller.gameState.gameStatus === 'SKIPPED' && (
         <div style={styles.skippedMessage}>
-          <DiscIcon player={gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
+          <DiscIcon player={controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
           <span>はパスしました。</span>
         </div>
       )}
@@ -313,7 +331,7 @@ const Reversi: React.FC = () => {
             <div data-testid="winner-message" style={styles.winnerText}>
               {winner === 'DRAW' ? '引き分け' : (
                 <>
-                  <DiscIcon player={winner} />
+                  <DiscIcon player={winner as Player} />
                   <span>の勝ち!</span>
                 </>
               )}
@@ -327,5 +345,8 @@ const Reversi: React.FC = () => {
     </div>
   );
 };
+
+// GameControllerを外部に公開するためのラッパーコンポーネント
+export { useReversi };
 
 export default Reversi;

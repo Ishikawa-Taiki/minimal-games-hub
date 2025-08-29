@@ -76,8 +76,131 @@
 -   **`GameLayout.tsx`**: 全ゲーム共通のレイアウトを提供します。ゲームタイトル、ルール表示ボタン、ホームへのリンクを含むヘッダーと、ゲーム本体を描画するメイン領域で構成されます。
 -   **`MarkdownViewer.tsx`**: Markdown文字列をHTMLに変換して表示するコンポーネントです。
 
-## 4. 型定義
+### 3.1. 依存方向の原則
+
+`app/` ディレクトリ配下に配置される共通コンポーネント（例: `app/components/GameLayout.tsx`）は、`games/` ディレクトリ配下の個別のゲーム実装に直接依存してはなりません。
+
+これは、共通コンポーネントが特定のゲームのロジックや構造に縛られることなく、再利用性と保守性を高めるための重要な原則です。
+
+-   **許可される依存:**
+    -   `app/components/` -> `types/` (共通の型定義)
+    -   `app/components/` -> `app/styles/` (共通のスタイル定義)
+    -   `app/components/` -> `hooks/` (共通のカスタムフック)
+    -   `app/components/` -> `public/` (静的アセット)
+
+-   **禁止される依存:**
+    -   `app/components/` -> `games/` (個別のゲーム実装)
+
+共通コンポーネントがゲーム固有の情報を必要とする場合は、プロパティ（props）として受け取るか、GameControllerアーキテクチャを通じて抽象化されたインターフェースを利用してください。
+
+**重要**: 共通コンポーネントの詳細な使用方法、実装パターン、トラブルシューティングについては、**必ず** `docs/rules/technical-guide-common-components.md` を参照してください。特に新しいゲームを実装する際や既存ゲームを修正する際は、このガイドに従って適切な共通コンポーネントを使用することが必須です.
+
+## 4. GameControllerアーキテクチャ（2025年8月更新）
+
+### 4.1. 概要
+
+レスポンシブデザイン対応に伴い、統一されたGameControllerアーキテクチャを導入しました。すべてのゲームは、共通のインターフェースに準拠したカスタムフックを実装する必要があります。
+
+### 4.2. 基本インターフェース
+
+#### BaseGameController
+すべてのゲームコントローラーが実装すべき基本インターフェース：
+
+```typescript
+export interface BaseGameController<TState extends BaseGameState, TAction> {
+  gameState: TState;
+  dispatch: React.Dispatch<TAction>;
+  resetGame: () => void;
+  getDisplayStatus: () => string;
+  getScoreInfo?: () => ScoreInfo | null; // ポリモーフィック設計
+}
+```
+
+#### 拡張インターフェース
+ゲームの機能に応じて以下のインターフェースを組み合わせて使用：
+
+- **HintableGameController**: ヒント機能を持つゲーム
+- **HistoryGameController**: 履歴機能（undo/redo）を持つゲーム
+
+### 4.3. ポリモーフィック設計
+
+#### ScoreInfo型による統一表示
+各ゲームが独自のスコア/統計情報を提供するための標準化された型：
+
+```typescript
+export interface ScoreInfo {
+  title: string;
+  items: Array<{
+    label: string;
+    value: string | number;
+  }>;
+}
+```
+
+#### 実装例
+```typescript
+// はさみ将棋の場合
+getScoreInfo: () => ({
+  title: '捕獲数',
+  items: [
+    { label: '「歩」', value: gameState.capturedPieces.PLAYER2 },
+    { label: '「と」', value: gameState.capturedPieces.PLAYER1 }
+  ]
+})
+
+// アニマルチェスの場合
+getScoreInfo: () => ({
+  title: '捕獲駒数',
+  items: [
+    { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
+    { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }
+  ]
+})
+```
+
+### 4.4. GameLayoutとの連携
+
+GameLayoutコンポーネントは、ポリモーフィック設計により各ゲームのスコア情報を自動的に表示します：
+
+```typescript
+// GameLayout内での自動表示
+const renderScoreInfo = () => {
+  if ('getScoreInfo' in gameController && typeof gameController.getScoreInfo === 'function') {
+    const scoreInfo = gameController.getScoreInfo();
+    if (scoreInfo) {
+      return (
+        <div style={gameLayoutStyles.scoreInfo}>
+          <h4>{scoreInfo.title}</h4>
+          <div>
+            {scoreInfo.items.map((item, index) => (
+              <span key={index}>{item.label}: {item.value}</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+  }
+  return null;
+};
+```
+
+### 4.5. 新しいゲーム実装時の注意点
+
+1. **GameControllerフックの実装**: `useGameName`形式のカスタムフックを作成
+2. **インターフェース準拠**: 適切なGameControllerインターフェースを実装
+3. **getScoreInfo実装**: スコア表示が必要な場合は必ず実装
+4. **テスト実装**: @testing-library/reactによるフックテストを必須実装
+5. **GameLayoutの修正不要**: ポリモーフィック設計により自動対応
+
+### 4.6. 参考実装
+
+- **完全実装**: `games/hasami-shogi/useHasamiShogi.ts`
+- **完全実装**: `games/animal-chess/useAnimalChess.ts`
+- **基本実装**: `games/tictactoe/useTicTacToeController.ts`
+- **履歴機能付き**: `games/reversi/useReversi.ts`
+
+## 5. 型定義
 
 プロジェクト全体で利用する型定義は `types/` ディレクトリに配置します。
 
--   **`game.ts`**: `GameManifest` など、ゲームに関連する型を定義します。
+-   **`game.ts`**: `GameManifest`、GameControllerインターフェース、ScoreInfo型など、ゲームに関連する型を定義します。

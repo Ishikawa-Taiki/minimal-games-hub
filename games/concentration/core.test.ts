@@ -6,6 +6,7 @@ import {
   calculateHintedIndices,
   GameState,
   Card,
+  Rank,
 } from './core';
 
 describe('神経衰弱ゲームのコアロジック', () => {

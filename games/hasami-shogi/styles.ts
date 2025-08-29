@@ -14,14 +14,23 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: '1rem',
   },
-  winConditionSelector: {
+  controlPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
     marginBottom: '1.5rem',
     padding: '1rem',
     border: '1px solid #ccc',
     borderRadius: '8px',
     backgroundColor: '#f7fafc',
+    width: '100%',
+    maxWidth: '400px',
+    boxSizing: 'border-box',
   },
-  winConditionTitle: {
+  controlSection: {
+    // Sections within the control panel
+  },
+  controlTitle: {
     margin: '0 0 0.5rem 0',
     fontSize: '1.1rem',
     fontWeight: 'bold',
@@ -29,6 +38,12 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   radioGroup: {
     display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  radioGroupDesktop: {
+    display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'center',
     gap: '1rem',
   },
@@ -43,9 +58,11 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
-    maxWidth: '400px',
-    marginBottom: '1rem',
     fontSize: '1.2rem',
+    padding: '0.5rem 0',
+    borderTop: '1px solid #e2e8f0',
+    borderBottom: '1px solid #e2e8f0',
+    marginTop: '0.5rem',
   },
   infoPanelItem: {
     width: '33%',
@@ -93,8 +110,19 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   buttonGroup: {
     display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    marginTop: '1.5rem',
+    width: '100%',
+    maxWidth: '300px',
+  },
+  buttonGroupDesktop: {
+    display: 'flex',
+    flexDirection: 'row',
     gap: '1rem',
     marginTop: '1.5rem',
+    width: 'auto',
+    maxWidth: 'none',
   },
   resetButton: {
     padding: '0.75rem 1.5rem',
@@ -104,6 +132,18 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
+    flex: 1,
+    minWidth: '120px',
+  },
+  resetButtonDesktop: {
+    padding: '0.75rem 1.5rem',
+    fontSize: '1.1rem',
+    backgroundColor: '#8b4513',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    flex: 'none',
   },
   gameOverOverlay: {
     position: 'fixed',

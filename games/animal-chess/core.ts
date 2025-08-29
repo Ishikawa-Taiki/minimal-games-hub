@@ -201,16 +201,13 @@ function checkWinner(board: Board, mover: Player): 'playing' | 'sente_win' | 'go
 }
 
 export function movePiece(state: GameState, from: { row: number, col: number }, to: { row: number, col: number }): GameState {
-    console.log('movePiece called', { from, to });
     const pieceToMove = state.board[from.row][from.col];
     if (!pieceToMove || pieceToMove.owner !== state.currentPlayer) {
-        console.log('movePiece: invalid piece or owner');
         return state;
     }
 
     const isValidMove = getValidMoves(state, from.row, from.col).some(m => m.row === to.row && m.col === to.col);
     if (!isValidMove) {
-        console.log('movePiece: invalid move');
         return state;
     }
 
@@ -238,7 +235,6 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
 
     const newStatus = checkWinner(newBoard, state.currentPlayer);
 
-    console.log('movePiece: success', { newBoard, newCapturedPieces, newStatus });
     return {
         ...state,
         board: newBoard,
@@ -252,22 +248,18 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
 
 
 export function dropPiece(state: GameState, player: Player, pieceType: PieceType, to: { row: number, col: number }): GameState {
-    console.log('dropPiece called', { player, pieceType, to });
     if (state.board[to.row][to.col] !== null) {
-        console.log('dropPiece: target cell not empty');
         return state;
     }
 
     const captureIndex = state.capturedPieces[player].indexOf(pieceType);
     if (captureIndex === -1) {
-        console.log('dropPiece: piece not found in captured pieces');
         return state;
     }
 
     // A chick cannot be dropped in the final rank.
     const finalRank = player === SENTE ? 0 : BOARD_ROWS - 1;
     if (pieceType === CHICK && to.row === finalRank) {
-        console.log('dropPiece: chick cannot be dropped in final rank');
         return state;
     }
 
@@ -278,7 +270,6 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
     newCapturedPieces[player] = [...newCapturedPieces[player]];
     newCapturedPieces[player].splice(captureIndex, 1);
 
-    console.log('dropPiece: success', { newBoard, newCapturedPieces });
     return {
         ...state,
         board: newBoard,
@@ -297,9 +288,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
 // =============================================================================
 
 export function handleCellClick(state: GameState, row: number, col: number): GameState {
-    console.log('handleCellClick called', { row, col });
     if (state.status !== 'playing') {
-        console.log('handleCellClick: game not playing');
         return state;
     }
 
@@ -307,41 +296,33 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
 
     // 1. If a captured piece was selected, try to drop it
     if (selectedCaptureIndex !== null) {
-        console.log('handleCellClick: captured piece selected');
         const pieceType = state.capturedPieces[selectedCaptureIndex.player][selectedCaptureIndex.index];
         return dropPiece(state, currentPlayer, pieceType, { row, col });
     }
 
     // 2. If a board piece was selected, try to move it or change selection
     if (selectedCell) {
-        console.log('handleCellClick: board piece selected');
         // Deselect if clicking the same piece
         if (selectedCell.row === row && selectedCell.col === col) {
-            console.log('handleCellClick: deselecting same piece');
             return { ...state, selectedCell: null, selectedCaptureIndex: null };
         }
 
         const clickedPiece = state.board[row][col];
         // If clicking on another one of current player's pieces, change selection
         if (clickedPiece && clickedPiece.owner === currentPlayer) {
-            console.log('handleCellClick: changing selection');
             return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null };
         }
 
         // Try to move
-        console.log('handleCellClick: trying to move');
         return movePiece(state, selectedCell, { row, col });
     }
 
     // 3. If nothing is selected, try to select a piece on the board
-    console.log('handleCellClick: nothing selected, trying to select piece');
     const piece = state.board[row][col];
     if (piece && piece.owner === currentPlayer) {
-        console.log('handleCellClick: selecting piece');
         return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null };
     }
 
-    console.log('handleCellClick: clicked empty cell or opponent\'s piece with nothing selected');
     return state; // Clicked on empty cell or opponent's piece with nothing selected
 }
 

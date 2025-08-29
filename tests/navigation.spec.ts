@@ -1,7 +1,7 @@
-import { test, expect, describe, beforeEach } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test.describe('ホームページのナビゲーション', () => {
-  beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
 

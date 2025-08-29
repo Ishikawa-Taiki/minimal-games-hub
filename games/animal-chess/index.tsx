@@ -1,29 +1,21 @@
 "use client";
 
-import React, { useState, CSSProperties } from 'react';
+import React, { CSSProperties } from 'react';
 import {
-  BOARD_COLS,
   Piece,
   PieceType,
   GameState,
-  createInitialState,
-  handleCellClick as coreHandleCellClick,
-  handleCaptureClick as coreHandleCaptureClick,
   getValidMoves,
   getValidDrops,
   isSquareThreatened,
   MOVES,
   SENTE,
   GOTE,
-  LION,
-  GIRAFFE,
-  ELEPHANT,
-  CHICK,
-  ROOSTER,
-  dropPiece,
 } from './core';
 import Image from 'next/image';
 import { styles } from './styles';
+import { AnimalChessController, useAnimalChess } from './useAnimalChess';
+import GameLayout from '../../app/components/GameLayout';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -76,7 +68,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ pie
   );
 };
 
-const GameOverModal: React.FC<{ status: GameState['status']; onReset: () => void }> = ({ status, onReset }) => {
+const GameOverModal: React.FC<{ status: 'playing' | 'sente_win' | 'gote_win'; onReset: () => void }> = ({ status, onReset }) => {
   if (status === 'playing') return null;
 
   const winnerText = status === 'sente_win' ? 'プレイヤー1の勝ち！' : 'プレイヤー2の勝ち！';
@@ -94,93 +86,59 @@ const GameOverModal: React.FC<{ status: GameState['status']; onReset: () => void
   );
 };
 
-const AnimalChessPage = () => {
-  const [gameState, setGameState] = useState<GameState>(createInitialState());
-  const [showHints, setShowHints] = useState(false);
-  const [hintedMoves, setHintedMoves] = useState<{
-    valid: { row: number; col: number }[];
-    capturable: { row: number; col: number }[];
-    threatened: { row: number; col: number }[];
-  }>({ valid: [], capturable: [], threatened: [] });
+interface AnimalChessProps {
+  controller?: AnimalChessController;
+}
 
+const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
+  const internalController = useAnimalChess();
+  const gameController = externalController || internalController;
+  const { gameState, handleCellClick, handleCaptureClick, getHintLevel } = gameController;
+  
+  const showHints = getHintLevel() === 'on';
   const isGameInProgress = gameState.status === 'playing';
 
-  const clearHints = () => {
-    setHintedMoves({ valid: [], capturable: [], threatened: [] });
+  // GameControllerのgameStateをコアロジックのGameState型に変換
+  const coreGameState: GameState = {
+    board: gameState.board,
+    currentPlayer: gameState.currentPlayer,
+    capturedPieces: gameState.capturedPieces,
+    status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
+    selectedCell: gameState.selectedCell,
+    selectedCaptureIndex: gameState.selectedCaptureIndex
   };
 
-  const calculateAndSetHints = (state: GameState, from: { row: number; col: number }) => {
-    if (!showHints) return;
+  // ヒント計算のヘルパー関数
+  const calculateHints = (from: { row: number; col: number }) => {
+    if (!showHints) return { valid: [], capturable: [], threatened: [] };
 
-    const validMoves = getValidMoves(state, from.row, from.col);
+    const validMoves = getValidMoves(coreGameState, from.row, from.col);
 
     const capturableMoves = validMoves.filter(move => {
-      const destinationPiece = state.board[move.row][move.col];
-      return destinationPiece && destinationPiece.owner !== state.currentPlayer;
+      const destinationPiece = gameState.board[move.row][move.col];
+      return destinationPiece && destinationPiece.owner !== gameState.currentPlayer;
     });
 
     const threatenedMoves = validMoves.filter(move => {
-      const pieceToMove = state.board[from.row][from.col];
+      const pieceToMove = coreGameState.board[from.row][from.col];
       if (!pieceToMove) return false;
-      const tempBoard = state.board.map(r => [...r]);
+      const tempBoard = coreGameState.board.map(r => [...r]);
       tempBoard[move.row][move.col] = pieceToMove;
       tempBoard[from.row][from.col] = null;
-      return isSquareThreatened(tempBoard, move.row, move.col, state.currentPlayer);
+      return isSquareThreatened(tempBoard, move.row, move.col, coreGameState.currentPlayer);
     });
 
-    setHintedMoves({ valid: validMoves, capturable: capturableMoves, threatened: threatenedMoves });
+    return { valid: validMoves, capturable: capturableMoves, threatened: threatenedMoves };
   };
 
   const onCellClick = (row: number, col: number) => {
     if (!isGameInProgress) return;
-
-    const piece = gameState.board[row][col];
-    const isReselecting = gameState.selectedCell?.row === row && gameState.selectedCell?.col === col;
-
-    if (isReselecting || (gameState.selectedCell && (!piece || piece.owner !== gameState.currentPlayer))) {
-      clearHints();
-    }
-
-    if (gameState.selectedCaptureIndex !== null) {
-      const pieceType = gameState.capturedPieces[gameState.selectedCaptureIndex.player][gameState.selectedCaptureIndex.index];
-      const newState = dropPiece(gameState, gameState.selectedCaptureIndex.player, pieceType, { row, col });
-      setGameState(newState);
-      clearHints();
-      return;
-    }
-
-    const newState = coreHandleCellClick(gameState, row, col);
-    setGameState(newState);
-
-    if (newState.selectedCell && (newState.selectedCell.row !== gameState.selectedCell?.row || newState.selectedCell.col !== gameState.selectedCell?.col)) {
-      calculateAndSetHints(newState, newState.selectedCell);
-    } else if (!newState.selectedCell) {
-      clearHints();
-    }
+    handleCellClick(row, col);
   };
 
-  const handleCaptureClick = (player: typeof SENTE | typeof GOTE, index: number) => {
+  const onCaptureClick = (player: typeof SENTE | typeof GOTE, index: number) => {
     if (!isGameInProgress) return;
-    clearHints();
-    const newState = coreHandleCaptureClick(gameState, player, index);
-    setGameState(newState);
-  };
-
-  const handleReset = () => {
-    setGameState(createInitialState());
-    clearHints();
-  };
-
-  const toggleHints = () => {
-    const newShowHints = !showHints;
-    setShowHints(newShowHints);
-    if (!newShowHints) {
-      clearHints();
-    } else {
-      if (gameState.selectedCell) {
-        calculateAndSetHints(gameState, gameState.selectedCell);
-      }
-    }
+    handleCaptureClick(player, index);
   };
 
   const getCellStyle = (row: number, col: number): CSSProperties => {
@@ -190,6 +148,7 @@ const AnimalChessPage = () => {
     // Apply hints for valid moves, captures, and threats first
     if (showHints) {
       if (gameState.selectedCell) {
+        const hintedMoves = calculateHints(gameState.selectedCell);
         const isCapturable = hintedMoves.capturable.some(m => m.row === row && m.col === col);
         const isValid = hintedMoves.valid.some(m => m.row === row && m.col === col);
         if (isCapturable) {
@@ -204,7 +163,7 @@ const AnimalChessPage = () => {
         }
       }
       if (gameState.selectedCaptureIndex) {
-        const isDrop = getValidDrops(gameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
+        const isDrop = getValidDrops(coreGameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
         if (isDrop) {
           cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
         }
@@ -225,66 +184,17 @@ const AnimalChessPage = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>アニマルチェス</h1>
-      <GameOverModal status={gameState.status} onReset={handleReset} />
+    <>
+      <GameOverModal 
+        status={gameState.winner === SENTE ? 'sente_win' : 
+               gameState.winner === GOTE ? 'gote_win' : 'playing'} 
+        onReset={gameController.resetGame} 
+      />
 
-      <p style={styles.statusText} data-testid="current-player-text">
-        いまのばん: {gameState.currentPlayer === SENTE ? 'プレイヤー1' : 'プレイヤー2'}
-      </p>
-
-      <div style={styles.board} data-testid="animal-chess-board">
-        {gameState.board.map((row, rowIndex) => (
-          row.map((cell, colIndex) => (
-            <button
-              key={`${rowIndex}-${colIndex}`}
-              data-testid={`cell-${rowIndex}-${colIndex}`}
-              style={{
-                ...styles.cell,
-                ...getCellStyle(rowIndex, colIndex),
-                cursor: isGameInProgress ? 'pointer' : 'default',
-              }}
-              onClick={() => onCellClick(rowIndex, colIndex)}
-              disabled={!isGameInProgress}
-            >
-              {cell && <PieceDisplay piece={cell} showIndicators={true} />}
-            </button>
-          ))
-        ))}
-      </div>
-
-      <div style={styles.controls}>
-        <button style={styles.button} onClick={handleReset}>
-          リセット
-        </button>
-        <button style={styles.button} onClick={toggleHints}>
-          ヒント: {showHints ? 'ON' : 'OFF'}
-        </button>
-      </div>
-
-      <div style={styles.capturedPiecesContainer}>
+      <div style={styles.gameArea}>
+        {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー1のとったこま</h3>
-          <div style={styles.capturedPiecesList}>
-            {gameState.capturedPieces[SENTE].map((pieceType, index) => (
-              <button
-                key={`sente-${index}`}
-                style={{
-                  ...styles.capturedPiece,
-                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
-                  cursor: isGameInProgress ? 'pointer' : 'default',
-                }}
-                data-testid={`captured-piece-${SENTE}-${pieceType}`}
-                onClick={() => handleCaptureClick(SENTE, index)}
-                disabled={!isGameInProgress}
-              >
-                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー2の とったこま</h3>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー2</h3>
           <div style={styles.capturedPiecesList}>
             {gameState.capturedPieces[GOTE].map((pieceType, index) => (
               <button
@@ -295,7 +205,7 @@ const AnimalChessPage = () => {
                   cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
                 data-testid={`captured-piece-${GOTE}-${pieceType}`}
-                onClick={() => handleCaptureClick(GOTE, index)}
+                onClick={() => onCaptureClick(GOTE, index)}
                 disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: GOTE }} showIndicators={false} />
@@ -303,9 +213,53 @@ const AnimalChessPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Game Board */}
+        <div style={styles.board} data-testid="animal-chess-board">
+          {gameState.board.map((row, rowIndex) => (
+            row.map((cell, colIndex) => (
+              <button
+                key={`${rowIndex}-${colIndex}`}
+                data-testid={`cell-${rowIndex}-${colIndex}`}
+                style={{
+                  ...styles.cell,
+                  ...getCellStyle(rowIndex, colIndex),
+                  cursor: isGameInProgress ? 'pointer' : 'default',
+                }}
+                onClick={() => onCellClick(rowIndex, colIndex)}
+                disabled={!isGameInProgress}
+              >
+                {cell && <PieceDisplay piece={cell} showIndicators={true} />}
+              </button>
+            ))
+          ))}
+        </div>
+
+        {/* Player 1's captured pieces (bottom) */}
+        <div style={styles.capturedPiecesBox}>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー1</h3>
+          <div style={styles.capturedPiecesList}>
+            {gameState.capturedPieces[SENTE].map((pieceType, index) => (
+              <button
+                key={`sente-${index}`}
+                style={{
+                  ...styles.capturedPiece,
+                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                  cursor: isGameInProgress ? 'pointer' : 'default',
+                }}
+                data-testid={`captured-piece-${SENTE}-${pieceType}`}
+                onClick={() => onCaptureClick(SENTE, index)}
+                disabled={!isGameInProgress}
+              >
+                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
+export { useAnimalChess };
 export default AnimalChessPage;

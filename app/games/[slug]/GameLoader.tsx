@@ -7,15 +7,19 @@ interface GameLoaderProps {
   slug: string;
 }
 
+// 三目並べ用のラッパーコンポーネント（新しいGameLayoutに対応済み）
+const TicTacToeWithController = dynamic(() => import('../../../games/tictactoe/index'), { ssr: false });
+
+// レガシーゲームコンポーネント（まだ新しいGameLayoutに対応していない）
 const getGameComponent = (slug: string) => {
   if (slug === 'tictactoe') {
-    return dynamic(() => import('../../../games/tictactoe/index'), { ssr: false });
+    return TicTacToeWithController;
   }
   if (slug === 'animal-chess') {
     return dynamic(() => import('../../../games/animal-chess/index'), { ssr: false });
   }
   if (slug === 'reversi') {
-    return dynamic(() => import('../../../games/reversi/index'), { ssr: false });
+    return dynamic(() => import('../../../games/reversi'), { ssr: false });
   }
   if (slug === 'hasami-shogi') {
     return dynamic(() => import('../../../games/hasami-shogi/index'), { ssr: false });

@@ -2,16 +2,17 @@ import StyleSheet from '../../app/styles/StyleSheet';
 import { CSSProperties } from 'react';
 
 export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
-  container: {
+    gameContent: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
-    maxWidth: '900px',
+    height: '100%',
     margin: '0 auto',
-    padding: '10px',
+    padding: '0',
     boxSizing: 'border-box',
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: '100%',
   },
   difficultySelector: {
     marginBottom: '1.5rem',
@@ -19,7 +20,9 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '1px solid #ccc',
     borderRadius: '8px',
     backgroundColor: '#f7fafc',
-    width: '100%',
+    width: 'auto',
+    boxSizing: 'border-box',
+    flexShrink: 0,
   },
   difficultyTitle: {
     margin: '0 0 0.5rem 0',
@@ -73,11 +76,18 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  boardContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexGrow: 1,
+    width: '100%',
+    overflow: 'hidden',
+  },
   board: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(9, 1fr)',
     gap: '5px',
-    width: '100%',
+    // gridTemplateColumns and other properties will be set dynamically
   },
   card: {
     width: '100%',
@@ -115,10 +125,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   cardText: {
     fontWeight: 'bold',
-    fontSize: 'clamp(12px, 3vw, 24px)',
+    fontSize: 'clamp(0.5rem, 5vmin, 1.5rem)',
   },
   cardSuit: {
-    fontSize: 'clamp(14px, 4vw, 32px)',
+    fontSize: 'clamp(0.6rem, 6vmin, 2rem)',
   },
   resetButton: {
     padding: '10px 20px',

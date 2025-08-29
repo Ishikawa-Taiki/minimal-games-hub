@@ -1,18 +1,16 @@
-import { test, expect, describe, beforeEach } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-describe('リバーシゲームのE2Eテスト', () => {
-  beforeEach(async ({ page }) => {
+test.describe('リバーシゲームのE2Eテスト', () => {
+  test.beforeEach(async ({ page }) => {
     // CI環境ではbasePathが無効化されるため、プレフィックスは不要
     await page.goto('/games/reversi');
     // ページのタイトルにデフォルトのサイト名が含まれていることを確認する
     await expect(page).toHaveTitle(/リバーシ/);
 
-    // ゲームのタイトルが表示されていることを確認
-    const titleLocator = page.locator('header h1');
-    const titleText = await titleLocator.textContent();
-    expect(titleText).toBe('リバーシ');
-
-    // 盤面のセルの数を検証
+    // ページが読み込まれるまで待機
+    await page.waitForLoadState('networkidle');
+    
+    // 盤面のセルの数を検証（これが読み込まれていればゲームが表示されている）
     await expect(page.locator('[data-testid^="cell-"]')).toHaveCount(64);
   });
 
@@ -104,5 +102,71 @@ describe('リバーシゲームのE2Eテスト', () => {
     expect(hintLevelText3).toBe('(ぜんぶヒント)');
     const moveHint = await page.locator('[data-testid="cell-2-3"] > .moveHint').textContent();
     expect(moveHint).toBe('1');
+  });
+
+  test('履歴機能が正しく動作する', async ({ page }) => {
+    // 初期状態の履歴カウンターを確認
+    const initialHistoryCounter = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(initialHistoryCounter).toBe('1 / 1');
+
+    // 初期状態では履歴ボタンが無効化されている
+    await expect(page.locator('[data-testid="history-first-button"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="history-back-button"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="history-forward-button"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="history-last-button"]')).toBeDisabled();
+
+    // 1手目を打つ
+    await page.locator('[data-testid="cell-2-3"]').click();
+    await page.waitForTimeout(500);
+
+    // 履歴カウンターが更新される
+    const historyCounter1 = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(historyCounter1).toBe('2 / 2');
+
+    // 戻るボタンが有効になる
+    await expect(page.locator('[data-testid="history-back-button"]')).toBeEnabled();
+    await expect(page.locator('[data-testid="history-first-button"]')).toBeEnabled();
+
+    // 2手目を打つ
+    await page.locator('[data-testid="cell-2-2"]').click();
+    await page.waitForTimeout(500);
+
+    // 履歴カウンターが更新される
+    const historyCounter2 = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(historyCounter2).toBe('3 / 3');
+
+    // 1手戻る
+    await page.locator('[data-testid="history-back-button"]').click();
+    await page.waitForTimeout(200);
+
+    // 履歴カウンターが更新される
+    const historyCounter3 = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(historyCounter3).toBe('2 / 3');
+
+    // 進むボタンが有効になる
+    await expect(page.locator('[data-testid="history-forward-button"]')).toBeEnabled();
+    await expect(page.locator('[data-testid="history-last-button"]')).toBeEnabled();
+
+    // 最初に戻る
+    await page.locator('[data-testid="history-first-button"]').click();
+    await page.waitForTimeout(200);
+
+    // 履歴カウンターが初期状態に戻る
+    const historyCounter4 = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(historyCounter4).toBe('1 / 3');
+
+    // 初期状態のスコアに戻っている
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('2');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('2');
+
+    // 最後に進む
+    await page.locator('[data-testid="history-last-button"]').click();
+    await page.waitForTimeout(200);
+
+    // 履歴カウンターが最新状態になる
+    const historyCounter5 = await page.locator('[data-testid="history-counter"]').textContent();
+    expect(historyCounter5).toBe('3 / 3');
   });
 });

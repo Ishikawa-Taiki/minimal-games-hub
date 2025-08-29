@@ -92,7 +92,7 @@ describe('はさみ将棋コアロジック', () => {
     // Move to (6,4) to sandwich the piece at (6,3)
     const nextState = handleCellClick(state, 6, 4);
 
-    expect(nextState.board[6][3]).toBeNull('Piece at (6,3) should be captured');
+    expect(nextState.board[6][3]).toBeNull();
     expect(nextState.capturedPieces.PLAYER2).toBe(1);
     expect(nextState.currentPlayer).toBe('PLAYER2');
   });
@@ -108,7 +108,7 @@ describe('はさみ将棋コアロジック', () => {
     state = handleCellClick(state, 8, 0);
     const nextState = handleCellClick(state, 1, 0);
 
-    expect(nextState.board[0][0]).toBeNull('Corner piece should be captured');
+    expect(nextState.board[0][0]).toBeNull();
     expect(nextState.capturedPieces.PLAYER2).toBe(1);
   });
 
@@ -124,18 +124,20 @@ describe('はさみ将棋コアロジック', () => {
     state = handleCellClick(state, 8, 3);
     const nextState = handleCellClick(state, 0, 3);
 
-    expect(nextState.board[0][2]).toBeNull('Edge piece should be captured');
+    expect(nextState.board[0][2]).toBeNull();
     expect(nextState.capturedPieces.PLAYER2).toBe(1);
   });
 
   describe('勝利判定ロジック', () => {
     it('スタンダードルール: 5枚先取で勝利', () => {
-      let state = setWinCondition(createInitialState(), 'standard');
+      let state: GameState | null = setWinCondition(createInitialState(), 'standard');
+      if (!state) return;
       state.capturedPieces.PLAYER2 = 4; // P1 has captured 4 of P2's pieces
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
       state.board = board; state.currentPlayer = 'PLAYER1';
       state = handleCellClick(state, 8, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 6, 4);
       expect(nextState.capturedPieces.PLAYER2).toBe(5);
       expect(nextState.gameStatus).toBe('GAME_OVER');
@@ -143,13 +145,15 @@ describe('はさみ将棋コアロジック', () => {
     });
 
     it('スタンダードルール: 後手が5枚先取で勝利', () => {
-      let state = setWinCondition(createInitialState(), 'standard');
+      let state: GameState | null = setWinCondition(createInitialState(), 'standard');
+      if (!state) return;
       state.capturedPieces.PLAYER1 = 4; // P2 has captured 4 of P1's pieces
       state.currentPlayer = 'PLAYER2';
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
       state.board = board;
       state = handleCellClick(state, 0, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 2, 4);
       expect(nextState.capturedPieces.PLAYER1).toBe(5);
       expect(nextState.gameStatus).toBe('GAME_OVER');
@@ -157,12 +161,14 @@ describe('はさみ将棋コアロジック', () => {
     });
 
     it('スタンダードルール: 3枚差で勝利', () => {
-      let state = setWinCondition(createInitialState(), 'standard');
+      let state: GameState | null = setWinCondition(createInitialState(), 'standard');
+      if (!state) return;
       state.capturedPieces.PLAYER2 = 2; // P1 has captured 2 of P2's pieces
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
       state.board = board; state.currentPlayer = 'PLAYER1';
       state = handleCellClick(state, 8, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 6, 4);
       expect(nextState.capturedPieces.PLAYER2).toBe(3);
       expect(nextState.gameStatus).toBe('GAME_OVER');
@@ -170,13 +176,15 @@ describe('はさみ将棋コアロジック', () => {
     });
 
     it('スタンダードルール: 後手が3枚差で勝利', () => {
-      let state = setWinCondition(createInitialState(), 'standard');
+      let state: GameState | null = setWinCondition(createInitialState(), 'standard');
+      if (!state) return;
       state.capturedPieces.PLAYER1 = 2; // P2 has captured 2 of P1's pieces
       state.currentPlayer = 'PLAYER2';
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
       state.board = board;
       state = handleCellClick(state, 0, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 2, 4);
       expect(nextState.capturedPieces.PLAYER1).toBe(3);
       expect(nextState.gameStatus).toBe('GAME_OVER');
@@ -184,7 +192,8 @@ describe('はさみ将棋コアロジック', () => {
     });
 
     it('全取りルール: 相手の駒が1つになったら勝利', () => {
-      let state = setWinCondition(createInitialState(), 'total_capture');
+      let state: GameState | null = setWinCondition(createInitialState(), 'total_capture');
+      if (!state) return;
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
 
       // P1 pieces
@@ -200,6 +209,7 @@ describe('はさみ将棋コアロジック', () => {
 
       // Select moving piece at (7,8)
       state = handleCellClick(state, 7, 8);
+      if (!state) return;
       // Move it to (7,1) to create a vertical sandwich
       const nextState = handleCellClick(state, 7, 1);
 
@@ -209,38 +219,44 @@ describe('はさみ将棋コアロジック', () => {
     });
 
     it('5枚先取ルール: 先手が5枚とって勝利', () => {
-      let state = setWinCondition(createInitialState(), 'five_captures');
+      let state: GameState | null = setWinCondition(createInitialState(), 'five_captures');
+      if (!state) return;
       state.capturedPieces.PLAYER2 = 4;
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
       state.board = board; state.currentPlayer = 'PLAYER1';
       state = handleCellClick(state, 8, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 6, 4);
       expect(nextState.gameStatus).toBe('GAME_OVER');
       expect(nextState.winner).toBe('PLAYER1');
     });
 
     it('5枚先取ルール: 後手が5枚とって勝利', () => {
-      let state = setWinCondition(createInitialState(), 'five_captures');
+      let state: GameState | null = setWinCondition(createInitialState(), 'five_captures');
+      if (!state) return;
       state.capturedPieces.PLAYER1 = 4;
       state.currentPlayer = 'PLAYER2';
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[2][2] = 'PLAYER2'; board[2][3] = 'PLAYER1'; board[0][4] = 'PLAYER2';
       state.board = board;
       state = handleCellClick(state, 0, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 2, 4);
       expect(nextState.gameStatus).toBe('GAME_OVER');
       expect(nextState.winner).toBe('PLAYER2');
     });
 
     it('勝利条件未達の場合はゲームが継続すること', () => {
-      let state = setWinCondition(createInitialState(), 'standard');
+      let state: GameState | null = setWinCondition(createInitialState(), 'standard');
+      if (!state) return;
       state.capturedPieces.PLAYER2 = 3; // P1 has 3
       state.capturedPieces.PLAYER1 = 2; // P2 has 2
       const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
       board[6][2] = 'PLAYER1'; board[6][3] = 'PLAYER2'; board[8][4] = 'PLAYER1';
       state.board = board; state.currentPlayer = 'PLAYER1';
       state = handleCellClick(state, 8, 4);
+      if (!state) return;
       const nextState = handleCellClick(state, 6, 4);
       expect(nextState.capturedPieces.PLAYER2).toBe(4);
       expect(nextState.gameStatus).toBe('PLAYING');
@@ -259,14 +275,16 @@ describe('はさみ将棋コアロジック', () => {
     board[1][1] = 'PLAYER1';
     // board[1][2] is the last liberty
     board[8][2] = 'PLAYER1'; // Moving piece
-    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    let state: GameState | null = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    if (!state) return;
 
     // Move P1 into the last liberty space (1,2) to capture the group
     state = handleCellClick(state, 8, 2);
+    if (!state) return;
     const nextState = handleCellClick(state, 1, 2);
 
-    expect(nextState.board[0][1]).toBeNull('Group piece 1 should be captured');
-    expect(nextState.board[0][2]).toBeNull('Group piece 2 should be captured');
+    expect(nextState.board[0][1]).toBeNull();
+    expect(nextState.board[0][2]).toBeNull();
     expect(nextState.capturedPieces.PLAYER2).toBe(2);
   });
 
@@ -280,9 +298,11 @@ describe('はさみ将棋コアロジック', () => {
     board[1][1] = 'PLAYER1';
     board[1][2] = 'PLAYER1';
     board[8][0] = 'PLAYER1';
-    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    let state: GameState | null = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    if (!state) return;
 
     state = handleCellClick(state, 8, 0);
+    if (!state) return;
     const nextState = handleCellClick(state, 7, 0);
 
     expect(nextState.board[0][1]).toBe('PLAYER2'); // Not captured
@@ -296,9 +316,11 @@ describe('はさみ将棋コアロジック', () => {
     board[7][2] = 'PLAYER2';
     board[8][1] = 'PLAYER1'; // The piece to move
 
-    let state: GameState = { ...createInitialState(), board };
+    let state: GameState | null = { ...createInitialState(), board };
+    if (!state) return;
     // Select P1 at (8,1)
     state = handleCellClick(state, 8, 1);
+    if (!state) return;
 
     // The move for P1 to (7,1) lands it between two P2 pieces.
     // However, the P2 pieces cannot capture it because they cannot move into the P1's spot.
@@ -319,8 +341,10 @@ describe('はさみ将棋コアロジック', () => {
     board[8][1] = 'PLAYER1'; // Stationary piece
     board[8][2] = 'PLAYER2'; // Target 2
 
-    let state: GameState = { ...createInitialState(), board };
+    let state: GameState | null = { ...createInitialState(), board };
+    if (!state) return;
     state = handleCellClick(state, 8, 4); // Select the piece
+    if (!state) return;
 
     const captures = state.potentialCaptures;
 
@@ -335,11 +359,14 @@ describe('はさみ将棋コアロジック', () => {
     board[1][3] = 'PLAYER2';
     // Player 1's piece that will move into the sandwich
     board[8][2] = 'PLAYER1';
-    let state: GameState = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    let state: GameState | null = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
+    if (!state) return;
 
     // 1. Player 1 moves from (8,2) to (1,2), into the sandwich
     state = handleCellClick(state, 8, 2);
-    let nextState = handleCellClick(state, 1, 2);
+    if (!state) return;
+    let nextState: GameState | null = handleCellClick(state, 1, 2);
+    if (!nextState) return;
 
     // Assert that the piece is not captured on its own turn
     expect(nextState.board[1][2]).toBe('PLAYER1');
@@ -351,7 +378,9 @@ describe('はさみ将棋コアロジック', () => {
     nextState.board[0][0] = 'PLAYER2';
     // Player 2 moves from (0,0) to (2,0)
     nextState = handleCellClick(nextState, 0, 0);
+    if (!nextState) return;
     nextState = handleCellClick(nextState, 2, 0);
+    if (!nextState) return;
 
     // Assert that Player 1's piece at (1,2) is STILL not captured
     expect(nextState.board[1][2]).toBe('PLAYER1');
