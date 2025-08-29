@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
@@ -22,6 +22,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   useEffect(() => {
     if (gameState?.winner) {
       setShowModal(true);
+    } else {
+      setShowModal(false);
     }
   }, [gameState?.winner]);
 
@@ -31,18 +33,18 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
   const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
     setIsDragging(true);
-    const stick = gameState?.rows[rowIndex].find(s => s.id === stickId);
+    const stick = gameState?.rows?.[rowIndex]?.find(s => s.id === stickId);
     if (!stick || stick.isTaken) return;
 
-    const isSelected = gameState?.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
+    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
     const currentDragAction = isSelected ? 'deselect' : 'select';
     setDragAction(currentDragAction);
     selectStick(rowIndex, stickId);
   };
 
   const handleStickInteractionMove = (rowIndex: number, stickId: number) => {
-    if (isDragging && gameState) {
-      const stick = gameState.rows[rowIndex].find(s => s.id === stickId);
+    if (isDragging && gameState?.rows) {
+      const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
       if (!stick || stick.isTaken) return;
 
       const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
@@ -61,8 +63,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   };
 
   const handlePlayAgain = () => {
-    controller.resetGame();
     setShowModal(false);
+    controller.resetGame();
   };
 
   const renderDifficultyScreen = () => (
@@ -78,7 +80,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   );
 
   const renderStick = (stick: Stick, rowIndex: number) => {
-    const isSelected = gameState?.selectedSticks.some(s => s.row === rowIndex && s.stickId === stick.id);
+    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stick.id);
     const stickStyle = {
       ...styles.stick,
       ...(stick.isTaken ? styles.takenStick : {}),
@@ -120,12 +122,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   };
 
   const renderGameScreen = () => {
-    if (!gameState) return null;
-
-    const turnIndicatorStyle = {
-      ...styles.turnIndicator,
-      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
-    };
+    if (!gameState || !gameState.rows) return null;
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
@@ -140,7 +137,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           <button
             style={styles.button}
             onClick={takeSticks}
-            disabled={gameState.selectedSticks.length === 0 || !!gameState.winner}
+            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
           >
             えらんだぼうをとる
           </button>
@@ -161,7 +158,11 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     );
   };
 
-  return difficulty ? renderGameScreen() : renderDifficultyScreen();
+  if (gameState.status === 'waiting') {
+    return renderDifficultyScreen();
+  }
+
+  return renderGameScreen();
 };
 
 export { useStickTaking };
