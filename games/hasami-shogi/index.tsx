@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, CSSProperties } from 'react';
+import React, { useCallback, CSSProperties } from 'react';
 import {
   Player,
   WinCondition,
-  Difficulty,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
 import GameLayout from '../../app/components/GameLayout';
@@ -47,14 +46,12 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     gameState,
     makeMove,
     setWinCondition,
-    setDifficulty,
     getHintLevel,
     getSelectedPiece,
     getValidMoves,
     getPotentialCaptures,
     toggleHints,
     resetGame,
-    getDifficulty,
     isGameStarted
   } = controller;
 
@@ -70,11 +67,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCondition = e.target.value as WinCondition;
     setWinCondition(newCondition);
-  };
-
-  const onDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDifficulty = e.target.value as Difficulty;
-    setDifficulty(newDifficulty);
   };
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
@@ -111,24 +103,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const gameContent = (
     <>
       <div style={styles.controlPanel} data-testid="h-shogi-control-panel">
-        <div style={styles.controlSection} data-testid="difficulty-selector">
-          <h2 style={styles.controlTitle}>なんいど</h2>
-          <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="easy" checked={getDifficulty() === 'easy'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              かんたん
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="normal" checked={getDifficulty() === 'normal'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              ふつう
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="hard" checked={getDifficulty() === 'hard'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              むずかしい
-            </label>
-          </div>
-        </div>
-
         <div style={styles.controlSection} data-testid="win-condition-selector">
           <h2 style={styles.controlTitle}>かちかたのルール</h2>
           <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>

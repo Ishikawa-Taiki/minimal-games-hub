@@ -3,8 +3,6 @@ import { test, expect } from '@playwright/test';
 test.describe('はさみ将棋ゲームのE2Eテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/games/hasami-shogi');
-    // すべてのテストは「むずかしい」設定（9枚）を前提とする
-    await page.locator('[data-testid="difficulty-selector"] >> text=むずかしい').click();
   });
 
   test.describe('初期表示', () => {

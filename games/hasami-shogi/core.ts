@@ -2,7 +2,6 @@ export type Player = 'PLAYER1' | 'PLAYER2';
 export type CellState = Player | null;
 export type Board = CellState[][];
 export type WinCondition = 'standard' | 'five_captures' | 'total_capture';
-export type Difficulty = 'easy' | 'normal' | 'hard';
 
 export interface Move {
   captures: [number, number][];
@@ -22,20 +21,14 @@ export interface GameState {
     PLAYER2: number;
   };
   winCondition: WinCondition;
-  difficulty: Difficulty;
 }
 
 const BOARD_SIZE = 9;
 
-export function createInitialState(difficulty: Difficulty = 'normal'): GameState {
+export function createInitialState(): GameState {
   const board: Board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
 
-  const piecesCount: { [key in Difficulty]: number } = {
-    easy: 5,
-    normal: 7,
-    hard: 9,
-  };
-  const numPieces = piecesCount[difficulty];
+  const numPieces = 9;
   const startCol = Math.floor((BOARD_SIZE - numPieces) / 2);
 
   for (let i = 0; i < numPieces; i++) {
@@ -54,12 +47,11 @@ export function createInitialState(difficulty: Difficulty = 'normal'): GameState
     potentialCaptures: [],
     capturedPieces: { PLAYER1: 0, PLAYER2: 0 },
     winCondition: 'standard',
-    difficulty,
   };
 }
 
 export function setWinCondition(currentState: GameState, winCondition: WinCondition): GameState {
-  const initialBoard = createInitialState(currentState.difficulty).board;
+  const initialBoard = createInitialState().board;
   const isBoardInitial = currentState.board.every((row, r) =>
     row.every((cell, c) => cell === initialBoard[r][c])
   );
