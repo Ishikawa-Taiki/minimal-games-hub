@@ -16,6 +16,7 @@ const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
   const [autoRefresh, setAutoRefresh] = useState(true);
   const logger = useGameLogger('GameStateDebugger');
   const [logs, setLogs] = useState(logger.getLogs());
+  const [copyButtonText, setCopyButtonText] = useState('コピー');
 
   useEffect(() => {
     if (autoRefresh) {
@@ -46,6 +47,17 @@ const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleCopy = () => {
+    const logsJson = logger.exportLogs();
+    navigator.clipboard.writeText(logsJson).then(() => {
+      setCopyButtonText('コピーしました!');
+      setTimeout(() => setCopyButtonText('コピー'), 2000);
+    }, () => {
+      setCopyButtonText('失敗');
+      setTimeout(() => setCopyButtonText('コピー'), 2000);
+    });
   };
 
   if (!isVisible) return null;
@@ -131,6 +143,9 @@ const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
             </button>
             <button style={buttonStyle} onClick={handleExport}>
               エクスポート
+            </button>
+            <button style={buttonStyle} onClick={handleCopy}>
+              {copyButtonText}
             </button>
             <label style={{ marginLeft: '10px', fontSize: '10px' }}>
               <input
