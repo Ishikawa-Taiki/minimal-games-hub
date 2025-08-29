@@ -179,11 +179,7 @@ const AnimalChessPage = () => {
   };
 
   return (
-    <GameLayout
-      gameName="アニマルチェス"
-      slug="animal-chess"
-      gameController={gameController}
-    >
+    <>
       <GameOverModal 
         status={gameState.winner === SENTE ? 'sente_win' : 
                gameState.winner === GOTE ? 'gote_win' : 'playing'} 
@@ -256,7 +252,7 @@ const AnimalChessPage = () => {
           </div>
         </div>
       </div>
-    </GameLayout>
+    </>
   );
 };
 
