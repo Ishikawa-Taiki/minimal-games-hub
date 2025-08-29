@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, CSSProperties } from 'react';
+import React, { useCallback, CSSProperties } from 'react';
 import {
   Player,
   WinCondition,
-  Difficulty,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
 import GameLayout from '../../app/components/GameLayout';
@@ -47,14 +46,12 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     gameState,
     makeMove,
     setWinCondition,
-    setDifficulty,
     getHintLevel,
     getSelectedPiece,
     getValidMoves,
     getPotentialCaptures,
     toggleHints,
     resetGame,
-    getDifficulty,
     isGameStarted
   } = controller;
 
@@ -70,11 +67,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newCondition = e.target.value as WinCondition;
     setWinCondition(newCondition);
-  };
-
-  const onDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDifficulty = e.target.value as Difficulty;
-    setDifficulty(newDifficulty);
   };
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
@@ -111,24 +103,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const gameContent = (
     <>
       <div style={styles.controlPanel} data-testid="h-shogi-control-panel">
-        <div style={styles.controlSection} data-testid="difficulty-selector">
-          <h2 style={styles.controlTitle}>なんいど</h2>
-          <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="easy" checked={getDifficulty() === 'easy'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              かんたん
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="normal" checked={getDifficulty() === 'normal'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              ふつう
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="hard" checked={getDifficulty() === 'hard'} onChange={onDifficultyChange} disabled={isGameStarted()} />
-              むずかしい
-            </label>
-          </div>
-        </div>
-
         <div style={styles.controlSection} data-testid="win-condition-selector">
           <h2 style={styles.controlTitle}>かちかたのルール</h2>
           <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>
@@ -147,32 +121,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
           </div>
         </div>
 
-        <div style={styles.infoPanel}>
-          <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-start'}}>
-            <IndicatorPiece player="PLAYER2" />
-            <span data-testid="opponent-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER1}</span>
-          </div>
-          <div data-testid="turn-indicator" style={{...styles.turnIndicator, ...styles.infoPanelItem}}>
-            {winner ? 'おしまい' : (gameState.currentPlayer === 'PLAYER1' ? '「歩」のばん' : '「と」のばん')}
-          </div>
-          <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-end'}}>
-            <IndicatorPiece player="PLAYER1" />
-            <span data-testid="player-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER2}</span>
-          </div>
-        </div>
-
-        <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
-          <button
-            data-testid="hint-button"
-            onClick={toggleHints}
-            style={{
-              ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop),
-              backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
-            }}
-          >
-            ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
-          </button>
-        </div>
       </div>
 
       <div style={styles.board}>
@@ -193,6 +141,19 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
             );
           })
         )}
+      </div>
+
+      <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
+        <button
+          data-testid="hint-button"
+          onClick={toggleHints}
+          style={{
+            ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop),
+            backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
+          }}
+        >
+          ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
+        </button>
       </div>
 
       {winner && (

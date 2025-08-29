@@ -1,6 +1,6 @@
-import { useReducer, useState, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo } from 'react';
 import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '../../types/game';
-import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Difficulty } from './core';
+import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition } from './core';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 
 // はさみ将棋固有の状態をBaseGameStateに適合させる
@@ -14,7 +14,6 @@ interface HasamiShogiGameState extends BaseGameState {
   potentialCaptures: GameState['potentialCaptures'];
   capturedPieces: GameState['capturedPieces'];
   winCondition: GameState['winCondition'];
-  difficulty: Difficulty;
   // ヒント関連
   hintLevel: 'off' | 'on';
 }
@@ -23,11 +22,10 @@ type HasamiShogiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
   | { type: 'TOGGLE_HINT' }
-  | { type: 'SET_WIN_CONDITION'; winCondition: WinCondition }
-  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty };
+  | { type: 'SET_WIN_CONDITION'; winCondition: WinCondition };
 
-function createInitialHasamiShogiState(difficulty: Difficulty = 'normal'): HasamiShogiGameState {
-  const coreState = createInitialState(difficulty);
+function createInitialHasamiShogiState(): HasamiShogiGameState {
+  const coreState = createInitialState();
   return {
     ...coreState,
     // BaseGameState required fields
@@ -51,7 +49,6 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
         potentialCaptures: state.potentialCaptures,
         capturedPieces: state.capturedPieces,
         winCondition: state.winCondition,
-        difficulty: state.difficulty,
       };
       
       const newCoreState = handleCellClickCore(coreState, action.row, action.col);
@@ -67,7 +64,7 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
     }
     
     case 'RESET_GAME':
-      return createInitialHasamiShogiState(state.difficulty);
+      return createInitialHasamiShogiState();
     
     case 'TOGGLE_HINT':
       return {
@@ -86,7 +83,6 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
         potentialCaptures: state.potentialCaptures,
         capturedPieces: state.capturedPieces,
         winCondition: state.winCondition,
-        difficulty: state.difficulty,
       };
       
       const newCoreState = setWinCondition(coreState, action.winCondition);
@@ -99,9 +95,6 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
         winner: newCoreState.winner,
       };
     }
-
-    case 'SET_DIFFICULTY':
-      return createInitialHasamiShogiState(action.difficulty);
     
     default:
       return state;
@@ -113,7 +106,6 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     // はさみ将棋固有のメソッド
     makeMove: (row: number, col: number) => void;
     setWinCondition: (winCondition: WinCondition) => void;
-    setDifficulty: (difficulty: Difficulty) => void;
     // 状態アクセサー
     getValidMoves: () => Map<string, any>;
     getCurrentPlayer: () => Player;
@@ -121,7 +113,6 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getWinCondition: () => WinCondition;
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
-    getDifficulty: () => Difficulty;
     isGameStarted: () => boolean;
     // ヒント関連
     getHintLevel: () => 'off' | 'on';
@@ -131,8 +122,8 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getScoreInfo: () => ScoreInfo | null;
   };
 
-export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): HasamiShogiController {
-  const [gameState, dispatch] = useReducer(hasamiShogiReducer, createInitialHasamiShogiState(initialDifficulty));
+export function useHasamiShogi(): HasamiShogiController {
+  const [gameState, dispatch] = useReducer(hasamiShogiReducer, createInitialHasamiShogiState());
   
   // ログ機能
   const logger = useGameStateLogger('useHasamiShogi', gameState, {
@@ -140,7 +131,6 @@ export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): Hasami
     validMovesCount: gameState.validMoves.size,
     capturedPieces: gameState.capturedPieces,
     winCondition: gameState.winCondition,
-    difficulty: gameState.difficulty,
   });
 
   const resetGame = useCallback(() => {
@@ -162,11 +152,6 @@ export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): Hasami
   const setWinCondition = useCallback((winCondition: WinCondition) => {
     logger.log('SET_WIN_CONDITION_CALLED', { winCondition });
     dispatch({ type: 'SET_WIN_CONDITION', winCondition });
-  }, [logger]);
-
-  const setDifficulty = useCallback((difficulty: Difficulty) => {
-    logger.log('SET_DIFFICULTY_CALLED', { difficulty });
-    dispatch({ type: 'SET_DIFFICULTY', difficulty });
   }, [logger]);
 
   // ヒント関連
@@ -193,14 +178,13 @@ export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): Hasami
   const getSelectedPiece = useCallback(() => gameState.selectedPiece, [gameState.selectedPiece]);
   const getPotentialCaptures = useCallback(() => gameState.potentialCaptures, [gameState.potentialCaptures]);
   const getHintLevel = useCallback(() => gameState.hintLevel, [gameState.hintLevel]);
-  const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
 
   const isGameStarted = useCallback(() => {
-    const initialState = createInitialState(gameState.difficulty);
+    const initialState = createInitialState();
     return JSON.stringify(initialState.board) !== JSON.stringify(gameState.board) ||
            gameState.capturedPieces.PLAYER1 > 0 ||
            gameState.capturedPieces.PLAYER2 > 0;
-  }, [gameState.board, gameState.capturedPieces, gameState.difficulty]);
+  }, [gameState.board, gameState.capturedPieces]);
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
@@ -239,7 +223,6 @@ export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): Hasami
     resetGame,
     makeMove,
     setWinCondition,
-    setDifficulty,
     getValidMoves,
     getCurrentPlayer,
     getCapturedPieces,
@@ -247,7 +230,6 @@ export function useHasamiShogi(initialDifficulty: Difficulty = 'normal'): Hasami
     getSelectedPiece,
     getPotentialCaptures,
     getHintLevel,
-    getDifficulty,
     isGameStarted,
     getDisplayStatus,
     getScoreInfo,

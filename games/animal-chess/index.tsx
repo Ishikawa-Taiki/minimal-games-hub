@@ -14,7 +14,7 @@ import {
 } from './core';
 import Image from 'next/image';
 import { styles } from './styles';
-import { useAnimalChess } from './useAnimalChess';
+import { AnimalChessController, useAnimalChess } from './useAnimalChess';
 import GameLayout from '../../app/components/GameLayout';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -86,8 +86,13 @@ const GameOverModal: React.FC<{ status: 'playing' | 'sente_win' | 'gote_win'; on
   );
 };
 
-const AnimalChessPage = () => {
-  const gameController = useAnimalChess();
+interface AnimalChessProps {
+  controller?: AnimalChessController;
+}
+
+const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
+  const internalController = useAnimalChess();
+  const gameController = externalController || internalController;
   const { gameState, handleCellClick, handleCaptureClick, getHintLevel } = gameController;
   
   const showHints = getHintLevel() === 'on';
