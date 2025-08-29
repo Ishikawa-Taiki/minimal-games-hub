@@ -9,6 +9,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    height: '100%',
   },
   board: {
     display: 'grid',
@@ -17,11 +18,15 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     backgroundColor: '#4b5563',
     padding: '5px',
     borderRadius: '0.5rem',
-    margin: '1rem 0',
+    width: '100%',
+    maxWidth: 'min(80vh, 90vw)', // Allow board to shrink
+    flexGrow: 1,
+    minHeight: 0, // Allow board to shrink
+    aspectRatio: '3 / 4',
   },
   cell: {
-    width: 'clamp(80px, 20vw, 140px)',
-    height: 'clamp(80px, 20vw, 140px)',
+    width: '100%',
+    height: '100%',
     backgroundColor: '#e5e7eb',
     display: 'flex',
     alignItems: 'center',
@@ -30,7 +35,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
     borderRadius: '0.375rem',
     border: '1px solid #9ca3af',
-    position: 'relative', // For move indicators
+    position: 'relative',
   },
   selectedCell: {
     backgroundColor: '#bfdbfe',
@@ -52,10 +57,13 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   capturedPiecesBox: {
     width: '100%',
+    maxWidth: 'min(80vh, 90vw)',
     padding: '0.5rem',
     borderRadius: '0.5rem',
     backgroundColor: '#ffffff',
     boxSizing: 'border-box',
+    flexShrink: 0,
+    margin: '0.5rem 0',
   },
   capturedPiecesTitle: {
     fontSize: '1rem',
@@ -71,11 +79,11 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     gap: '0.5rem',
     flexWrap: 'nowrap',
     overflowX: 'auto',
-    minHeight: 'clamp(40px, 10vw, 70px)',
+    minHeight: '45px',
   },
   capturedPiece: {
-    width: 'clamp(40px, 10vw, 70px)',
-    height: 'clamp(40px, 10vw, 70px)',
+    width: '40px',
+    height: '40px',
     padding: 0,
     backgroundColor: 'transparent',
     border: 'none',

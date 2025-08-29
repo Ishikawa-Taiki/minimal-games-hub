@@ -72,8 +72,8 @@ export const gameLayoutStyles = StyleSheet.create({
   desktopMain: {
     flex: 1,
     padding: '2rem',
-    overflowY: 'auto',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -109,10 +109,11 @@ export const gameLayoutStyles = StyleSheet.create({
   mobileMain: {
     flex: 1,
     padding: '1rem',
-    overflowY: 'auto',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 0, // flexboxの伸長に関する問題を解決
   },
 
   // コントロールパネル
