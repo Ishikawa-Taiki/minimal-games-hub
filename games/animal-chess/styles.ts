@@ -73,7 +73,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontSize: '1rem',
     fontWeight: 'bold',
     writingMode: 'vertical-rl',
-    textOrientation: 'mixed',
+    textOrientation: 'upright',
     paddingRight: '0.5rem',
     margin: 0,
     color: '#4b5563',
