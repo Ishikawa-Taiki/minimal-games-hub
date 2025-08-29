@@ -193,7 +193,7 @@ const AnimalChessPage = () => {
       <div style={styles.gameArea}>
         {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー2の とったこま</h3>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー2</h3>
           <div style={styles.capturedPiecesList}>
             {gameState.capturedPieces[GOTE].map((pieceType, index) => (
               <button
@@ -236,7 +236,7 @@ const AnimalChessPage = () => {
 
         {/* Player 1's captured pieces (bottom) */}
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー1のとったこま</h3>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー1</h3>
           <div style={styles.capturedPiecesList}>
             {gameState.capturedPieces[SENTE].map((pieceType, index) => (
               <button
