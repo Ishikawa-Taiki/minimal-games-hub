@@ -115,7 +115,7 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     const boardAspectRatio = (numCols * cardAspectRatio) / numRows;
 
     // Calculate container dimensions (maintaining aspect ratio)
-    const containerWidth = screenWidth - 40; // padding
+    const containerWidth = screenWidth - 20; // padding
     const containerHeight = windowHeight - 250; // Approximate height of other UI elements
 
     let boardWidth, boardHeight;
