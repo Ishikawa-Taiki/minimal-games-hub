@@ -8,6 +8,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     width: '100%',
     height: '100%',
     margin: '0 auto',
+    padding: '0',
+    boxSizing: 'border-box',
     overflowY: 'auto',
     flex: 1,
     minHeight: '100%',
@@ -81,8 +83,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     flexGrow: 1,
     width: '100%',
     overflow: 'hidden',
-    padding: '0 10px',
-    boxSizing: 'border-box',
   },
   board: {
     display: 'grid',
