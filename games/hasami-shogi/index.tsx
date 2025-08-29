@@ -121,32 +121,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
           </div>
         </div>
 
-        <div style={styles.infoPanel}>
-          <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-start'}}>
-            <IndicatorPiece player="PLAYER2" />
-            <span data-testid="opponent-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER1}</span>
-          </div>
-          <div data-testid="turn-indicator" style={{...styles.turnIndicator, ...styles.infoPanelItem}}>
-            {winner ? 'おしまい' : (gameState.currentPlayer === 'PLAYER1' ? '「歩」のばん' : '「と」のばん')}
-          </div>
-          <div style={{...styles.score, ...styles.infoPanelItem, justifyContent: 'flex-end'}}>
-            <IndicatorPiece player="PLAYER1" />
-            <span data-testid="player-score" style={{marginLeft: '0.5rem'}}>x {gameState.capturedPieces.PLAYER2}</span>
-          </div>
-        </div>
-
-        <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
-          <button
-            data-testid="hint-button"
-            onClick={toggleHints}
-            style={{
-              ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop),
-              backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
-            }}
-          >
-            ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
-          </button>
-        </div>
       </div>
 
       <div style={styles.board}>
@@ -167,6 +141,19 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
             );
           })
         )}
+      </div>
+
+      <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
+        <button
+          data-testid="hint-button"
+          onClick={toggleHints}
+          style={{
+            ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop),
+            backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
+          }}
+        >
+          ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
+        </button>
       </div>
 
       {winner && (
