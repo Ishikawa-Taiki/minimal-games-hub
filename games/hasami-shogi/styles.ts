@@ -14,7 +14,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: '1rem',
   },
-  winConditionSelector: {
+  controlPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
     marginBottom: '1.5rem',
     padding: '1rem',
     border: '1px solid #ccc',
@@ -24,7 +27,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     maxWidth: '400px',
     boxSizing: 'border-box',
   },
-  winConditionTitle: {
+  controlSection: {
+    // Sections within the control panel
+  },
+  controlTitle: {
     margin: '0 0 0.5rem 0',
     fontSize: '1.1rem',
     fontWeight: 'bold',
@@ -52,9 +58,11 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
-    maxWidth: '400px',
-    marginBottom: '1rem',
     fontSize: '1.2rem',
+    padding: '0.5rem 0',
+    borderTop: '1px solid #e2e8f0',
+    borderBottom: '1px solid #e2e8f0',
+    marginTop: '0.5rem',
   },
   infoPanelItem: {
     width: '33%',
