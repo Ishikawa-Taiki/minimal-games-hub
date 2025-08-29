@@ -231,7 +231,7 @@ export function useAnimalChess(): AnimalChessController {
     } else {
       return 'ゲーム開始';
     }
-  }, [gameState]);
+  }, [gameState.winner, gameState.status, gameState.currentPlayer]);
 
   const getScoreInfo = useCallback((): ScoreInfo | null => {
     return {
