@@ -190,47 +190,8 @@ const AnimalChessPage = () => {
         onReset={gameController.resetGame} 
       />
 
-      <div style={styles.board} data-testid="animal-chess-board">
-        {gameState.board.map((row, rowIndex) => (
-          row.map((cell, colIndex) => (
-            <button
-              key={`${rowIndex}-${colIndex}`}
-              data-testid={`cell-${rowIndex}-${colIndex}`}
-              style={{
-                ...styles.cell,
-                ...getCellStyle(rowIndex, colIndex),
-                cursor: isGameInProgress ? 'pointer' : 'default',
-              }}
-              onClick={() => onCellClick(rowIndex, colIndex)}
-              disabled={!isGameInProgress}
-            >
-              {cell && <PieceDisplay piece={cell} showIndicators={true} />}
-            </button>
-          ))
-        ))}
-      </div>
-
-      <div style={styles.capturedPiecesContainer}>
-        <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー1のとったこま</h3>
-          <div style={styles.capturedPiecesList}>
-            {gameState.capturedPieces[SENTE].map((pieceType, index) => (
-              <button
-                key={`sente-${index}`}
-                style={{
-                  ...styles.capturedPiece,
-                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
-                  cursor: isGameInProgress ? 'pointer' : 'default',
-                }}
-                data-testid={`captured-piece-${SENTE}-${pieceType}`}
-                onClick={() => onCaptureClick(SENTE, index)}
-                disabled={!isGameInProgress}
-              >
-                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
-              </button>
-            ))}
-          </div>
-        </div>
+      <div style={styles.gameArea}>
+        {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>
           <h3 style={styles.capturedPiecesTitle}>プレイヤー2の とったこま</h3>
           <div style={styles.capturedPiecesList}>
@@ -247,6 +208,49 @@ const AnimalChessPage = () => {
                 disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: GOTE }} showIndicators={false} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Game Board */}
+        <div style={styles.board} data-testid="animal-chess-board">
+          {gameState.board.map((row, rowIndex) => (
+            row.map((cell, colIndex) => (
+              <button
+                key={`${rowIndex}-${colIndex}`}
+                data-testid={`cell-${rowIndex}-${colIndex}`}
+                style={{
+                  ...styles.cell,
+                  ...getCellStyle(rowIndex, colIndex),
+                  cursor: isGameInProgress ? 'pointer' : 'default',
+                }}
+                onClick={() => onCellClick(rowIndex, colIndex)}
+                disabled={!isGameInProgress}
+              >
+                {cell && <PieceDisplay piece={cell} showIndicators={true} />}
+              </button>
+            ))
+          ))}
+        </div>
+
+        {/* Player 1's captured pieces (bottom) */}
+        <div style={styles.capturedPiecesBox}>
+          <h3 style={styles.capturedPiecesTitle}>プレイヤー1のとったこま</h3>
+          <div style={styles.capturedPiecesList}>
+            {gameState.capturedPieces[SENTE].map((pieceType, index) => (
+              <button
+                key={`sente-${index}`}
+                style={{
+                  ...styles.capturedPiece,
+                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                  cursor: isGameInProgress ? 'pointer' : 'default',
+                }}
+                data-testid={`captured-piece-${SENTE}-${pieceType}`}
+                onClick={() => onCaptureClick(SENTE, index)}
+                disabled={!isGameInProgress}
+              >
+                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
               </button>
             ))}
           </div>
