@@ -1,15 +1,10 @@
 "use client";
 
-import React, { CSSProperties } from 'react';
-import {
-  BoardCard,
-  Suit,
-  Player,
-  Difficulty,
-} from './core';
+import React, { CSSProperties, useState, useEffect } from 'react';
+import { BoardCard, Suit, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
-
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface ConcentrationProps {
   controller?: ReturnType<typeof useConcentration>;
@@ -27,9 +22,17 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     getHintedIndices,
     getShowHints,
     isGameStarted,
-    isEvaluating,
-    resetGame
+    resetGame,
   } = gameController;
+
+  const { screenWidth } = useResponsive();
+  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 0);
+
+  useEffect(() => {
+    const handleResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const onCardClick = (index: number) => {
     handleCardClick(index);
@@ -51,7 +54,7 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     if (suit === 'D') return '♦';
     if (suit === 'C') return '♣';
     return 'J';
-  }
+  };
 
   const CardComponent = ({ card, index }: { card: BoardCard; index: number }) => (
     <button
@@ -62,10 +65,10 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     >
       {card.isFlipped && (
         <div style={styles.cardContent}>
-           <span style={{...styles.cardText, ...styles.cardSuit, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
+          <span style={{ ...styles.cardSuit, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
             {getSuitSymbol(card.suit)}
           </span>
-          <span style={{...styles.cardText, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
+          <span style={{ ...styles.cardText, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
             {card.rank}
           </span>
         </div>
@@ -80,11 +83,9 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     if (card.isFlipped) {
       style.backgroundColor = styles.cardFace.backgroundColor;
 
-      // 1枚目選択時の強調表示
       if (gameState.flippedIndices.length === 1 && isFlippedInTurn) {
         Object.assign(style, styles.cardSelected);
       }
-
     } else if (showHints && hintedIndices.includes(index)) {
       style.backgroundColor = styles.cardHintStrong.backgroundColor;
     } else if (showHints && gameState.revealedIndices.includes(index)) {
@@ -101,16 +102,48 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     return style;
   };
 
-  const getBoardStyle = (): CSSProperties => {
-    const columns = {
-      easy: 5,
-      normal: 8,
-      hard: 9,
-    };
+  const getBoardDimensions = () => {
+    const columns = { easy: 5, normal: 8, hard: 9 };
+    const rows = { easy: 4, normal: 5, hard: 6 };
+    const numCols = columns[difficulty];
+    const numRows = rows[difficulty];
+
+    const cardAspectRatio = 2 / 3;
+    const gap = 5;
+
+    // Calculate board aspect ratio
+    const boardAspectRatio = (numCols * cardAspectRatio) / numRows;
+
+    // Calculate container dimensions (maintaining aspect ratio)
+    const containerWidth = screenWidth - 40; // padding
+    const containerHeight = windowHeight - 250; // Approximate height of other UI elements
+
+    let boardWidth, boardHeight;
+
+    if (containerWidth / containerHeight > boardAspectRatio) {
+      boardHeight = containerHeight;
+      boardWidth = boardHeight * boardAspectRatio;
+    } else {
+      boardWidth = containerWidth;
+      boardHeight = containerWidth / boardAspectRatio;
+    }
+
+    // Ensure board is not larger than container
+    boardWidth = Math.min(boardWidth, containerWidth);
+    boardHeight = Math.min(boardHeight, containerHeight);
+
+
     return {
-      ...styles.board,
-      gridTemplateColumns: `repeat(${columns[difficulty]}, 1fr)`,
+      gridTemplateColumns: `repeat(${numCols}, 1fr)`,
+      width: `${boardWidth}px`,
+      height: `${boardHeight}px`,
+      gap: `${gap}px`,
     };
+  };
+
+  const boardStyle = {
+    ...styles.board,
+    ...getBoardDimensions(),
   };
 
   return (
@@ -132,10 +165,12 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
           </label>
         </div>
       </div>
-      <div style={getBoardStyle()}>
-        {board.map((card, index) => (
-          <CardComponent key={card.id} card={card} index={index} />
-        ))}
+      <div style={styles.boardContainer}>
+        <div style={boardStyle}>
+          {board.map((card, index) => (
+            <CardComponent key={card.id} card={card} index={index} />
+          ))}
+        </div>
       </div>
       <GameOverModal winner={gameState.winner} onReset={() => resetGame()} />
     </div>

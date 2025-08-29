@@ -76,14 +76,18 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  boardContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexGrow: 1,
+    width: '100%',
+    overflow: 'hidden',
+  },
   board: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(9, 1fr)',
     gap: '5px',
-    width: '100%',
-    flexGrow: 1,
-    maxHeight: 'calc(100vh - 200px)', // 例: 画面の高さからヘッダーや難易度選択の領域を引いた値
-    overflow: 'auto',
+    // gridTemplateColumns and other properties will be set dynamically
   },
   card: {
     width: '100%',
@@ -121,10 +125,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   cardText: {
     fontWeight: 'bold',
-    fontSize: 'clamp(12px, 3vw, 24px)',
+    fontSize: 'clamp(0.5rem, 5vmin, 1.5rem)',
   },
   cardSuit: {
-    fontSize: 'clamp(14px, 4vw, 32px)',
+    fontSize: 'clamp(0.6rem, 6vmin, 2rem)',
   },
   resetButton: {
     padding: '10px 20px',
