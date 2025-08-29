@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('はさみ将棋ゲームのE2Eテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/games/hasami-shogi');
+    // すべてのテストは「むずかしい」設定（9枚）を前提とする
+    await page.locator('[data-testid="difficulty-selector"] >> text=むずかしい').click();
   });
 
   test.describe('初期表示', () => {
@@ -23,26 +25,24 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
 
     test('情報パネルが正しく表示される', async ({ page }) => {
       // 現在のターン表示を確認
-      const statusText = page.locator('[data-testid="status"]');
+      const statusText = page.locator('[data-testid="turn-indicator"]');
       const statusContent = await statusText.textContent();
-      expect(statusContent).toContain('「歩」の番');
+      expect(statusContent).toContain('「歩」のばん');
 
-      // スコア表示を確認（新しいGameLayoutの構造）
-      const scoreSection = page.locator('h4:has-text("捕獲数")').locator('..');
-      await expect(scoreSection).toBeVisible();
-      
-      // 初期状態では捕獲数は0
-      await expect(scoreSection).toContainText('「歩」: 0');
-      await expect(scoreSection).toContainText('「と」: 0');
+      // スコア表示を確認
+      const playerScore = page.locator('[data-testid="player-score"]');
+      await expect(playerScore).toContainText('x 0');
+      const opponentScore = page.locator('[data-testid="opponent-score"]');
+      await expect(opponentScore).toContainText('x 0');
     });
 
     test('操作ボタンが正しく表示される', async ({ page }) => {
-      // 「はじめから」ボタンが存在することを確認
+      // 「はじめから」ボタンが存在することを確認 (これはGameLayout側にある)
       const resetButton = page.locator('[data-testid="control-panel-reset-button"]');
       await expect(resetButton).toBeVisible();
 
-      // 「ヒント」ボタンが存在することを確認
-      const hintButton = page.locator('[data-testid="control-panel-hint-button"]');
+      // 「ヒント」ボタンが存在することを確認 (これはゲームコンポーネント側にある)
+      const hintButton = page.locator('[data-testid="hint-button"]');
       await expect(hintButton).toBeVisible();
     });
   });
@@ -81,15 +81,15 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
     test('駒を移動させると、ターンが相手に切り替わる', async ({ page }) => {
       const piece = page.locator('[data-testid="cell-8-0"]');
       const destination = page.locator('[data-testid="cell-7-0"]');
-      const statusText = page.locator('[data-testid="status"]');
+      const statusText = page.locator('[data-testid="turn-indicator"]');
 
       // 駒を移動
       await piece.click();
       await destination.click();
 
-      // ターン表示が「「と」の番」に変わることを確認
+      // ターン表示が「「と」のばん」に変わることを確認
       const statusContent = await statusText.textContent() ?? '';
-      expect(statusContent).toContain('「と」の番');
+      expect(statusContent).toContain('「と」のばん');
     });
 
     test('他の駒を飛び越えて移動することはできない', async ({ page }) => {
@@ -130,8 +130,8 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       await expect(capturedPiece).toBeEmpty();
 
       // 獲得した駒の数が1になっていることを確認
-      const scoreSection = page.locator('h4:has-text("捕獲数")').locator('..');
-      await expect(scoreSection).toContainText('「歩」: 1');
+      const playerScore = page.locator('[data-testid="player-score"]');
+      await expect(playerScore).toContainText('x 1');
 
       // 相手の盤面の駒が8個になっていることを確認
       const opponentPieces = await page.locator('[data-testid^="cell-"] >> div:has-text("と")').all();
@@ -150,8 +150,8 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       await page.locator('[data-testid="cell-7-0"]').click();
 
       // ターンが相手になっていることを確認
-      let statusText = page.locator('[data-testid="status"]');
-      await expect(statusText).toContainText('「と」の番');
+      let statusText = page.locator('[data-testid="turn-indicator"]');
+      await expect(statusText).toContainText('「と」のばん');
 
       // 「はじめから」ボタンをクリック
       await page.locator('[data-testid="control-panel-reset-button"]').click();
@@ -159,8 +159,8 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       // --- リセット後の状態を検証 ---
 
       // ターンが先手（「歩」）に戻っていることを確認
-      statusText = page.locator('[data-testid="status"]');
-      await expect(statusText).toContainText('「歩」の番');
+      statusText = page.locator('[data-testid="turn-indicator"]');
+      await expect(statusText).toContainText('「歩」のばん');
 
       // 駒の位置が初期配置に戻っていることを確認
       // (動かした駒が元の位置に戻っているか)
@@ -174,16 +174,17 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       expect(opponentPieces.length).toBe(9);
 
       // 獲得した駒の数がリセットされていることを確認
-      const scoreSection = page.locator('h4:has-text("捕獲数")').locator('..');
-      await expect(scoreSection).toContainText('「歩」: 0');
-      await expect(scoreSection).toContainText('「と」: 0');
+      const playerScore = page.locator('[data-testid="player-score"]');
+      await expect(playerScore).toContainText('x 0');
+      const opponentScore = page.locator('[data-testid="opponent-score"]');
+      await expect(opponentScore).toContainText('x 0');
     });
   });
 
   test.describe('ヒント機能', () => {
     test('ヒントボタンをONにすると、移動可能なマスがハイライトされる', async ({ page }) => {
       // ヒントをONにする
-      await page.locator('[data-testid="control-panel-hint-button"]').click();
+      await page.locator('[data-testid="hint-button"]').click();
 
       // 駒を選択
       await page.locator('[data-testid="cell-8-0"]').click();
