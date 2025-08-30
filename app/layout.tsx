@@ -1,5 +1,6 @@
 import AppLayout from './components/AppLayout';
 import React from 'react';
+import { DialogProvider } from './hooks/useDialog';
 
 const bodyStyle: React.CSSProperties = {
   font: '14px "Century Gothic", Futura, sans-serif',
@@ -27,7 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}</style>
       </head>
       <body style={bodyStyle}>
-        <AppLayout>{children}</AppLayout>
+        <DialogProvider>
+          <AppLayout>{children}</AppLayout>
+        </DialogProvider>
       </body>
     </html>
   );
