@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '../../types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
-import GameStateDebugger from './GameStateDebugger';
+import GameDebugger from './GameDebugger';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
 
@@ -264,7 +264,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
         </BottomSheet>
 
         {/* デバッガー（開発環境でのみ表示） */}
-        <GameStateDebugger
+        <GameDebugger
           isVisible={process.env.NODE_ENV === 'development'}
           position="bottom-left"
         />
@@ -292,7 +292,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
         </main>
 
         {/* デバッガー（開発環境でのみ表示） */}
-        <GameStateDebugger
+        <GameDebugger
           isVisible={process.env.NODE_ENV === 'development'}
           position="bottom-right"
         />
