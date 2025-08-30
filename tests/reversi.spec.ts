@@ -63,45 +63,47 @@ test.describe('リバーシゲームのE2Eテスト', () => {
 
   test('ゲームをリセットできる', async ({ page }) => {
     // 駒を置く
-    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500); // Wait for state update
 
-    // リセットボタンを押す
-    await page.locator('[data-testid="reset-button"]').click();
-    await page.locator('[data-testid="confirm-reset-button"]').click();
+    // リセットボタンを押し、確認ダイアログでOKする
+    await page.getByTestId('control-panel-reset-button').click();
+    await expect(page.getByRole('dialog', { name: 'かくにん' })).toBeVisible();
+    await page.getByRole('button', { name: 'OK' }).click();
 
     // 初期状態に戻っているか検証
+    await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     const blackScore = await page.locator('[data-testid="score-black"]').textContent();
     expect(blackScore).toBe('2');
     const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
     expect(whiteScore).toBe('2');
-    await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   });
 
   test('ヒント機能が正しく動作する', async ({ page }) => {
-    const hintButton = page.locator('[data-testid="hint-button"]');
+    const hintButton = page.getByRole('button', { name: 'おしえて！' });
+    const placeableHint = page.locator('[data-testid="placeable-hint-2-3"]');
+    const moveHint = placeableHint.locator('.moveHint'); // Assuming moveHint is inside placeableHint
 
-    // 初期状態の「ヒントなし」を確認
-    const hintLevelText1 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText1).toBe('(ヒントなし)');
-    await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).not.toBeVisible();
-    await expect(page.locator('[data-testid="cell-2-3"] > .placeableHint')).not.toBeVisible();
+    // デフォルト状態('off')では、設置可能マスのみ表示
+    await expect(placeableHint).toBeVisible();
+    await expect(moveHint).not.toBeVisible();
 
-    // 「おけるばしょ」に切り替え
+    // ヒントをONにする
     await hintButton.click();
     await page.waitForTimeout(200);
-    const hintLevelText2 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText2).toBe('(おけるばしょ)');
-    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).toBeVisible();
 
-    // 「ぜんぶヒント」に切り替え
+    // 設置可能マスと反転数が表示される
+    await expect(placeableHint).toBeVisible();
+    await expect(moveHint).toBeVisible();
+    await expect(moveHint).toHaveText('1');
+
+    // ヒントをOFFに戻す
     await hintButton.click();
     await page.waitForTimeout(200);
-    const hintLevelText3 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText3).toBe('(ぜんぶヒント)');
-    const moveHint = await page.locator('[data-testid="cell-2-3"] > .moveHint').textContent();
-    expect(moveHint).toBe('1');
+
+    // 設置可能マスのみ表示される状態に戻る
+    await expect(placeableHint).toBeVisible();
+    await expect(moveHint).not.toBeVisible();
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {

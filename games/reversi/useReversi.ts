@@ -11,15 +11,14 @@ interface ReversiGameState extends BaseGameState {
   gameStatus: GameState['gameStatus'];
   validMoves: Map<string, [number, number][]>;
   // ヒント関連
-  hintLevel: 'none' | 'placeable' | 'full';
+  hintLevel: 'off' | 'on'; // 'off' (placeable) is the new default, 'on' is the full hint
   selectedHintCell: [number, number] | null;
 }
 
-type ReversiAction = 
+type ReversiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
   | { type: 'TOGGLE_HINT' }
-  | { type: 'SET_HINT_LEVEL'; level: 'none' | 'placeable' | 'full' }
   | { type: 'SET_SELECTED_HINT_CELL'; cell: [number, number] | null }
   | { type: 'HISTORY_GOTO'; index: number };
 
@@ -31,7 +30,7 @@ function createInitialReversiState(): ReversiGameState {
     status: 'playing' as GameStatus,
     winner: null,
     // ヒント関連
-    hintLevel: 'none',
+    hintLevel: 'off', // Default state now shows placeable squares
     selectedHintCell: null,
   };
 }
@@ -74,13 +73,6 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
     case 'RESET_GAME':
       return createInitialReversiState();
     
-    case 'SET_HINT_LEVEL':
-      return {
-        ...state,
-        hintLevel: action.level,
-        selectedHintCell: null, // ヒントレベル変更時は選択をリセット
-      };
-    
     case 'SET_SELECTED_HINT_CELL':
       return {
         ...state,
@@ -88,8 +80,7 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
       };
     
     case 'TOGGLE_HINT': {
-      const nextLevel = state.hintLevel === 'none' ? 'placeable' : 
-                       state.hintLevel === 'placeable' ? 'full' : 'none';
+      const nextLevel = state.hintLevel === 'off' ? 'on' : 'off';
       return {
         ...state,
         hintLevel: nextLevel,
@@ -112,8 +103,6 @@ export type ReversiController = BaseGameController<ReversiGameState, ReversiActi
   HistoryGameController<ReversiGameState, ReversiAction> & {
     // リバーシ固有のメソッド
     makeMove: (row: number, col: number) => void;
-    toggleHintLevel: () => void;
-    setHintLevel: (level: 'none' | 'placeable' | 'full') => void;
     setSelectedHintCell: (cell: [number, number] | null) => void;
     // 状態アクセサー
     getValidMoves: () => Map<string, [number, number][]>;
@@ -147,73 +136,73 @@ export function useReversi(): ReversiController {
 
   const makeMove = useCallback((row: number, col: number) => {
     logger.log('MAKE_MOVE_CALLED', { row, col, currentPlayer: gameState.currentPlayer, hintLevel: gameState.hintLevel });
-    
-    // フルヒントモードの場合の特別な処理
-    if (gameState.hintLevel === 'full') {
-      if (gameState.selectedHintCell && 
-          gameState.selectedHintCell[0] === row && 
+
+    // 'on' (フルヒント) モードの場合の特別な処理
+    if (gameState.hintLevel === 'on') {
+      if (gameState.selectedHintCell &&
+          gameState.selectedHintCell[0] === row &&
           gameState.selectedHintCell[1] === col) {
         // 2回目のタップ: 実際に移動を実行
         logger.log('EXECUTING_FULL_HINT_MOVE', { row, col });
-        
-        // 新しい状態を計算
         const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
-        
-        // 履歴に追加
         setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), newState]);
         setCurrentHistoryIndex(prev => prev + 1);
       } else {
-        // 1回目のタップ: セルを選択
-        const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell: [row, col] });
-        setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+        // 1回目のタップ: セルを選択して影響を受ける駒をハイライト
         logger.log('HINT_CELL_SELECTED', { row, col });
+        const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell: [row, col] });
+        setGameHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[currentHistoryIndex] = newState;
+          return newHistory;
+        });
       }
     } else {
-      // 通常の移動
+      // 'off' (通常) モードの移動
       logger.log('EXECUTING_NORMAL_MOVE', { row, col });
-      
-      // 新しい状態を計算
       const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
-      
-      // 履歴に追加
       setGameHistory(prev => [...prev.slice(0, currentHistoryIndex + 1), newState]);
       setCurrentHistoryIndex(prev => prev + 1);
     }
   }, [gameState, currentHistoryIndex, logger]);
 
-  const toggleHintLevel = useCallback(() => {
-    logger.log('TOGGLE_HINT_CALLED', { currentLevel: gameState.hintLevel });
+  const toggleHints = useCallback(() => {
+    logger.log('TOGGLE_HINTS_CALLED', { currentLevel: gameState.hintLevel });
     const newState = reversiReducer(gameState, { type: 'TOGGLE_HINT' });
-    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
-  }, [gameState, currentHistoryIndex, logger]);
-
-  const setHintLevel = useCallback((level: 'none' | 'placeable' | 'full') => {
-    logger.log('SET_HINT_LEVEL_CALLED', { level });
-    const newState = reversiReducer(gameState, { type: 'SET_HINT_LEVEL', level });
-    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+    // 履歴を上書きしてヒントの状態を更新
+    setGameHistory(prev => {
+        const newHistory = [...prev];
+        newHistory[currentHistoryIndex] = newState;
+        return newHistory;
+    });
   }, [gameState, currentHistoryIndex, logger]);
 
   const setSelectedHintCell = useCallback((cell: [number, number] | null) => {
     logger.log('SET_SELECTED_HINT_CELL_CALLED', { cell });
     const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell });
-    setGameHistory(prev => [...prev.slice(0, currentHistoryIndex), newState, ...prev.slice(currentHistoryIndex + 1)]);
+    setGameHistory(prev => {
+        const newHistory = [...prev];
+        newHistory[currentHistoryIndex] = newState;
+        return newHistory;
+    });
   }, [gameState, currentHistoryIndex, logger]);
 
   // ヒント関連
-  const hintState = useMemo(() => ({
-    level: gameState.hintLevel === 'none' ? 'off' as const : 
-           gameState.hintLevel === 'placeable' ? 'basic' as const : 'advanced' as const,
-    highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
+  const hintState = useMemo(() => {
+    // 'off' でも 'on' でも配置可能なマスは常に表示する
+    const highlightedCells = Array.from(gameState.validMoves.keys()).map(key => {
       const [row, col] = key.split(',').map(Number);
       return { row, col };
-    }),
-    selectedCell: gameState.selectedHintCell ? 
-      { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
-  }), [gameState.hintLevel, gameState.validMoves, gameState.selectedHintCell]);
+    });
 
-  const toggleHints = useCallback(() => {
-    toggleHintLevel();
-  }, [toggleHintLevel]);
+    return {
+      // hintLevelをそのまま公開し、UI側で'on'か'off'かを判断
+      level: gameState.hintLevel,
+      highlightedCells,
+      selectedCell: gameState.selectedHintCell ?
+        { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
+    };
+  }, [gameState.hintLevel, gameState.validMoves, gameState.selectedHintCell]);
 
   // 履歴関連
   const canUndo = currentHistoryIndex > 0;
@@ -283,8 +272,6 @@ export function useReversi(): ReversiController {
     dispatch: () => {}, // dispatchは直接使用しない
     resetGame,
     makeMove,
-    toggleHintLevel,
-    setHintLevel,
     setSelectedHintCell,
     getValidMoves,
     getCurrentPlayer,

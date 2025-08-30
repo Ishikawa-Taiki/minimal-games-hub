@@ -141,39 +141,31 @@ describe('useReversi Hook', () => {
 
   it('ヒント機能が正しく動作する', () => {
     const { result } = renderHook(() => useReversi());
+
+    // 初期状態は 'off'
+    expect(result.current.gameState.hintLevel).toBe('off');
     
-    expect(result.current.gameState.hintLevel).toBe('none');
-    expect(result.current.hintState.level).toBe('off');
-    
-    // ヒントレベルを切り替え
+    // ヒントを 'on' に切り替え
     act(() => {
-      result.current.toggleHintLevel();
+      result.current.toggleHints();
     });
     
-    expect(result.current.gameState.hintLevel).toBe('placeable');
-    expect(result.current.hintState.level).toBe('basic');
+    expect(result.current.gameState.hintLevel).toBe('on');
     
+    // ヒントを 'off' に戻す
     act(() => {
-      result.current.toggleHintLevel();
+      result.current.toggleHints();
     });
     
-    expect(result.current.gameState.hintLevel).toBe('full');
-    expect(result.current.hintState.level).toBe('advanced');
-    
-    act(() => {
-      result.current.toggleHintLevel();
-    });
-    
-    expect(result.current.gameState.hintLevel).toBe('none');
-    expect(result.current.hintState.level).toBe('off');
+    expect(result.current.gameState.hintLevel).toBe('off');
   });
 
   it('フルヒントモードで2回タップが必要', () => {
     const { result } = renderHook(() => useReversi());
     
-    // フルヒントモードに設定
+    // フルヒントモード('on')に設定
     act(() => {
-      result.current.setHintLevel('full');
+      result.current.toggleHints();
     });
     
     // 1回目のタップ（セル選択）

@@ -4,6 +4,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
+import { Button, PositiveButton } from '../../app/components/ui';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -13,7 +14,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame, difficulty } = controller;
+  const { gameState, selectStick, takeSticks, startGame } = controller;
 
   const [showModal, setShowModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -72,9 +73,9 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
       <h1 style={styles.title}>ぼうけしゲーム</h1>
       <h2 style={styles.subtitle}>むずかしさをえらんでね</h2>
       <div style={styles.difficultyButtons}>
-        <button style={styles.button} onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</button>
+        <Button size="large" onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</Button>
+        <Button size="large" onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</Button>
+        <Button size="large" onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</Button>
       </div>
     </div>
   );
@@ -134,13 +135,13 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           ))}
         </div>
         <div style={styles.controls}>
-          <button
-            style={styles.button}
+          <PositiveButton
+            size="large"
             onClick={takeSticks}
             disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
           >
             えらんだぼうをとる
-          </button>
+          </PositiveButton>
         </div>
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
@@ -149,7 +150,14 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
               <p style={styles.winnerText}>{controller.getDisplayStatus()}</p>
               <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
               <div style={styles.modalButtons}>
-                <button data-testid="play-again-button" style={styles.button} onClick={handlePlayAgain}>もういっかい</button>
+                <Button
+                  variant="secondary"
+                  size="large"
+                  data-testid="play-again-button"
+                  onClick={handlePlayAgain}
+                >
+                  もういっかい
+                </Button>
               </div>
             </div>
           </div>
