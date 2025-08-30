@@ -13,6 +13,7 @@ export interface ModalProps {
   children: React.ReactNode;
   size?: ModalSize;
   showCloseButton?: boolean;
+  isDismissible?: boolean; // New prop
 }
 
 export function Modal({
@@ -22,11 +23,12 @@ export function Modal({
   children,
   size = 'medium',
   showCloseButton = true,
+  isDismissible = true, // Default to true
 }: ModalProps) {
   // ESCキーでモーダルを閉じる
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === 'Escape' && isOpen && isDismissible) {
         onClose();
       }
     };
@@ -41,7 +43,7 @@ export function Modal({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isDismissible]);
 
   // モーダルが閉じている場合は何も表示しない
   if (!isOpen) {
@@ -50,7 +52,7 @@ export function Modal({
 
   // オーバーレイクリックでモーダルを閉じる
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
+    if (event.target === event.currentTarget && isDismissible) {
       onClose();
     }
   };

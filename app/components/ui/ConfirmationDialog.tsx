@@ -3,10 +3,12 @@
 import React from 'react';
 import { Modal, ModalProps } from './Modal';
 import { PositiveButton } from './PositiveButton';
+import { NegativeButton } from './NegativeButton';
 
-type AlertDialogProps = Pick<ModalProps, 'isOpen' | 'title'> & {
+type ConfirmationDialogProps = Pick<ModalProps, 'isOpen' | 'title'> & {
   message: string;
   onConfirm: () => void;
+  onCancel: () => void;
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -18,15 +20,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   footer: {
     display: 'flex',
     justifyContent: 'flex-end',
+    gap: '0.75rem', // 12px
     paddingTop: '1rem',
   },
 };
 
-export const AlertDialog: React.FC<AlertDialogProps> = ({
+export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   isOpen,
   title,
   message,
   onConfirm,
+  onCancel,
 }) => {
   if (!isOpen) {
     return null;
@@ -35,14 +39,17 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onConfirm} // Although not dismissible, onClose needs a function.
+      onClose={onCancel} // Set onClose to cancel by default
       title={title}
-      isDismissible={false} // This is the key change
+      isDismissible={false}
       showCloseButton={false}
     >
       <div>
         <p style={styles.message}>{message}</p>
         <div style={styles.footer}>
+          <NegativeButton onClick={onCancel}>
+            キャンセル
+          </NegativeButton>
           <PositiveButton onClick={onConfirm}>
             OK
           </PositiveButton>

@@ -1,21 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useGameLogger } from '../../hooks/useGameStateLogger';
 
-interface GameDebuggerProps {
+interface GameStateDebuggerProps {
   isVisible?: boolean;
   position?: 'top-right' | 'bottom-right' | 'bottom-left' | 'top-left';
 }
 
-const GameDebugger: React.FC<GameDebuggerProps> = ({
+const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
   isVisible = false,
-  position = 'bottom-right',
+  position = 'bottom-right'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const logger = useGameLogger('GameDebugger');
+  const logger = useGameLogger('GameStateDebugger');
   const [logs, setLogs] = useState(logger.getLogs());
   const [copyButtonText, setCopyButtonText] = useState('コピー');
 
@@ -124,7 +123,7 @@ const GameDebugger: React.FC<GameDebuggerProps> = ({
   return (
     <div style={debuggerStyle}>
       <div style={headerStyle}>
-        <span>🐛 Game Debugger</span>
+        <span>🐛 Game State Debugger</span>
         <button
           style={buttonStyle}
           onClick={() => setIsOpen(!isOpen)}
@@ -145,9 +144,6 @@ const GameDebugger: React.FC<GameDebuggerProps> = ({
             <button style={buttonStyle} onClick={handleExport}>
               エクスポート
             </button>
-            <Link href="/debug" passHref>
-              <button style={buttonStyle}>UI Components</button>
-            </Link>
             <button style={buttonStyle} onClick={handleCopy}>
               {copyButtonText}
             </button>
@@ -185,4 +181,4 @@ const GameDebugger: React.FC<GameDebuggerProps> = ({
   );
 };
 
-export default GameDebugger;
+export default GameStateDebugger;

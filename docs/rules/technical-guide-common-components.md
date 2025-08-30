@@ -219,16 +219,54 @@ GameLayoutは、以下のロジックで各ゲームのスコア情報を自動�
 
 #### 2.6.2. デバッグ方法
 
-開発環境では`GameDebugger`コンポーネントが自動的に表示されます：
+開発環境では`GameStateDebugger`コンポーネントが自動的に表示されます：
 - 右下（PC）または左下（モバイル）に表示
 - ゲーム状態の変更をリアルタイム監視
 - ログのエクスポート機能
 
 ## 3. UIコンポーネント
 
-共通UIコンポーネントの具体的な仕様と使用方法については、以下のカタログを参照してください。
+### 3.1. FloatingActionButton (FAB)
 
-- **[UIコンポーネントカタログ](./technical-guide-ui-catalog.md)**
+**配置場所**: `app/components/ui/FloatingActionButton.tsx`
+
+モバイルレイアウトで使用されるフローティングアクションボタンです。
+
+#### 3.1.1. 使用方法
+```typescript
+<FloatingActionButton
+  onClick={handleFABClick}
+  ariaLabel="コントロールパネルを開く"
+  icon="⚙️"
+/>
+```
+
+### 3.2. BottomSheet
+
+**配置場所**: `app/components/ui/BottomSheet.tsx`
+
+モバイルレイアウトでコントロールパネルを表示するためのボトムシートです。
+
+#### 3.2.1. 使用方法
+```typescript
+<BottomSheet
+  isOpen={isBottomSheetOpen}
+  onClose={handleBottomSheetClose}
+  title="コントロール"
+>
+  {/* コンテンツ */}
+</BottomSheet>
+```
+
+### 3.3. GameStateDebugger
+
+**配置場所**: `app/components/GameStateDebugger.tsx`
+
+開発環境でのデバッグ支援コンポーネントです。
+
+#### 3.3.1. 自動表示条件
+- `process.env.NODE_ENV === 'development'`の場合のみ表示
+- GameLayoutコンポーネント内で自動的に配置
 
 ## 4. フック（Hooks）
 
