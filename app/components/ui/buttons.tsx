@@ -6,7 +6,6 @@ import StyleSheet from '@/app/styles/StyleSheet';
 interface CustomButtonProps {
   labelText: string;
   onClick: () => void;
-  style?: React.CSSProperties;
 }
 
 const styles = StyleSheet.create({
@@ -29,17 +28,17 @@ const styles = StyleSheet.create({
   },
 });
 
-export const PositiveButton: React.FC<CustomButtonProps> = ({ labelText, onClick, style }) => {
+export const PositiveButton: React.FC<CustomButtonProps> = ({ labelText, onClick }) => {
   return (
-    <button style={{ ...styles.baseButton, ...styles.positive, ...style }} onClick={onClick}>
+    <button style={{ ...styles.baseButton, ...styles.positive }} onClick={onClick}>
       {labelText}
     </button>
   );
 };
 
-export const NegativeButton: React.FC<CustomButtonProps> = ({ labelText, onClick, style }) => {
+export const NegativeButton: React.FC<CustomButtonProps> = ({ labelText, onClick }) => {
   return (
-    <button style={{ ...styles.baseButton, ...styles.negative, ...style }} onClick={onClick}>
+    <button style={{ ...styles.baseButton, ...styles.negative }} onClick={onClick}>
       {labelText}
     </button>
   );

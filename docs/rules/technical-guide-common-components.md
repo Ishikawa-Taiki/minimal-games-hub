@@ -226,71 +226,9 @@ GameLayoutは、以下のロジックで各ゲームのスコア情報を自動�
 
 ## 3. UIコンポーネント
 
-このセクションでは、アプリケーション全体で再利用可能なUIコンポーネントについて説明します。これらのコンポーネントは `app/components/ui/` に配置されています。
+共通UIコンポーネントの具体的な仕様と使用方法については、以下のカタログを参照してください。
 
-### 3.1. ボタン (Buttons)
-
-`app/components/ui/buttons.tsx` で定義されています。
-
-- **`PositiveButton`**: 肯定的なアクション（はい、決定、送信など）に使用します。
-- **`NegativeButton`**: 否定的なアクション（いいえ、キャンセル、やめるなど）に使用します。
-
-#### 3.1.1. 使用方法
-```typescript
-import { PositiveButton, NegativeButton } from '@/app/components/ui/buttons';
-
-<PositiveButton labelText="実行" onClick={() => console.log('実行')} />
-<NegativeButton labelText="キャンセル" onClick={() => console.log('キャンセル')} />
-```
-
-#### 3.1.2. Props
-- `labelText: string`: ボタンに表示されるテキスト。
-- `onClick: () => void`: ボタンクリック時に実行される関数。
-- `style?: React.CSSProperties`: 追加のスタイルを適用（任意）。
-
-### 3.2. 確認ダイアログ (Confirmation Dialog) とアラートダイアログ (Alert Dialog)
-
-`app/hooks/useDialog.tsx` で定義されたフックを通じて利用します。詳細は `4.2. useDialog` を参照してください。
-
-### 3.3. FloatingActionButton (FAB)
-
-**配置場所**: `app/components/ui/FloatingActionButton.tsx`
-
-モバイルレイアウトで使用されるフローティングアクションボタンです。
-
-#### 3.3.1. 使用方法
-```typescript
-<FloatingActionButton
-  onClick={handleFABClick}
-  ariaLabel="コントロールパネルを開く"
-  icon="⚙️"
-/>
-```
-
-### 3.4. BottomSheet
-
-**配置場所**: `app/components/ui/BottomSheet.tsx`
-
-モバイルレイアウトでコントロールパネルを表示するためのボトムシートです。
-
-#### 3.4.1. 使用方法
-```typescript
-<BottomSheet
-  isOpen={isBottomSheetOpen}
-  onClose={handleBottomSheetClose}
-  title="コントロール"
->
-  {/* コンテンツ */}
-</BottomSheet>
-```
-
-### 3.5. GameDebugger
-
-- **ファイルパス**: `app/components/GameDebugger.tsx`
-- **機能**:
-    - ゲームの状態ログ（`useGameStateLogger`フック経由）を表示します。
-    - UIコンポーネントのデバッグページ (`/debug`) へのリンクを提供します。
-- **表示条件**: `process.env.NODE_ENV === 'development'` の場合のみ、ゲーム画面の隅にフローティング表示されます。
+- **[UIコンポーネントカタログ](./technical-guide-ui-catalog.md)**
 
 ## 4. フック（Hooks）
 
@@ -306,52 +244,13 @@ const responsiveState = useResponsive();
 const isMobileView = isMobile(responsiveState);
 ```
 
-### 4.2. useDialog
-
-**配置場所**: `app/hooks/useDialog.tsx`
-
-PromiseベースのAPIで確認ダイアログやアラートダイアログを起動するためのフックです。
-
-#### 4.2.1. 使用方法
-```typescript
-import { useDialog } from '@/app/hooks/useDialog';
-
-const MyComponent = () => {
-  const { confirm, alert } = useDialog();
-
-  const handleConfirm = async () => {
-    const isConfirmed = await confirm({
-      title: 'アクションの確認',
-      body: 'この操作を実行してもよろしいですか？',
-    });
-    if (isConfirmed) { /* ... */ }
-  };
-
-  const handleAlert = () => {
-    alert({
-      title: 'お知らせ',
-      body: '処理が完了しました。',
-    });
-  };
-
-  return (
-    <>
-      <button onClick={handleConfirm}>確認</button>
-      <button onClick={handleAlert}>通知</button>
-    </>
-  );
-};
-```
-#### 4.2.2. 前提条件
-このフックを利用するコンポーネントは、ツリーの上位に `DialogProvider` が配置されている必要があります。これは `app/layout.tsx` で設定済みのため、通常は意識する必要はありません。
-
-### 4.3. useGameStateLogger
+### 4.2. useGameStateLogger
 
 **配置場所**: `hooks/useGameStateLogger.ts`
 
 ゲーム状態の変更を自動的にログ出力するフックです。
 
-#### 4.3.1. 使用方法
+#### 4.2.1. 使用方法
 ```typescript
 const logger = useGameStateLogger('ComponentName', gameState, additionalData);
 logger.log('EVENT_NAME', eventData);

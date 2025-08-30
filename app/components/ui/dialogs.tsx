@@ -70,7 +70,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <div style={styles.body}>{body}</div>
         <div style={styles.footer}>
           <NegativeButton labelText="やめる" onClick={onClose} />
-          <PositiveButton labelText="はい" onClick={handleConfirm} style={{ marginLeft: '10px' }} />
+          <PositiveButton labelText="はい" onClick={handleConfirm} />
         </div>
       </div>
     </div>

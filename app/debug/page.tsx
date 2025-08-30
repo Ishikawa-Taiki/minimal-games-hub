@@ -98,7 +98,6 @@ const DebugPage: React.FC = () => {
           Props:
           - labelText: string (必須) - ボタンに表示するテキスト
           - onClick: () => void (必須) - ボタンクリック時に実行される関数
-          - style?: React.CSSProperties (任意) - ボタンに適用するカスタムスタイル
         `}</pre>
       </div>
 
