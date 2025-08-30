@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React from 'react'
 import { useDialog } from '../hooks/useDialog';
 import { PositiveButton, NegativeButton } from '../components/ui/buttons';
 import StyleSheet from '../styles/StyleSheet';
