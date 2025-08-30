@@ -1,73 +1,73 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('UI Component Debug Page', () => {
+test.describe('UIコンポーネントのデバッグページ', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/debug');
   });
 
-  test('should render all component sections', async ({ page }) => {
+  test('すべてのコンポーネントセクションが正しく表示される', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'UI Component Debug Page' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Buttons' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Dialogs' })).toBeVisible();
   });
 
-  test.describe('Buttons Section', () => {
-    test('should render all button types', async ({ page }) => {
+  test.describe('ボタンセクション', () => {
+    test('すべてのボタンタイプが正しく表示される', async ({ page }) => {
       await expect(page.getByRole('button', { name: 'Positive' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Negative' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Selectable' })).toBeVisible();
     });
 
-    test('should change button size', async ({ page }) => {
+    test('ボタンのサイズが変更できる', async ({ page }) => {
       const positiveButton = page.getByRole('button', { name: 'Positive' });
 
-      // Check medium size (default)
+      // デフォルトのmediumサイズを確認
       await expect(positiveButton).toHaveCSS('font-size', '16px'); // 1rem
 
-      // Change to small
+      // smallサイズに変更
       await page.getByLabel('Size:').selectOption('small');
       await expect(positiveButton).toHaveCSS('font-size', '14px'); // 0.875rem
 
-      // Change to large
+      // largeサイズに変更
       await page.getByLabel('Size:').selectOption('large');
       await expect(positiveButton).toHaveCSS('font-size', '18px'); // 1.125rem
     });
 
-    test('should disable and enable buttons', async ({ page }) => {
+    test('ボタンのdisabled状態を切り替えられる', async ({ page }) => {
       const positiveButton = page.getByRole('button', { name: 'Positive' });
       const disabledCheckbox = page.getByLabel('Disabled');
 
       await expect(positiveButton).toBeEnabled();
 
-      // Disable buttons
+      // ボタンを無効化
       await disabledCheckbox.check();
       await expect(positiveButton).toBeDisabled();
       await expect(positiveButton).toHaveCSS('background-color', 'rgb(156, 163, 175)'); // gray-400
 
-      // Enable buttons
+      // ボタンを有効化
       await disabledCheckbox.uncheck();
       await expect(positiveButton).toBeEnabled();
       await expect(positiveButton).toHaveCSS('background-color', 'rgb(37, 99, 235)'); // blue-600
     });
 
-    test('should toggle SelectableButton state and style', async ({ page }) => {
+    test('SelectableButtonの状態とスタイルが正しく切り替わる', async ({ page }) => {
       const selectableButton = page.getByRole('button', { name: 'Selectable' });
       const output = page.getByText('SelectableButton isSelected:');
 
       await expect(output).toHaveText('SelectableButton isSelected: false');
-      // 'ghost' variant has a transparent background
+      // 'ghost' variantは背景が透明
       await expect(selectableButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 
-      // Click to select
+      // クリックして選択状態にする
       await selectableButton.click();
       await expect(output).toHaveText('SelectableButton isSelected: true');
-      // 'success' variant is green
+      // 'success' variantは緑色
       await expect(selectableButton).toHaveCSS('background-color', 'rgb(22, 163, 74)'); // green-600
     });
   });
 
-  test.describe('Dialogs Section', () => {
-    test('should show and hide AlertDialog correctly', async ({ page }) => {
+  test.describe('ダイアログセクション', () => {
+    test('AlertDialogが正しく表示・非表示される', async ({ page }) => {
       const output = page.getByText('Last dialog result:');
       await expect(output).not.toBeVisible();
 
@@ -77,7 +77,7 @@ test.describe('UI Component Debug Page', () => {
       await expect(alertDialog).toBeVisible();
       await expect(alertDialog.getByRole('heading', { name: 'アラート' })).toBeVisible();
 
-      // Verify it's not dismissible by clicking overlay
+      // オーバーレイをクリックしても閉じないことを確認
       await page.locator('div[role="dialog"]').first().click({ position: { x: 10, y: 10 } });
       await expect(alertDialog).toBeVisible();
 
@@ -86,11 +86,11 @@ test.describe('UI Component Debug Page', () => {
       await expect(output).toHaveText('Last dialog result: Alert dialog confirmed.');
     });
 
-    test('should show and hide ConfirmationDialog correctly', async ({ page }) => {
+    test('ConfirmationDialogが正しく表示・非表示され、結果を返す', async ({ page }) => {
         const output = page.getByText('Last dialog result:');
         await expect(output).not.toBeVisible();
 
-        // Test "Cancel"
+        // 「キャンセル」のテスト
         await page.getByRole('button', { name: 'Show Confirm' }).click();
         const confirmDialog = page.getByRole('dialog');
         await expect(confirmDialog).toBeVisible();
@@ -98,7 +98,7 @@ test.describe('UI Component Debug Page', () => {
         await expect(confirmDialog).not.toBeVisible();
         await expect(output).toHaveText('Last dialog result: Confirmation result: false');
 
-        // Test "OK"
+        // 「OK」のテスト
         await page.getByRole('button', { name: 'Show Confirm' }).click();
         await expect(confirmDialog).toBeVisible();
         await confirmDialog.getByRole('button', { name: 'OK' }).click();

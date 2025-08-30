@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import { AlertDialog } from './AlertDialog';
@@ -33,12 +34,16 @@ export const useDialog = () => {
   return context;
 };
 
+type DialogState = {
+  type: 'alert' | 'confirm';
+  options: DialogOptions;
+} | null;
+
 export const DialogProvider = ({ children }: { children: ReactNode }) => {
-  const [dialogState, setDialogState] = useState<{
-    type: 'alert' | 'confirm';
-    options: DialogOptions;
-    resolver: (result: boolean | void) => void;
-  } | null>(null);
+  const [dialogState, setDialogState] = useState<DialogState>(null);
+
+  const confirmResolverRef = useRef<((value: boolean) => void) | null>(null);
+  const alertResolverRef = useRef<(() => void) | null>(null);
 
   const handleClose = () => {
     setDialogState(null);
@@ -46,20 +51,22 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
 
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
-      setDialogState({ type: 'confirm', options, resolver: resolve });
+      confirmResolverRef.current = resolve;
+      setDialogState({ type: 'confirm', options });
     });
   }, []);
 
   const alert = useCallback((options: AlertOptions): Promise<void> => {
     return new Promise((resolve) => {
-      setDialogState({ type: 'alert', options, resolver: resolve });
+      alertResolverRef.current = resolve;
+      setDialogState({ type: 'alert', options });
     });
   }, []);
 
   const renderDialog = () => {
     if (!dialogState) return null;
 
-    const { type, options, resolver } = dialogState;
+    const { type, options } = dialogState;
 
     if (type === 'confirm') {
       return (
@@ -68,12 +75,16 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
           title={options.title}
           message={options.message}
           onConfirm={() => {
+            if (confirmResolverRef.current) {
+              confirmResolverRef.current(true);
+            }
             handleClose();
-            resolver(true);
           }}
           onCancel={() => {
+            if (confirmResolverRef.current) {
+              confirmResolverRef.current(false);
+            }
             handleClose();
-            resolver(false);
           }}
         />
       );
@@ -86,8 +97,10 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
           title={options.title}
           message={options.message}
           onConfirm={() => {
+            if (alertResolverRef.current) {
+              alertResolverRef.current();
+            }
             handleClose();
-            resolver(true); // Resolves the promise
           }}
         />
       );
