@@ -65,7 +65,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     logger.log('CELL_CLICK', { row: r, col: c, hintLevel: controller.gameState.hintLevel, hasValidMove: !!stonesToFlip });
 
     // フルヒントモードの場合の特別な処理
-    if (controller.gameState.hintLevel === 'full') {
+    if (controller.gameState.hintLevel === 'advanced') {
       if (controller.gameState.selectedHintCell && 
           controller.gameState.selectedHintCell[0] === r && 
           controller.gameState.selectedHintCell[1] === c) {
