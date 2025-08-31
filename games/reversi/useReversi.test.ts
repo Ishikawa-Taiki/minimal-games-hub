@@ -139,29 +139,29 @@ describe('useReversi Hook', () => {
     expect(result.current.gameState.scores.WHITE).toBe(2);
   });
 
-  it('「おしえて！」機能が正しく動作する', () => {
+  it('「おしえて！」機能（ぜんぶヒント）が正しくON/OFFできる', () => {
     const { result } = renderHook(() => useReversi());
 
-    // 初期状態は false
-    expect(result.current.gameState.hintsEnabled).toBe(false);
+    // 初期状態は OFF
+    expect(result.current.hintState.enabled).toBe(false);
     
-    // ヒントを true に切り替え
+    // ONに切り替え
     act(() => {
       result.current.setHints(true);
     });
-    expect(result.current.gameState.hintsEnabled).toBe(true);
+    expect(result.current.hintState.enabled).toBe(true);
     
-    // ヒントを false に戻す
+    // OFFに戻す
     act(() => {
       result.current.setHints(false);
     });
-    expect(result.current.gameState.hintsEnabled).toBe(false);
+    expect(result.current.hintState.enabled).toBe(false);
   });
 
-  it('「おしえて！」モードで2回タップが必要', async () => {
+  it('「おしえて！」モード（ぜんぶヒント）で2回タップが必要', async () => {
     const { result } = renderHook(() => useReversi());
     
-    // 「おしえて！」モードを有効にする
+    // 「おしえて！」機能をONにする
     act(() => {
       result.current.setHints(true);
     });

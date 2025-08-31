@@ -82,24 +82,28 @@ test.describe('リバーシゲームのE2Eテスト', () => {
   });
 
   test('「おしえて！」機能が正しく動作する', async ({ page }) => {
-    // ControlPanel内のヒントボタンを使用
-    const hintButton = page.getByTestId('control-panel-hint-button');
+    const hintButton = page.getByTestId('hint-button');
     const placeableHint = page.locator('[data-testid="placeable-hint-2-3"]');
+    const moveHint = page.locator('[data-testid="cell-2-3"] .moveHint');
 
-    // 初期状態ではヒントは非表示
-    await expect(placeableHint).not.toBeVisible();
-
-    // 「おしえて！」ボタンをクリックしてONにする
-    await hintButton.click();
-
-    // ヒントが表示されることを確認
+    // 初期状態では「おけるばしょ」ヒントのみ表示
     await expect(placeableHint).toBeVisible();
+    await expect(moveHint).not.toBeVisible();
 
-    // もう一度クリックしてOFFにする
+    // 「おしえて！」をONにする
     await hintButton.click();
 
-    // ヒントが非表示になることを確認
-    await expect(placeableHint).not.toBeVisible();
+    // 「ぜんぶヒント」が表示される
+    await expect(placeableHint).toBeVisible();
+    await expect(moveHint).toBeVisible();
+    await expect(moveHint).toHaveText('1');
+
+    // 「おしえて！」をOFFに戻す
+    await hintButton.click();
+
+    // 「おけるばしょ」ヒントのみ表示される状態に戻る
+    await expect(placeableHint).toBeVisible();
+    await expect(moveHint).not.toBeVisible();
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {

@@ -63,10 +63,10 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     const stonesToFlip = controller.gameState.validMoves.get(moveKey);
     if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
 
-    logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.gameState.hintsEnabled, hasValidMove: !!stonesToFlip });
+    logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.hintState.enabled, hasValidMove: !!stonesToFlip });
 
-    // 「おしえて！」モードの場合の特別な処理
-    if (controller.gameState.hintsEnabled) {
+    // 「おしえて！」がONの場合の特別な処理（2回タップ）
+    if (controller.hintState.enabled) {
       if (controller.gameState.selectedHintCell && 
           controller.gameState.selectedHintCell[0] === r && 
           controller.gameState.selectedHintCell[1] === c) {
@@ -109,7 +109,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         }
       }
     } else {
-      // 通常の移動（placeable、noneヒント）
+      // 通常の移動
       if (!stonesToFlip) return;
       
       setIsFlipping(true);
@@ -157,7 +157,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       style.backgroundColor = '#68d391'; // A slightly different green for placeable cells
     }
 
-    if (controller.gameState.hintsEnabled && controller.gameState.selectedHintCell) {
+    if (controller.hintState.enabled && controller.gameState.selectedHintCell) {
       const [selectedR, selectedC] = controller.gameState.selectedHintCell;
       const moveKey = `${selectedR},${selectedC}`;
       const stonesToFlip = controller.gameState.validMoves.get(moveKey);
@@ -218,7 +218,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                    }}
                  />
                 )}
-                {controller.hintState.enabled && moveInfo && (
+                {moveInfo && (
                   <>
                     <div
                       data-testid={`placeable-hint-${r}-${c}`}
@@ -227,6 +227,11 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                         backgroundColor: controller.gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
                       }}
                     />
+                    {controller.hintState.enabled &&
+                      <span className="moveHint" style={styles.moveHint}>
+                        {moveInfo.length}
+                      </span>
+                    }
                   </>
                 )}
               </div>

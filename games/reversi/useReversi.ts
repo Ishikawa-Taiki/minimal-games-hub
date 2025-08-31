@@ -136,7 +136,7 @@ export function useReversi(): ReversiController {
   const makeMove = useCallback((row: number, col: number) => {
     logger.log('MAKE_MOVE_CALLED', { row, col, currentPlayer: gameState.currentPlayer, hintsEnabled: gameState.hintsEnabled });
 
-    // フルヒントモードの場合の特別な処理
+    // 「おしえて！」がONの場合の特別な処理（2回タップ）
     if (gameState.hintsEnabled) {
       if (gameState.selectedHintCell &&
           gameState.selectedHintCell[0] === row &&
@@ -167,14 +167,6 @@ export function useReversi(): ReversiController {
     }
   }, [gameState, currentHistoryIndex, gameHistory, logger]);
 
-  const setHints = useCallback((enabled: boolean) => {
-    logger.log('SET_HINTS_CALLED', { enabled });
-    const newState = reversiReducer(gameState, { type: 'SET_HINTS_ENABLED', enabled });
-    const newHistory = [...gameHistory];
-    newHistory[currentHistoryIndex] = newState;
-    setGameHistory(newHistory);
-  }, [gameState, currentHistoryIndex, gameHistory, logger]);
-
   const setSelectedHintCell = useCallback((cell: [number, number] | null) => {
     logger.log('SET_SELECTED_HINT_CELL_CALLED', { cell });
     const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell });
@@ -182,6 +174,14 @@ export function useReversi(): ReversiController {
   }, [gameState, currentHistoryIndex, logger]);
 
   // ヒント関連
+  const setHints = useCallback((enabled: boolean) => {
+    logger.log('SET_HINTS_ENABLED_CALLED', { enabled });
+    const newState = reversiReducer(gameState, { type: 'SET_HINTS_ENABLED', enabled });
+    const newHistory = [...gameHistory];
+    newHistory[currentHistoryIndex] = newState;
+    setGameHistory(newHistory);
+  }, [gameState, currentHistoryIndex, gameHistory, logger]);
+
   const hintState = useMemo(() => ({
     enabled: gameState.hintsEnabled,
     highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
