@@ -40,7 +40,7 @@ export interface BaseGameController<TState extends BaseGameState, TAction> {
 }
 
 // ヒント機能の共通型定義
-export type HintLevel = 'off' | 'basic' | 'advanced';
+export type HintLevel = 'off' | 'basic';
 
 // 位置情報の共通型
 export interface Position {

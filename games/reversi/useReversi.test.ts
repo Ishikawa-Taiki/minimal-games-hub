@@ -150,12 +150,6 @@ describe('useReversi Hook', () => {
       result.current.toggleHints();
     });
     expect(result.current.gameState.hintLevel).toBe('basic');
-
-    // ヒントを 'advanced' に切り替え
-    act(() => {
-      result.current.toggleHints();
-    });
-    expect(result.current.gameState.hintLevel).toBe('advanced');
     
     // ヒントを 'off' に戻す
     act(() => {
@@ -167,9 +161,9 @@ describe('useReversi Hook', () => {
   it('フルヒントモードで2回タップが必要', async () => {
     const { result } = renderHook(() => useReversi());
     
-    // フルヒントモード('advanced')に設定
+    // フルヒントモード('basic')に設定
     act(() => {
-      result.current.setHintLevel('advanced');
+      result.current.setHintLevel('basic');
     });
     
     // 1回目のタップ（セル選択）

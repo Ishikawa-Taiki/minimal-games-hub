@@ -90,8 +90,7 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
       };
     
     case 'TOGGLE_HINT': {
-      const nextLevel = state.hintLevel === 'off' ? 'basic' :
-                       state.hintLevel === 'basic' ? 'advanced' : 'off';
+      const nextLevel = state.hintLevel === 'off' ? 'basic' : 'off';
       return {
         ...state,
         hintLevel: nextLevel,
@@ -151,7 +150,7 @@ export function useReversi(): ReversiController {
     logger.log('MAKE_MOVE_CALLED', { row, col, currentPlayer: gameState.currentPlayer, hintLevel: gameState.hintLevel });
 
     // フルヒントモードの場合の特別な処理
-    if (gameState.hintLevel === 'advanced') {
+    if (gameState.hintLevel === 'basic') {
       if (gameState.selectedHintCell &&
           gameState.selectedHintCell[0] === row &&
           gameState.selectedHintCell[1] === col) {
