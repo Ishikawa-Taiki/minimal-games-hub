@@ -1,5 +1,3 @@
-import { BaseGameState, GameStatus } from '../../types/game';
-
 export type Player = 'X' | 'O' | null;
 export type Board = Player[][];
 
@@ -11,39 +9,6 @@ export interface GameState {
   winningLines: number[][] | null;
   reachingLines: { index: number, player: Player }[];
   hintLevel: number;
-}
-
-// 新しいBaseGameStateに準拠したゲーム状態
-export interface TicTacToeGameState extends BaseGameState {
-  board: Board;
-  isDraw: boolean;
-  winningLines: number[][] | null;
-  reachingLines: { index: number, player: Player }[];
-  hintLevel: number;
-}
-
-// レガシーGameStateから新しいTicTacToeGameStateへの変換
-export function adaptToBaseGameState(legacyState: GameState): TicTacToeGameState {
-  let status: GameStatus;
-  
-  if (legacyState.winner || legacyState.isDraw) {
-    status = 'ended';
-  } else {
-    // ボードが空の場合は待機中、そうでなければプレイ中
-    const isEmpty = legacyState.board.flat().every(cell => cell === null);
-    status = isEmpty ? 'waiting' : 'playing';
-  }
-  
-  return {
-    status,
-    currentPlayer: legacyState.currentPlayer,
-    winner: legacyState.winner,
-    board: legacyState.board,
-    isDraw: legacyState.isDraw,
-    winningLines: legacyState.winningLines,
-    reachingLines: legacyState.reachingLines,
-    hintLevel: legacyState.hintLevel,
-  };
 }
 
 const LINES_TO_CHECK = [
