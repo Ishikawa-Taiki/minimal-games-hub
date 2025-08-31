@@ -10,6 +10,7 @@ export interface GameState {
   isDraw: boolean;
   winningLines: number[][] | null;
   reachingLines: { index: number, player: Player }[];
+  hintLevel: 'on' | 'off';
 }
 
 // 新しいBaseGameStateに準拠したゲーム状態
@@ -18,6 +19,7 @@ export interface TicTacToeGameState extends BaseGameState {
   isDraw: boolean;
   winningLines: number[][] | null;
   reachingLines: { index: number, player: Player }[];
+  hintLevel: 'on' | 'off';
 }
 
 // レガシーGameStateから新しいTicTacToeGameStateへの変換
@@ -40,6 +42,7 @@ export function adaptToBaseGameState(legacyState: GameState): TicTacToeGameState
     isDraw: legacyState.isDraw,
     winningLines: legacyState.winningLines,
     reachingLines: legacyState.reachingLines,
+    hintLevel: legacyState.hintLevel,
   };
 }
 

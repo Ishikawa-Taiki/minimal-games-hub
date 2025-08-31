@@ -4,7 +4,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
-import { Button, PositiveButton } from '../../app/components/ui';
+import { Button, PositiveButton, SelectableButton } from '../../app/components/ui';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -135,6 +135,12 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           ))}
         </div>
         <div style={styles.controls}>
+          <SelectableButton
+            onPress={controller.toggleHints}
+            selected={controller.hintState.level !== 'off'}
+          >
+            ヒント
+          </SelectableButton>
           <PositiveButton
             size="large"
             onClick={takeSticks}
@@ -142,6 +148,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
+          <Button onClick={controller.resetGame}>リセット</Button>
         </div>
         {showModal && (
           <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
@@ -150,14 +157,13 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
               <p style={styles.winnerText}>{controller.getDisplayStatus()}</p>
               <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
               <div style={styles.modalButtons}>
-                <Button
-                  variant="secondary"
+                <PositiveButton
                   size="large"
                   data-testid="play-again-button"
                   onClick={handlePlayAgain}
                 >
                   もういっかい
-                </Button>
+                </PositiveButton>
               </div>
             </div>
           </div>

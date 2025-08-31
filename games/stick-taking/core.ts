@@ -13,7 +13,7 @@ export interface GameState {
   winner: Player | null;
   difficulty: Difficulty;
   selectedSticks: { row: number; stickId: number }[];
-  isHintVisible: boolean;
+  hintLevel: number;
 }
 
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
@@ -38,14 +38,7 @@ export function createInitialState(difficulty: Difficulty): GameState {
     winner: null,
     difficulty,
     selectedSticks: [],
-    isHintVisible: false,
-  };
-}
-
-export function toggleHintVisibility(currentState: GameState): GameState {
-  return {
-    ...currentState,
-    isHintVisible: !currentState.isHintVisible,
+    hintLevel: 0,
   };
 }
 

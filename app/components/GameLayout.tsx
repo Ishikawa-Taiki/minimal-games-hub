@@ -48,7 +48,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   const handleReset = async () => {
     const result = await confirm({
       title: 'かくにん',
-      message: 'いまのゲームは きえちゃうけど ほんとうにいいかな？',
+      message: 'いまのゲームは きえちゃうけど いいかな？',
     });
     if (result) {
       resetGame();
@@ -58,7 +58,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   const handleGoHome = async () => {
     const result = await confirm({
       title: 'かくにん',
-      message: 'ゲームをとめて ホームにもどりますか？',
+      message: 'ゲームをとめて ほーむに もどるけど いいかな？',
     });
     if (result) {
       window.location.href = '/';
@@ -166,7 +166,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         </NegativeButton>
         {renderHintButton()}
         <Button variant="secondary" onClick={handleGoHome}>
-          ホームに戻る
+          ほーむにもどる
         </Button>
       </div>
     </div>
