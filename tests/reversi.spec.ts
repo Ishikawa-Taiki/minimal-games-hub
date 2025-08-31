@@ -81,27 +81,27 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   });
 
-  test('ヒント機能が正しく動作する', async ({ page }) => {
+  test('「おしえて！」機能が正しく動作する', async ({ page }) => {
     const hintButton = page.getByTestId('hint-button');
-    const hintLevelText = hintButton.locator('[data-testid="hint-level-text"]');
     const placeableHint = page.locator('[data-testid="placeable-hint-2-3"]');
     const moveHint = page.locator('[data-testid="cell-2-3"] .moveHint');
 
-    // 初期状態「おけるばしょ」：設置場所ヒントは表示、枚数ヒントは非表示
-    await expect(hintLevelText).toHaveText('(おけるばしょ)');
+    // 初期状態では「おけるばしょ」ヒントのみ表示
     await expect(placeableHint).toBeVisible();
     await expect(moveHint).not.toBeVisible();
 
-    // 「ぜんぶヒント」に切り替え：両方表示
+    // 「おしえて！」をONにする
     await hintButton.click();
-    await expect(hintLevelText).toHaveText('(ぜんぶヒント)');
+
+    // 「ぜんぶヒント」が表示される
     await expect(placeableHint).toBeVisible();
     await expect(moveHint).toBeVisible();
     await expect(moveHint).toHaveText('1');
 
-    // 「おけるばしょ」に戻す：設置場所ヒントは表示、枚数ヒントは非表示
+    // 「おしえて！」をOFFに戻す
     await hintButton.click();
-    await expect(hintLevelText).toHaveText('(おけるばしょ)');
+
+    // 「おけるばしょ」ヒントのみ表示される状態に戻る
     await expect(placeableHint).toBeVisible();
     await expect(moveHint).not.toBeVisible();
   });

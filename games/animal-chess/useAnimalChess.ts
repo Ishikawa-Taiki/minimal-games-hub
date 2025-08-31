@@ -19,14 +19,14 @@ interface AnimalChessGameState extends BaseGameState {
   selectedCell: GameState['selectedCell'];
   selectedCaptureIndex: GameState['selectedCaptureIndex'];
   // ヒント関連
-  hintLevel: 'off' | 'on';
+  hintsEnabled: boolean;
 }
 
 type AnimalChessAction = 
   | { type: 'CELL_CLICK'; row: number; col: number }
   | { type: 'CAPTURE_CLICK'; player: Player; index: number }
   | { type: 'RESET_GAME' }
-  | { type: 'TOGGLE_HINT' };
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean };
 
 function createInitialAnimalChessState(): AnimalChessGameState {
   const coreState = createInitialState();
@@ -41,7 +41,7 @@ function createInitialAnimalChessState(): AnimalChessGameState {
     winner: coreState.status === 'sente_win' ? SENTE : 
             coreState.status === 'gote_win' ? GOTE : null,
     // ヒント関連
-    hintLevel: 'off',
+    hintsEnabled: false,
   };
 }
 
@@ -62,12 +62,12 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
       const newCoreState = handleCellClickCore(coreState, action.row, action.col);
       
       return {
+        ...state,
         board: newCoreState.board,
         currentPlayer: newCoreState.currentPlayer,
         capturedPieces: newCoreState.capturedPieces,
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
-        hintLevel: state.hintLevel,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'sente_win' ? SENTE : 
@@ -90,12 +90,12 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
       const newCoreState = handleCaptureClickCore(coreState, action.player, action.index);
       
       return {
+        ...state,
         board: newCoreState.board,
         currentPlayer: newCoreState.currentPlayer,
         capturedPieces: newCoreState.capturedPieces,
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
-        hintLevel: state.hintLevel,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'sente_win' ? SENTE : 
@@ -106,16 +106,10 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
     case 'RESET_GAME':
       return createInitialAnimalChessState();
     
-    case 'TOGGLE_HINT':
+    case 'SET_HINTS_ENABLED':
       return {
-        board: state.board,
-        currentPlayer: state.currentPlayer,
-        capturedPieces: state.capturedPieces,
-        selectedCell: state.selectedCell,
-        selectedCaptureIndex: state.selectedCaptureIndex,
-        status: state.status,
-        winner: state.winner,
-        hintLevel: state.hintLevel === 'off' ? 'on' : 'off',
+        ...state,
+        hintsEnabled: action.enabled,
       };
     
     default:
@@ -134,8 +128,6 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
     getSelectedCell: () => GameState['selectedCell'];
     getSelectedCaptureIndex: () => GameState['selectedCaptureIndex'];
     getBoard: () => GameState['board'];
-    // ヒント関連
-    getHintLevel: () => 'off' | 'on';
     // 状態表示
     getDisplayStatus: () => string;
     // スコア情報
@@ -147,7 +139,7 @@ export function useAnimalChess(): AnimalChessController {
   
   // ログ機能
   const logger = useGameStateLogger('useAnimalChess', gameState, {
-    hintLevel: gameState.hintLevel,
+    hintsEnabled: gameState.hintsEnabled,
     selectedCell: gameState.selectedCell,
     selectedCaptureIndex: gameState.selectedCaptureIndex,
     capturedPiecesCount: {
@@ -166,12 +158,12 @@ export function useAnimalChess(): AnimalChessController {
       row, 
       col, 
       currentPlayer: gameState.currentPlayer, 
-      hintLevel: gameState.hintLevel,
+      hintsEnabled: gameState.hintsEnabled,
       hasSelectedCell: !!gameState.selectedCell,
       hasSelectedCaptureIndex: !!gameState.selectedCaptureIndex
     });
     dispatch({ type: 'CELL_CLICK', row, col });
-  }, [gameState.currentPlayer, gameState.hintLevel, gameState.selectedCell, gameState.selectedCaptureIndex, logger]);
+  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.selectedCell, gameState.selectedCaptureIndex, logger]);
 
   const handleCaptureClick = useCallback((player: Player, index: number) => {
     logger.log('CAPTURE_CLICK_CALLED', { 
@@ -187,7 +179,7 @@ export function useAnimalChess(): AnimalChessController {
     const highlightedCells: Position[] = [];
     
     // 選択されたセルがある場合、有効な移動先をハイライト
-    if (gameState.hintLevel === 'on' && gameState.selectedCell) {
+    if (gameState.hintsEnabled && gameState.selectedCell) {
       // ここでは簡単な実装として、選択されたセルのみをハイライト
       highlightedCells.push({
         row: gameState.selectedCell.row,
@@ -196,17 +188,17 @@ export function useAnimalChess(): AnimalChessController {
     }
 
     return {
-      level: gameState.hintLevel === 'off' ? 'off' : 'basic',
+      enabled: gameState.hintsEnabled,
       highlightedCells,
       selectedCell: gameState.selectedCell ? 
         { row: gameState.selectedCell.row, col: gameState.selectedCell.col } : null
     };
-  }, [gameState.hintLevel, gameState.selectedCell]);
+  }, [gameState.hintsEnabled, gameState.selectedCell]);
 
-  const toggleHints = useCallback(() => {
-    logger.log('TOGGLE_HINTS_CALLED', { currentLevel: gameState.hintLevel });
-    dispatch({ type: 'TOGGLE_HINT' });
-  }, [gameState.hintLevel, logger]);
+  const setHints = useCallback((enabled: boolean) => {
+    logger.log('SET_HINTS_CALLED', { enabled });
+    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
+  }, [logger]);
 
   // アクセサーメソッド
   const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
@@ -214,7 +206,6 @@ export function useAnimalChess(): AnimalChessController {
   const getSelectedCell = useCallback(() => gameState.selectedCell, [gameState.selectedCell]);
   const getSelectedCaptureIndex = useCallback(() => gameState.selectedCaptureIndex, [gameState.selectedCaptureIndex]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
-  const getHintLevel = useCallback(() => gameState.hintLevel, [gameState.hintLevel]);
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
@@ -254,11 +245,10 @@ export function useAnimalChess(): AnimalChessController {
     getSelectedCell,
     getSelectedCaptureIndex,
     getBoard,
-    getHintLevel,
     getDisplayStatus,
     getScoreInfo,
     // HintableGameController
     hintState,
-    toggleHints,
+    setHints,
   };
 }

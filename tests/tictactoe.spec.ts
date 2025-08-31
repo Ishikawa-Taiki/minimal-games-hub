@@ -92,29 +92,31 @@ test.describe('Tic-Tac-Toe Game', () => {
     expect(status).toBe('Oの番');
   });
 
-  test('should toggle hints and show hint', async ({ page }) => {
+  test('「おしえて！」機能が正しく動作する', async ({ page }) => {
     const hintButton = page.getByTestId('hint-button');
     await expect(hintButton).toBeVisible();
-    await expect(hintButton).toHaveText('ヒント');
+    await expect(hintButton).toContainText('おしえて！');
 
-    // Toggle hint on
+    // 「おしえて！」をONにする
     await hintButton.click();
 
-    // Make moves to create a winning opportunity for O
-    await page.getByTestId('cell-0-0').waitFor();
+    // Oが勝利する状況を作る
     await page.getByTestId('cell-0-0').click(); // O
-    await page.getByTestId('cell-1-0').waitFor();
     await page.getByTestId('cell-1-0').click(); // X
-    await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click(); // O
 
-    // Hint for O should be visible in cell-0-2
+    // Oのリーチのヒントが表示されるはず
     const hintCell = page.getByTestId('cell-0-2');
     const hintCellText = await hintCell.locator('span').textContent();
     expect(hintCellText).toBe('O');
+    await expect(hintCell).toHaveCSS('background-color', 'rgb(254, 249, 195)'); // light yellow
 
-    // Check for hint color
-    await expect(hintCell).toHaveCSS('background-color', 'rgb(254, 249, 195)'); // light yellow from styles.reachingCell
+    // 「おしえて！」をOFFにする
+    await hintButton.click();
+
+    // ヒントが消えることを確認
+    await expect(hintCell.locator('span')).toHaveCount(0);
+    await expect(hintCell).not.toHaveCSS('background-color', 'rgb(254, 249, 195)');
   });
 
   test.describe('Game Over Modal', () => {

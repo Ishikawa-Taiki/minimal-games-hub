@@ -93,9 +93,9 @@ interface AnimalChessProps {
 const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
   const internalController = useAnimalChess();
   const gameController = externalController || internalController;
-  const { gameState, handleCellClick, handleCaptureClick, getHintLevel } = gameController;
+  const { gameState, handleCellClick, handleCaptureClick, hintState } = gameController;
   
-  const showHints = getHintLevel() === 'on';
+  const showHints = hintState.enabled;
   const isGameInProgress = gameState.status === 'playing';
 
   // GameControllerのgameStateをコアロジックのGameState型に変換

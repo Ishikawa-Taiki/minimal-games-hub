@@ -11,7 +11,7 @@ describe('useAnimalChess', () => {
       expect(result.current.gameState.status).toBe('playing');
       expect(result.current.gameState.currentPlayer).toBe(SENTE);
       expect(result.current.gameState.winner).toBeNull();
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
       expect(result.current.getSelectedCell()).toBeNull();
       expect(result.current.getSelectedCaptureIndex()).toBeNull();
     });
@@ -161,23 +161,23 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('ヒント機能', () => {
-    it('ヒントのオン/オフを切り替えられる', () => {
+  describe('「おしえて！」機能', () => {
+    it('ON/OFFを切り替えられる', () => {
       const { result } = renderHook(() => useAnimalChess());
       
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
       
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
-      expect(result.current.getHintLevel()).toBe('on');
+      expect(result.current.gameState.hintsEnabled).toBe(true);
       
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(false);
       });
       
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
     });
 
     it('ヒント状態が正しく更新される', () => {
@@ -185,10 +185,10 @@ describe('useAnimalChess', () => {
       
       // ヒントをオンにする
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
-      expect(result.current.hintState.level).toBe('basic');
+      expect(result.current.hintState.enabled).toBe(true);
       
       // 駒を選択
       act(() => {
@@ -220,7 +220,7 @@ describe('useAnimalChess', () => {
       expect(result.current.gameState.status).toBe('playing');
       expect(result.current.getCurrentPlayer()).toBe(SENTE);
       expect(result.current.getSelectedCell()).toBeNull();
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
     });
   });
 
@@ -263,7 +263,7 @@ describe('useAnimalChess', () => {
       
       // HintableGameController
       expect(result.current.hintState).toBeDefined();
-      expect(result.current.toggleHints).toBeDefined();
+      expect(result.current.setHints).toBeDefined();
     });
 
     it('gameState が BaseGameState インターフェースに準拠している', () => {

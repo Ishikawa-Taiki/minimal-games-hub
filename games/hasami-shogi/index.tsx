@@ -8,6 +8,7 @@ import {
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
 import GameLayout from '../../app/components/GameLayout';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
+import { SelectableButton } from '../../app/components/ui';
 import { styles } from './styles';
 
 // Piece component for the game board
@@ -46,16 +47,16 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     gameState,
     makeMove,
     setWinCondition,
-    getHintLevel,
     getSelectedPiece,
     getValidMoves,
     getPotentialCaptures,
-    toggleHints,
+    setHints,
+    hintState,
     resetGame,
     isGameStarted
   } = controller;
 
-  const hintLevel = getHintLevel();
+  const hintsEnabled = hintState.enabled;
   const responsiveState = useResponsive();
   const isMobileLayout = isMobile(responsiveState);
 
@@ -82,7 +83,7 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     }
 
     // Hint-related styling
-    if (hintLevel === 'on' && selectedPiece) {
+    if (hintsEnabled && selectedPiece) {
       const moveData = validMoves.get(moveKey);
       if (moveData) {
         // Style for valid move destinations
@@ -147,16 +148,13 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
       </div>
 
       <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
-        <button
+        <SelectableButton
           data-testid="hint-button"
-          onClick={toggleHints}
-          style={{
-            ...(isMobileLayout ? styles.resetButton : styles.resetButtonDesktop),
-            backgroundColor: hintLevel === 'on' ? '#4a5568' : '#a0aec0'
-          }}
+          isSelected={hintsEnabled}
+          onStateChange={(isSelected) => setHints(isSelected)}
         >
-          ヒント: {hintLevel === 'on' ? 'ON' : 'OFF'}
-        </button>
+          おしえて！
+        </SelectableButton>
       </div>
 
       {winner && (

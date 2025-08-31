@@ -4,7 +4,6 @@ import { GameState, createInitialState, handleCellClick as handleCellClickCore, 
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 
 // リバーシ固有の状態をBaseGameStateに適合させる
-import { HintLevel } from '../../types/game';
 
 interface ReversiGameState extends BaseGameState {
   board: GameState['board'];
@@ -13,15 +12,14 @@ interface ReversiGameState extends BaseGameState {
   gameStatus: GameState['gameStatus'];
   validMoves: Map<string, [number, number][]>;
   // ヒント関連
-  hintLevel: HintLevel;
+  hintsEnabled: boolean;
   selectedHintCell: [number, number] | null;
 }
 
 type ReversiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
-  | { type: 'TOGGLE_HINT' }
-  | { type: 'SET_HINT_LEVEL'; level: HintLevel }
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
   | { type: 'SET_SELECTED_HINT_CELL'; cell: [number, number] | null }
   | { type: 'HISTORY_GOTO'; index: number };
 
@@ -33,7 +31,7 @@ function createInitialReversiState(): ReversiGameState {
     status: 'playing' as GameStatus,
     winner: null,
     // ヒント関連
-    hintLevel: 'off',
+    hintsEnabled: false,
     selectedHintCell: null,
   };
 }
@@ -75,11 +73,11 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
     
     case 'RESET_GAME':
       return createInitialReversiState();
-    
-    case 'SET_HINT_LEVEL':
+
+    case 'SET_HINTS_ENABLED':
       return {
         ...state,
-        hintLevel: action.level,
+        hintsEnabled: action.enabled,
         selectedHintCell: null, // ヒントレベル変更時は選択をリセット
       };
 
@@ -88,15 +86,6 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
         ...state,
         selectedHintCell: action.cell,
       };
-    
-    case 'TOGGLE_HINT': {
-      const nextLevel = state.hintLevel === 'off' ? 'basic' : 'off';
-      return {
-        ...state,
-        hintLevel: nextLevel,
-        selectedHintCell: null,
-      };
-    }
     
     case 'HISTORY_GOTO': {
       // 履歴からの状態復元は外部で処理されるため、現在の状態を返す
@@ -113,8 +102,6 @@ export type ReversiController = BaseGameController<ReversiGameState, ReversiActi
   HistoryGameController<ReversiGameState, ReversiAction> & {
     // リバーシ固有のメソッド
     makeMove: (row: number, col: number) => void;
-    toggleHintLevel: () => void;
-    setHintLevel: (level: HintLevel) => void;
     setSelectedHintCell: (cell: [number, number] | null) => void;
     // 状態アクセサー
     getValidMoves: () => Map<string, [number, number][]>;
@@ -135,7 +122,7 @@ export function useReversi(): ReversiController {
   const logger = useGameStateLogger('useReversi', gameState, {
     historyLength: gameHistory.length,
     currentHistoryIndex,
-    hintLevel: gameState.hintLevel,
+    hintsEnabled: gameState.hintsEnabled,
     validMovesCount: gameState.validMoves.size
   });
 
@@ -147,10 +134,10 @@ export function useReversi(): ReversiController {
   }, [logger]);
 
   const makeMove = useCallback((row: number, col: number) => {
-    logger.log('MAKE_MOVE_CALLED', { row, col, currentPlayer: gameState.currentPlayer, hintLevel: gameState.hintLevel });
+    logger.log('MAKE_MOVE_CALLED', { row, col, currentPlayer: gameState.currentPlayer, hintsEnabled: gameState.hintsEnabled });
 
-    // フルヒントモードの場合の特別な処理
-    if (gameState.hintLevel === 'basic') {
+    // 「おしえて！」がONの場合の特別な処理（2回タップ）
+    if (gameState.hintsEnabled) {
       if (gameState.selectedHintCell &&
           gameState.selectedHintCell[0] === row &&
           gameState.selectedHintCell[1] === col) {
@@ -180,22 +167,6 @@ export function useReversi(): ReversiController {
     }
   }, [gameState, currentHistoryIndex, gameHistory, logger]);
 
-  const toggleHintLevel = useCallback(() => {
-    logger.log('TOGGLE_HINT_CALLED', { currentLevel: gameState.hintLevel });
-    const newState = reversiReducer(gameState, { type: 'TOGGLE_HINT' });
-    const newHistory = [...gameHistory];
-    newHistory[currentHistoryIndex] = newState;
-    setGameHistory(newHistory);
-  }, [gameState, currentHistoryIndex, gameHistory, logger]);
-
-  const setHintLevel = useCallback((level: HintLevel) => {
-    logger.log('SET_HINT_LEVEL_CALLED', { level });
-    const newState = reversiReducer(gameState, { type: 'SET_HINT_LEVEL', level });
-    const newHistory = [...gameHistory];
-    newHistory[currentHistoryIndex] = newState;
-    setGameHistory(newHistory);
-  }, [gameState, currentHistoryIndex, gameHistory, logger]);
-
   const setSelectedHintCell = useCallback((cell: [number, number] | null) => {
     logger.log('SET_SELECTED_HINT_CELL_CALLED', { cell });
     const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell });
@@ -203,19 +174,23 @@ export function useReversi(): ReversiController {
   }, [gameState, currentHistoryIndex, logger]);
 
   // ヒント関連
+  const setHints = useCallback((enabled: boolean) => {
+    logger.log('SET_HINTS_ENABLED_CALLED', { enabled });
+    const newState = reversiReducer(gameState, { type: 'SET_HINTS_ENABLED', enabled });
+    const newHistory = [...gameHistory];
+    newHistory[currentHistoryIndex] = newState;
+    setGameHistory(newHistory);
+  }, [gameState, currentHistoryIndex, gameHistory, logger]);
+
   const hintState = useMemo(() => ({
-    level: gameState.hintLevel,
+    enabled: gameState.hintsEnabled,
     highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
       const [row, col] = key.split(',').map(Number);
       return { row, col };
     }),
     selectedCell: gameState.selectedHintCell ?
       { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
-  }), [gameState.hintLevel, gameState.validMoves, gameState.selectedHintCell]);
-
-  const toggleHints = useCallback(() => {
-    toggleHintLevel();
-  }, [toggleHintLevel]);
+  }), [gameState.hintsEnabled, gameState.validMoves, gameState.selectedHintCell]);
 
   // 履歴関連
   const canUndo = currentHistoryIndex > 0;
@@ -285,8 +260,6 @@ export function useReversi(): ReversiController {
     dispatch: () => {}, // dispatchは直接使用しない
     resetGame,
     makeMove,
-    toggleHintLevel,
-    setHintLevel,
     setSelectedHintCell,
     getValidMoves,
     getCurrentPlayer,
@@ -294,7 +267,7 @@ export function useReversi(): ReversiController {
     getDisplayStatus,
     // HintableGameController
     hintState,
-    toggleHints,
+    setHints,
     // HistoryGameController
     undoMove,
     redoMove,

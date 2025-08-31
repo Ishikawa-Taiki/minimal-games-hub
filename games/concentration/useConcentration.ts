@@ -21,15 +21,14 @@ interface ConcentrationGameState extends BaseGameState {
   gameStatus: GameState['status'];
   difficulty: Difficulty;
   // ヒント関連
-  hintLevel: 'off' | 'on';
-  showHints: boolean;
+  hintsEnabled: boolean;
 }
 
 type ConcentrationAction = 
   | { type: 'CARD_CLICK'; index: number }
   | { type: 'CLEAR_NON_MATCHING' }
   | { type: 'RESET_GAME'; difficulty?: Difficulty }
-  | { type: 'TOGGLE_HINT' }
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
   | { type: 'SET_DIFFICULTY'; difficulty: Difficulty };
 
 function createInitialConcentrationState(difficulty: Difficulty = 'easy'): ConcentrationGameState {
@@ -49,8 +48,7 @@ function createInitialConcentrationState(difficulty: Difficulty = 'easy'): Conce
             coreState.winner === 1 ? 'player1' :
             coreState.winner === 2 ? 'player2' : null,
     // ヒント関連
-    hintLevel: 'off',
-    showHints: false,
+    hintsEnabled: false,
   };
 }
 
@@ -125,11 +123,10 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
     case 'RESET_GAME':
       return createInitialConcentrationState(action.difficulty || state.difficulty);
     
-    case 'TOGGLE_HINT':
+    case 'SET_HINTS_ENABLED':
       return {
         ...state,
-        hintLevel: state.hintLevel === 'off' ? 'on' : 'off',
-        showHints: !state.showHints,
+        hintsEnabled: action.enabled,
       };
     
     case 'SET_DIFFICULTY':
@@ -156,9 +153,6 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     getHintedIndices: () => number[];
     getBoard: () => GameState['board'];
     getDifficulty: () => Difficulty;
-    // ヒント関連
-    getHintLevel: () => 'off' | 'on';
-    getShowHints: () => boolean;
     // 状態表示
     getDisplayStatus: () => string;
     // スコア情報
@@ -173,8 +167,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   
   // ログ機能
   const logger = useGameStateLogger('useConcentration', gameState, {
-    hintLevel: gameState.hintLevel,
-    showHints: gameState.showHints,
+    hintsEnabled: gameState.hintsEnabled,
     difficulty: gameState.difficulty,
     flippedCount: gameState.flippedIndices.length,
     revealedCount: gameState.revealedIndices.length,
@@ -217,7 +210,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
       logger.log('CARD_CLICK_CALLED', { 
         index, 
         currentPlayer: gameState.currentPlayer, 
-        hintLevel: gameState.hintLevel,
+        hintsEnabled: gameState.hintsEnabled,
         flippedCount: gameState.flippedIndices.length,
         isCardFlipped: gameState.board[index]?.isFlipped,
         isCardMatched: gameState.board[index]?.isMatched
@@ -226,7 +219,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
       console.warn('Logger error:', error);
     }
     dispatch({ type: 'CARD_CLICK', index });
-  }, [gameState.currentPlayer, gameState.hintLevel, gameState.flippedIndices.length, gameState.gameStatus, gameState.board, logger]);
+  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.flippedIndices.length, gameState.gameStatus, gameState.board, logger]);
 
   const clearNonMatchingCards = useCallback(() => {
     logger.log('CLEAR_NON_MATCHING_CALLED', {});
@@ -247,7 +240,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     const highlightedCells: Position[] = [];
     
     // ヒントが有効な場合、ヒント対象のカードをハイライト
-    if (gameState.hintLevel === 'on' && gameState.showHints) {
+    if (gameState.hintsEnabled) {
       gameState.hintedIndices.forEach(index => {
         const row = Math.floor(index / getBoardColumns(gameState.difficulty));
         const col = index % getBoardColumns(gameState.difficulty);
@@ -256,15 +249,15 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     }
 
     return {
-      level: gameState.hintLevel === 'off' ? 'off' : 'basic',
+      enabled: gameState.hintsEnabled,
       highlightedCells,
     };
-  }, [gameState.hintLevel, gameState.showHints, gameState.hintedIndices, gameState.difficulty]);
+  }, [gameState.hintsEnabled, gameState.hintedIndices, gameState.difficulty]);
 
-  const toggleHints = useCallback(() => {
-    logger.log('TOGGLE_HINTS_CALLED', { currentLevel: gameState.hintLevel, currentShow: gameState.showHints });
-    dispatch({ type: 'TOGGLE_HINT' });
-  }, [gameState.hintLevel, gameState.showHints, logger]);
+  const setHints = useCallback((enabled: boolean) => {
+    logger.log('SET_HINTS_CALLED', { enabled });
+    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
+  }, [logger]);
 
   // アクセサーメソッド
   const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
@@ -274,8 +267,6 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   const getHintedIndices = useCallback(() => gameState.hintedIndices, [gameState.hintedIndices]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
   const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
-  const getHintLevel = useCallback(() => gameState.hintLevel, [gameState.hintLevel]);
-  const getShowHints = useCallback(() => gameState.showHints, [gameState.showHints]);
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
@@ -337,15 +328,13 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getHintedIndices,
     getBoard,
     getDifficulty,
-    getHintLevel,
-    getShowHints,
     getDisplayStatus,
     getScoreInfo,
     isGameStarted,
     isEvaluating,
     // HintableGameController
     hintState,
-    toggleHints,
+    setHints,
   };
 }
 

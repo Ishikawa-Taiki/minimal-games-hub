@@ -15,13 +15,13 @@ interface HasamiShogiGameState extends BaseGameState {
   capturedPieces: GameState['capturedPieces'];
   winCondition: GameState['winCondition'];
   // ヒント関連
-  hintLevel: 'off' | 'on';
+  hintsEnabled: boolean;
 }
 
 type HasamiShogiAction = 
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
-  | { type: 'TOGGLE_HINT' }
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
   | { type: 'SET_WIN_CONDITION'; winCondition: WinCondition };
 
 function createInitialHasamiShogiState(): HasamiShogiGameState {
@@ -32,7 +32,7 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
     status: 'playing' as GameStatus,
     winner: null,
     // ヒント関連
-    hintLevel: 'off',
+    hintsEnabled: false,
   };
 }
 
@@ -66,10 +66,10 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
     case 'RESET_GAME':
       return createInitialHasamiShogiState();
     
-    case 'TOGGLE_HINT':
+    case 'SET_HINTS_ENABLED':
       return {
         ...state,
-        hintLevel: state.hintLevel === 'off' ? 'on' : 'off',
+        hintsEnabled: action.enabled,
       };
     
     case 'SET_WIN_CONDITION': {
@@ -114,8 +114,6 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
     isGameStarted: () => boolean;
-    // ヒント関連
-    getHintLevel: () => 'off' | 'on';
     // 状態表示
     getDisplayStatus: () => string;
     // スコア情報
@@ -127,7 +125,7 @@ export function useHasamiShogi(): HasamiShogiController {
   
   // ログ機能
   const logger = useGameStateLogger('useHasamiShogi', gameState, {
-    hintLevel: gameState.hintLevel,
+    hintsEnabled: gameState.hintsEnabled,
     validMovesCount: gameState.validMoves.size,
     capturedPieces: gameState.capturedPieces,
     winCondition: gameState.winCondition,
@@ -143,11 +141,11 @@ export function useHasamiShogi(): HasamiShogiController {
       row, 
       col, 
       currentPlayer: gameState.currentPlayer, 
-      hintLevel: gameState.hintLevel,
+      hintsEnabled: gameState.hintsEnabled,
       hasSelectedPiece: !!gameState.selectedPiece
     });
     dispatch({ type: 'MAKE_MOVE', row, col });
-  }, [gameState.currentPlayer, gameState.hintLevel, gameState.selectedPiece, logger]);
+  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.selectedPiece, logger]);
 
   const setWinCondition = useCallback((winCondition: WinCondition) => {
     logger.log('SET_WIN_CONDITION_CALLED', { winCondition });
@@ -156,19 +154,19 @@ export function useHasamiShogi(): HasamiShogiController {
 
   // ヒント関連
   const hintState: HintState = useMemo(() => ({
-    level: gameState.hintLevel === 'off' ? 'off' : 'basic',
+    enabled: gameState.hintsEnabled,
     highlightedCells: gameState.selectedPiece ? Array.from(gameState.validMoves.keys()).map(key => {
       const [row, col] = key.split(',').map(Number);
       return { row, col };
     }) : [],
     selectedCell: gameState.selectedPiece ? 
       { row: gameState.selectedPiece.r, col: gameState.selectedPiece.c } : null
-  }), [gameState.hintLevel, gameState.validMoves, gameState.selectedPiece]);
+  }), [gameState.hintsEnabled, gameState.validMoves, gameState.selectedPiece]);
 
-  const toggleHints = useCallback(() => {
-    logger.log('TOGGLE_HINTS_CALLED', { currentLevel: gameState.hintLevel });
-    dispatch({ type: 'TOGGLE_HINT' });
-  }, [gameState.hintLevel, logger]);
+  const setHints = useCallback((enabled: boolean) => {
+    logger.log('SET_HINTS_CALLED', { enabled });
+    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
+  }, [logger]);
 
   // アクセサーメソッド
   const getValidMoves = useCallback(() => gameState.validMoves, [gameState.validMoves]);
@@ -177,7 +175,6 @@ export function useHasamiShogi(): HasamiShogiController {
   const getWinCondition = useCallback(() => gameState.winCondition, [gameState.winCondition]);
   const getSelectedPiece = useCallback(() => gameState.selectedPiece, [gameState.selectedPiece]);
   const getPotentialCaptures = useCallback(() => gameState.potentialCaptures, [gameState.potentialCaptures]);
-  const getHintLevel = useCallback(() => gameState.hintLevel, [gameState.hintLevel]);
 
   const isGameStarted = useCallback(() => {
     const initialState = createInitialState();
@@ -229,12 +226,11 @@ export function useHasamiShogi(): HasamiShogiController {
     getWinCondition,
     getSelectedPiece,
     getPotentialCaptures,
-    getHintLevel,
     isGameStarted,
     getDisplayStatus,
     getScoreInfo,
     // HintableGameController
     hintState,
-    toggleHints,
+    setHints,
   };
 }

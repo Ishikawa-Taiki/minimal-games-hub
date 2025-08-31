@@ -136,10 +136,11 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
         </div>
         <div style={styles.controls}>
           <SelectableButton
-            isSelected={controller.hintState.level !== 'off'}
-            onStateChange={() => controller.toggleHints()}
+            data-testid="hint-button"
+            isSelected={controller.hintState.enabled}
+            onStateChange={(isSelected) => controller.setHints(isSelected)}
           >
-            ヒント
+            おしえて！
           </SelectableButton>
           <PositiveButton
             size="large"

@@ -18,7 +18,7 @@ import { styles } from './styles';
 type TicTacToeAction = 
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
-  | { type: 'TOGGLE_HINTS' };
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean };
 
 // リデューサー関数
 function ticTacToeReducer(state: GameState, action: TicTacToeAction): GameState {
@@ -28,8 +28,8 @@ function ticTacToeReducer(state: GameState, action: TicTacToeAction): GameState 
       return newState || state;
     case 'RESET_GAME':
       return createInitialState();
-    case 'TOGGLE_HINTS':
-      return { ...state, hintLevel: state.hintLevel === 0 ? 1 : 0 };
+    case 'SET_HINTS_ENABLED':
+      return { ...state, hintLevel: action.enabled ? 1 : 0 };
     default:
       return state;
   }
@@ -51,8 +51,8 @@ function useTicTacToeController(): HintableGameController<TicTacToeGameState, Ti
     dispatch({ type: 'MAKE_MOVE', row, col });
   };
   
-  const toggleHints = () => {
-    dispatch({ type: 'TOGGLE_HINTS' });
+  const setHints = (enabled: boolean) => {
+    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   };
   
   const getDisplayStatus = () => {
@@ -70,7 +70,7 @@ function useTicTacToeController(): HintableGameController<TicTacToeGameState, Ti
   };
 
   const hintState: HintState = {
-    level: legacyState.hintLevel > 0 ? 'basic' : 'off',
+    enabled: legacyState.hintLevel > 0,
   };
   
   return {
@@ -78,7 +78,7 @@ function useTicTacToeController(): HintableGameController<TicTacToeGameState, Ti
     dispatch,
     resetGame,
     makeMove,
-    toggleHints,
+    setHints,
     getDisplayStatus,
     hintState,
   };
@@ -127,7 +127,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
     if (legacyState.winningLines && legacyState.winningLines.some(line => line.includes(index))) {
       return styles.winningCell.backgroundColor as string;
     }
-    if (controller.hintState.level !== 'off') {
+    if (controller.hintState.enabled) {
       if (isBothPlayersReaching(index)) {
         return styles.bothReachingCell.backgroundColor as string;
       } else if (legacyState.reachingLines.some(rl => rl.index === index)) {
@@ -162,7 +162,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
               disabled={!!cell || !!controller.gameState.winner || legacyState.isDraw}
             >
               {cell ? cell : (
-                controller.hintState.level !== 'off' && reachingPlayerMark && !isBothPlayersReaching(index) && (
+                controller.hintState.enabled && reachingPlayerMark && !isBothPlayersReaching(index) && (
                   <span style={styles.faintMark}>
                     {reachingPlayerMark}
                   </span>
@@ -177,10 +177,10 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
       <div style={styles.gameControls}>
         <SelectableButton
           data-testid="hint-button"
-          isSelected={controller.hintState.level !== 'off'}
-          onStateChange={() => controller.toggleHints()}
+          isSelected={controller.hintState.enabled}
+          onStateChange={(isSelected) => controller.setHints(isSelected)}
         >
-          ヒント
+          おしえて！
         </SelectableButton>
       </div>
     </>

@@ -22,9 +22,10 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
 
     test('操作ボタンが正しく表示される', async ({ page }) => {
-      // 「ヒント」ボタンが存在することを確認 (これはゲームコンポーネント側にある)
+      // 「おしえて！」ボタンが存在することを確認
       const hintButton = page.locator('[data-testid="hint-button"]');
       await expect(hintButton).toBeVisible();
+      await expect(hintButton).toContainText('おしえて！');
     });
   });
 
@@ -128,25 +129,25 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
 
   test.describe('ゲームリセット機能', () => {
     // This test is being repurposed to test the hint button, as the reset button is not available during gameplay.
-    test('ヒントボタンが正しくトグルされる', async ({ page }) => {
+    test('「おしえて！」ボタンが正しくトグルされる', async ({ page }) => {
       const hintButton = page.locator('[data-testid="hint-button"]');
 
-      // Initial state
-      await expect(hintButton).toContainText('ヒント: OFF');
+      // Initial state (ghost variant)
+      await expect(hintButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 
-      // Toggle ON
+      // Toggle ON (success variant)
       await hintButton.click();
-      await expect(hintButton).toContainText('ヒント: ON');
+      await expect(hintButton).toHaveCSS('background-color', 'rgb(22, 163, 74)');
 
-      // Toggle OFF
+      // Toggle OFF (ghost variant)
       await hintButton.click();
-      await expect(hintButton).toContainText('ヒント: OFF');
+      await expect(hintButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     });
   });
 
-  test.describe('ヒント機能', () => {
-    test('ヒントボタンをONにすると、移動可能なマスがハイライトされる', async ({ page }) => {
-      // ヒントをONにする
+  test.describe('「おしえて！」機能', () => {
+    test('「おしえて！」をONにすると、移動可能なマスがハイライトされる', async ({ page }) => {
+      // 「おしえて！」をONにする
       await page.locator('[data-testid="hint-button"]').click();
 
       // 駒を選択
@@ -157,8 +158,8 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       await expect(movableCell).toHaveCSS('background-color', 'rgb(154, 230, 180)'); // #9ae6b4 (green)
     });
 
-    test('ヒントがOFFの場合、移動可能なマスはハイライトされない', async ({ page }) => {
-      // ヒントがOFFであることを確認（デフォルト）
+    test('「おしえて！」がOFFの場合、移動可能なマスはハイライトされない', async ({ page }) => {
+      // 「おしえて！」がOFFであることを確認（デフォルト）
 
       // 駒を選択
       await page.locator('[data-testid="cell-8-0"]').click();
