@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '../../types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
@@ -44,6 +45,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 }: ControlPanelProps<TState, TAction>) {
   const { gameState, resetGame } = gameController;
   const { confirm } = useDialog();
+  const router = useRouter();
 
   const handleReset = async () => {
     const result = await confirm({
@@ -58,10 +60,10 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   const handleGoHome = async () => {
     const result = await confirm({
       title: 'かくにん',
-      message: 'ゲームをとめて ほーむに もどるけど いいかな？',
+      message: 'ゲームをとめて ホームに もどるけど いいかな？',
     });
     if (result) {
-      window.location.href = '/';
+      router.push('/');
     }
   };
 
@@ -159,7 +161,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
-        <Button variant="ghost" onClick={() => window.location.href = `/games/${slug}/rules`}>
+        <Button variant="ghost" onClick={() => router.push(`/games/${slug}/rules`)}>
           ルールを見る
         </Button>
         <NegativeButton onClick={handleReset} data-testid="control-panel-reset-button">
@@ -167,7 +169,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         </NegativeButton>
         {renderHintButton()}
         <Button variant="secondary" onClick={handleGoHome}>
-          ほーむにもどる
+          ホームにもどる
         </Button>
       </div>
     </div>
