@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { BaseGameState, GameManifest } from '@/types/game';
 import GameLoader from './GameLoader';
 import GameLayout from '@/app/components/GameLayout';
-import TicTacToe, { useTicTacToeController } from '@/games/tictactoe/index';
+import TicTacToe, { useTicTacToe } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
 import Concentration, { useConcentration } from '@/games/concentration/index';
 import StickTaking, { useStickTaking } from '@/games/stick-taking';
@@ -18,7 +18,7 @@ interface GameClientPageProps {
 
 // 三目並べ用の新しいレイアウト対応コンポーネント
 const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, slug }: GameClientPageProps) {
-  const controller = useTicTacToeController();
+  const controller = useTicTacToe();
   
   return (
     <GameLayout 
