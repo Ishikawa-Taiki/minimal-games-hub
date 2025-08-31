@@ -8,9 +8,9 @@ interface GameStateDebuggerProps {
   position?: 'top-right' | 'bottom-right' | 'bottom-left' | 'top-left';
 }
 
-const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({ 
-  isVisible = false, 
-  position = 'bottom-right' 
+const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
+  isVisible = false,
+  position = 'bottom-right'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -124,7 +124,7 @@ const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
     <div style={debuggerStyle}>
       <div style={headerStyle}>
         <span>🐛 Game State Debugger</span>
-        <button 
+        <button
           style={buttonStyle}
           onClick={() => setIsOpen(!isOpen)}
         >

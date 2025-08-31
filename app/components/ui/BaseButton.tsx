@@ -43,7 +43,6 @@ export interface BaseButtonProps {
   fullWidth?: boolean;
   fixedWidth?: number;
   ariaLabel?: string;
-  'data-testid'?: string;
 }
 
 export function BaseButton({
@@ -55,7 +54,6 @@ export function BaseButton({
   fullWidth = false,
   fixedWidth,
   ariaLabel,
-  'data-testid': dataTestId,
 }: BaseButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
 
