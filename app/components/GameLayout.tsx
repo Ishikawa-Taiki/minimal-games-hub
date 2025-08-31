@@ -132,13 +132,12 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   // ヒント機能のボタン
   const renderHintButton = () => {
     const hintController = gameController as HintableGameController<TState, TAction>;
-    if (hintController.toggleHints && hintController.hintState) {
-      const isHintSelected = hintController.hintState.level === 'basic';
+    if (hintController.setHints && hintController.hintState) {
       return (
         <SelectableButton
-          isSelected={isHintSelected}
-          onStateChange={() => hintController.toggleHints()}
-          ariaLabel="ヒントの表示を切り替える"
+          isSelected={hintController.hintState.enabled}
+          onStateChange={(isSelected) => hintController.setHints(isSelected)}
+          ariaLabel="おしえて！機能のON/OFFを切り替える"
           data-testid="control-panel-hint-button"
         >
           おしえて！

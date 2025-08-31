@@ -94,24 +94,25 @@ test.describe('棒消しゲーム', () => {
   //   await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
   // });
 
-  // TODO: GameLayoutとの連携起因でコンポーネントが再レンダリングされずテストが失敗する。要調査。
-  // test('ヒントボタンが機能すること', async ({ page }) => {
-  //   await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
+  test('「おしえて！」機能が正しく動作すること', async ({ page }) => {
+    await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
 
-  //   // PC view
-  //   await page.setViewportSize({ width: 1280, height: 720 });
-  //   const hintButton = page.getByTestId('control-panel-hint-button');
-  //   await expect(hintButton).toBeVisible();
-  //   await expect(page.getByText('のこりのぼう')).not.toBeVisible();
-  //   await hintButton.click();
-  //   await expect(page.getByText('のこりのぼう')).toBeVisible();
-  //   await expect(page.getByText('かたまりの数')).toBeVisible();
+    const hintButton = page.getByTestId('hint-button');
+    await expect(hintButton).toBeVisible();
 
-  //   // Mobile view
-  //   await page.setViewportSize({ width: 375, height: 667 });
-  //   const fab = page.getByTestId('fab');
-  //   await fab.click();
-  //   const mobileHintButton = page.getByTestId('bottom-sheet-hint-button');
-  //   await expect(mobileHintButton).toBeVisible();
-  // });
+    // スコア情報（ヒント）が最初は表示されていないことを確認
+    const scoreInfo = page.locator('div:text("のこりのぼう")');
+    await expect(scoreInfo).not.toBeVisible();
+
+    // 「おしえて！」ボタンをクリック
+    await hintButton.click();
+
+    // スコア情報が表示されることを確認
+    await expect(page.getByText('のこりのぼう: 6本')).toBeVisible();
+    await expect(page.getByText('かたまりの数: 3個')).toBeVisible();
+
+    // もう一度クリックして非表示にする
+    await hintButton.click();
+    await expect(scoreInfo).not.toBeVisible();
+  });
 });

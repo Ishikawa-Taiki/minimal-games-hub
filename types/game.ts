@@ -39,9 +39,6 @@ export interface BaseGameController<TState extends BaseGameState, TAction> {
   getScoreInfo?: () => ScoreInfo | null;
 }
 
-// ヒント機能の共通型定義
-export type HintLevel = 'off' | 'basic';
-
 // 位置情報の共通型
 export interface Position {
   row: number;
@@ -58,7 +55,7 @@ export interface HintOverlayData {
 
 // ヒント機能の状態管理
 export interface HintState {
-  level: HintLevel;
+  enabled: boolean;
   // ゲーム固有のヒント表示データ
   highlightedCells?: Position[]; // ハイライト対象のセル
   overlayData?: HintOverlayData[]; // オーバーレイ表示データ
@@ -79,7 +76,7 @@ export interface HistoryGameState extends BaseGameState {
 // ヒント機能付きコントローラー
 export interface HintableGameController<TState extends BaseGameState, TAction> 
   extends BaseGameController<TState, TAction> {
-  toggleHints: () => void;
+  setHints: (enabled: boolean) => void;
   hintState: HintState;
   clearHints?: () => void;
 }

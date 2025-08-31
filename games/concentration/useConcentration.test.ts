@@ -184,21 +184,19 @@ describe('useConcentration', () => {
     });
   });
 
-  describe('ヒント機能', () => {
-    it('ヒントを切り替えできる', () => {
+  describe('「おしえて！」機能', () => {
+    it('ON/OFFを切り替えできる', () => {
       const { result } = renderHook(() => useConcentration());
       
-      expect(result.current.getHintLevel()).toBe('off');
-      expect(result.current.getShowHints()).toBe(false);
-      expect(result.current.hintState.level).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
+      expect(result.current.hintState.enabled).toBe(false);
       
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
-      expect(result.current.getHintLevel()).toBe('on');
-      expect(result.current.getShowHints()).toBe(true);
-      expect(result.current.hintState.level).toBe('basic');
+      expect(result.current.gameState.hintsEnabled).toBe(true);
+      expect(result.current.hintState.enabled).toBe(true);
     });
 
     it('ヒントが有効な場合、ハイライト対象のセルが設定される', () => {
@@ -206,7 +204,7 @@ describe('useConcentration', () => {
       
       // ヒントを有効にする
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
       // カードをいくつかめくってヒント状態を作る
@@ -303,10 +301,10 @@ describe('useConcentration', () => {
       
       // 必須プロパティの存在確認
       expect(result.current.hintState).toBeDefined();
-      expect(typeof result.current.toggleHints).toBe('function');
+      expect(typeof result.current.setHints).toBe('function');
       
       // hintState の構造確認
-      expect(result.current.hintState.level).toBeDefined();
+      expect(result.current.hintState.enabled).toBeDefined();
       expect(result.current.hintState.highlightedCells).toBeDefined();
     });
   });

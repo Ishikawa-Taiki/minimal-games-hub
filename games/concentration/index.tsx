@@ -20,9 +20,9 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     getDifficulty,
     getBoard,
     getHintedIndices,
-    getShowHints,
     isGameStarted,
     resetGame,
+    hintState,
   } = gameController;
 
   const { screenWidth } = useResponsive();
@@ -46,7 +46,7 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
   const difficulty = getDifficulty();
   const board = getBoard();
   const hintedIndices = getHintedIndices();
-  const showHints = getShowHints();
+  const showHints = hintState.enabled;
 
   const getSuitSymbol = (suit: Suit | 'Joker'): string => {
     if (suit === 'S') return '♠';

@@ -139,31 +139,31 @@ describe('useReversi Hook', () => {
     expect(result.current.gameState.scores.WHITE).toBe(2);
   });
 
-  it('ヒント機能が正しく動作する', () => {
+  it('「おしえて！」機能が正しく動作する', () => {
     const { result } = renderHook(() => useReversi());
 
-    // 初期状態は 'off'
-    expect(result.current.gameState.hintLevel).toBe('off');
+    // 初期状態は false
+    expect(result.current.gameState.hintsEnabled).toBe(false);
     
-    // ヒントを 'basic' に切り替え
+    // ヒントを true に切り替え
     act(() => {
-      result.current.toggleHints();
+      result.current.setHints(true);
     });
-    expect(result.current.gameState.hintLevel).toBe('basic');
+    expect(result.current.gameState.hintsEnabled).toBe(true);
     
-    // ヒントを 'off' に戻す
+    // ヒントを false に戻す
     act(() => {
-      result.current.toggleHints();
+      result.current.setHints(false);
     });
-    expect(result.current.gameState.hintLevel).toBe('off');
+    expect(result.current.gameState.hintsEnabled).toBe(false);
   });
 
-  it('フルヒントモードで2回タップが必要', async () => {
+  it('「おしえて！」モードで2回タップが必要', async () => {
     const { result } = renderHook(() => useReversi());
     
-    // フルヒントモード('basic')に設定
+    // 「おしえて！」モードを有効にする
     act(() => {
-      result.current.setHintLevel('basic');
+      result.current.setHints(true);
     });
     
     // 1回目のタップ（セル選択）

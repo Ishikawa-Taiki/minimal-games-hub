@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  HintLevel,
   Position,
   HintOverlayData,
   HintState,
@@ -12,11 +11,6 @@ import {
 } from './game';
 
 describe('ヒント機能の型定義', () => {
-  it('HintLevel型が正しく定義されている', () => {
-    const levels: HintLevel[] = ['off', 'basic', 'advanced'];
-    expect(levels).toHaveLength(3);
-  });
-
   it('Position型が正しく定義されている', () => {
     const position: Position = { row: 1, col: 2 };
     expect(position.row).toBe(1);
@@ -38,7 +32,7 @@ describe('ヒント機能の型定義', () => {
 
   it('HintState型が正しく定義されている', () => {
     const hintState: HintState = {
-      level: 'basic',
+      enabled: true,
       highlightedCells: [{ row: 1, col: 1 }],
       overlayData: [{
         position: { row: 2, col: 2 },
@@ -48,7 +42,7 @@ describe('ヒント機能の型定義', () => {
       }],
       selectedCell: { row: 3, col: 3 }
     };
-    expect(hintState.level).toBe('basic');
+    expect(hintState.enabled).toBe(true);
     expect(hintState.highlightedCells).toHaveLength(1);
     expect(hintState.overlayData).toHaveLength(1);
     expect(hintState.selectedCell?.row).toBe(3);
@@ -60,12 +54,12 @@ describe('ヒント機能の型定義', () => {
       currentPlayer: 'player1',
       winner: null,
       hints: {
-        level: 'advanced',
+        enabled: true,
         highlightedCells: []
       }
     };
     expect(gameState.status).toBe('playing');
-    expect(gameState.hints.level).toBe('advanced');
+    expect(gameState.hints.enabled).toBe(true);
   });
 
   it('HintableGameController型が正しく定義されている', () => {
@@ -75,19 +69,19 @@ describe('ヒント機能の型定義', () => {
         status: 'playing',
         currentPlayer: 'player1',
         winner: null,
-        hints: { level: 'off' }
+        hints: { enabled: false }
       },
       dispatch: () => {},
       resetGame: () => {},
       getDisplayStatus: () => 'dummy status',
-      toggleHints: () => {},
-      hintState: { level: 'off' },
+      setHints: () => {},
+      hintState: { enabled: false },
       clearHints: () => {}
     };
 
     expect(mockController.gameState.status).toBe('playing');
-    expect(mockController.hintState.level).toBe('off');
-    expect(typeof mockController.toggleHints).toBe('function');
+    expect(mockController.hintState.enabled).toBe(false);
+    expect(typeof mockController.setHints).toBe('function');
     expect(typeof mockController.clearHints).toBe('function');
   });
 
@@ -106,13 +100,13 @@ describe('ヒント機能の型定義', () => {
         status: 'playing',
         currentPlayer: 'player1',
         winner: null,
-        hints: { level: 'basic' }
+        hints: { enabled: true }
       },
       dispatch: () => {},
       resetGame: () => {},
       getDisplayStatus: () => 'dummy status',
-      toggleHints: () => {},
-      hintState: { level: 'basic' }
+      setHints: () => {},
+      hintState: { enabled: true }
     };
 
     // GameController型として扱える

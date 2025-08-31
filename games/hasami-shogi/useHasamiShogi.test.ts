@@ -11,7 +11,7 @@ describe('useHasamiShogi', () => {
       expect(result.current.gameState.status).toBe('playing');
       expect(result.current.gameState.currentPlayer).toBe('PLAYER1');
       expect(result.current.gameState.winner).toBeNull();
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
       expect(result.current.getWinCondition()).toBe('standard');
       expect(result.current.getCapturedPieces()).toEqual({ PLAYER1: 0, PLAYER2: 0 });
     });
@@ -46,10 +46,10 @@ describe('useHasamiShogi', () => {
       
       // ヒントをオンにして状態を変更
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
-      expect(result.current.getHintLevel()).toBe('on');
+      expect(result.current.gameState.hintsEnabled).toBe(true);
       
       // リセット実行
       act(() => {
@@ -59,31 +59,31 @@ describe('useHasamiShogi', () => {
       expect(result.current.gameState.status).toBe('playing');
       expect(result.current.gameState.currentPlayer).toBe('PLAYER1');
       expect(result.current.gameState.winner).toBeNull();
-      expect(result.current.getHintLevel()).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
       expect(result.current.getCapturedPieces()).toEqual({ PLAYER1: 0, PLAYER2: 0 });
     });
   });
 
-  describe('ヒント機能', () => {
-    it('toggleHintsでヒントレベルが切り替わる', () => {
+  describe('「おしえて！」機能', () => {
+    it('ON/OFFで切り替わる', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
-      expect(result.current.getHintLevel()).toBe('off');
-      expect(result.current.hintState.level).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
+      expect(result.current.hintState.enabled).toBe(false);
       
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
-      expect(result.current.getHintLevel()).toBe('on');
-      expect(result.current.hintState.level).toBe('basic');
+      expect(result.current.gameState.hintsEnabled).toBe(true);
+      expect(result.current.hintState.enabled).toBe(true);
       
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(false);
       });
       
-      expect(result.current.getHintLevel()).toBe('off');
-      expect(result.current.hintState.level).toBe('off');
+      expect(result.current.gameState.hintsEnabled).toBe(false);
+      expect(result.current.hintState.enabled).toBe(false);
     });
 
     it('駒を選択するとヒント情報が更新される', () => {
@@ -91,7 +91,7 @@ describe('useHasamiShogi', () => {
       
       // ヒントをオンにする
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
       
       // PLAYER1の駒を選択（8行目の任意の駒）
@@ -183,7 +183,6 @@ describe('useHasamiShogi', () => {
       expect(result.current.getSelectedPiece()).toBeNull();
       expect(result.current.getPotentialCaptures()).toEqual([]);
       expect(result.current.getValidMoves()).toBeInstanceOf(Map);
-      expect(result.current.getHintLevel()).toBe('off');
     });
 
     it('getDisplayStatusが正しい状態表示を返す', () => {
@@ -226,10 +225,10 @@ describe('useHasamiShogi', () => {
       
       // HintableGameController必須プロパティ
       expect(result.current.hintState).toBeDefined();
-      expect(result.current.toggleHints).toBeDefined();
+      expect(result.current.setHints).toBeDefined();
       
       // HintStateの必須プロパティ
-      expect(result.current.hintState.level).toBeDefined();
+      expect(result.current.hintState.enabled).toBeDefined();
       expect(result.current.hintState.highlightedCells).toBeDefined();
       expect(result.current.hintState.selectedCell).toBeDefined();
     });

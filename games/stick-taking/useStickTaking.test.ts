@@ -107,34 +107,34 @@ describe('useStickTaking', () => {
     });
   });
 
-  describe('ヒント機能', () => {
-    it('toggleHintsでヒントが切り替わる', () => {
+  describe('「おしえて！」機能', () => {
+    it('setHintsでヒントが切り替わる', () => {
       const { result } = renderHook(() => useStickTaking());
       act(() => {
         result.current.startGame('easy');
       });
 
-      expect(result.current.hintState.level).toBe('off');
+      expect(result.current.hintState.enabled).toBe(false);
 
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
 
-      expect(result.current.hintState.level).toBe('basic');
+      expect(result.current.hintState.enabled).toBe(true);
     });
 
-    it('getScoreInfoが正しいヒント情報を返す', () => {
+    it('getScoreInfoが正しい「おしえて！」情報を返す', () => {
       const { result } = renderHook(() => useStickTaking());
       act(() => {
         result.current.startGame('easy');
       });
 
       act(() => {
-        result.current.toggleHints();
+        result.current.setHints(true);
       });
 
       const scoreInfo = result.current.getScoreInfo();
-      expect(scoreInfo?.title).toBe('ヒント');
+      expect(scoreInfo?.title).toBe('おしえて！');
       expect(scoreInfo?.items).toEqual([
         { label: 'のこりのぼう', value: '6本' },
         { label: 'かたまりの数', value: '3個' },

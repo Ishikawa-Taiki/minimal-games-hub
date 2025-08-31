@@ -11,6 +11,7 @@ import {
 import { useReversi, ReversiController } from './useReversi';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { styles } from './styles';
+import { SelectableButton } from '../../app/components/ui';
 
 // 駒のアイコンコンポーネント
 const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (
@@ -36,7 +37,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
   
   // ログ機能
   const logger = useGameStateLogger('Reversi', controller.gameState, {
-    hintLevel: controller.gameState.hintLevel,
+    hintsEnabled: controller.gameState.hintsEnabled,
     validMovesCount: controller.gameState.validMoves.size
   });
 
@@ -62,10 +63,10 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     const stonesToFlip = controller.gameState.validMoves.get(moveKey);
     if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
 
-    logger.log('CELL_CLICK', { row: r, col: c, hintLevel: controller.gameState.hintLevel, hasValidMove: !!stonesToFlip });
+    logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.gameState.hintsEnabled, hasValidMove: !!stonesToFlip });
 
-    // フルヒントモードの場合の特別な処理
-    if (controller.gameState.hintLevel === 'basic') {
+    // 「おしえて！」モードの場合の特別な処理
+    if (controller.gameState.hintsEnabled) {
       if (controller.gameState.selectedHintCell && 
           controller.gameState.selectedHintCell[0] === r && 
           controller.gameState.selectedHintCell[1] === c) {
@@ -146,17 +147,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
   const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
   const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
 
-  const getHintButtonText = () => {
-    if (controller.gameState.hintLevel === 'basic') return 'ぜんぶヒント';
-    return 'おけるばしょ';
-  };
-
-  const getHintButtonStyle = (): CSSProperties => {
-    const baseStyle = styles.hintButton;
-    if (controller.gameState.hintLevel === 'basic') return { ...baseStyle, ...styles.hintButtonFull };
-    return { ...baseStyle, ...styles.hintButtonPlaceable };
-  };
-
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cellContainer };
     const cellContent = controller.gameState.board[r][c];
@@ -167,7 +157,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       style.backgroundColor = '#68d391'; // A slightly different green for placeable cells
     }
 
-    if (controller.gameState.hintLevel === 'basic' && controller.gameState.selectedHintCell) {
+    if (controller.gameState.hintsEnabled && controller.gameState.selectedHintCell) {
       const [selectedR, selectedC] = controller.gameState.selectedHintCell;
       const moveKey = `${selectedR},${selectedC}`;
       const stonesToFlip = controller.gameState.validMoves.get(moveKey);
@@ -228,7 +218,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                    }}
                  />
                 )}
-                {moveInfo && (
+                {controller.hintState.enabled && moveInfo && (
                   <>
                     <div
                       data-testid={`placeable-hint-${r}-${c}`}
@@ -237,11 +227,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                         backgroundColor: controller.gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
                       }}
                     />
-                    {controller.gameState.hintLevel === 'basic' &&
-                      <span className="moveHint" style={styles.moveHint}>
-                        {moveInfo.length}
-                      </span>
-                    }
                   </>
                 )}
               </div>
@@ -254,9 +239,13 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         <button data-testid="reset-button" onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
           はじめから<br />やりなおす
         </button>
-        <button data-testid="hint-button" onClick={controller.toggleHintLevel} style={getHintButtonStyle()}>
-          おしえて！<br /><span data-testid="hint-level-text">({getHintButtonText()})</span>
-        </button>
+        <SelectableButton
+          data-testid="hint-button"
+          isSelected={controller.hintState.enabled}
+          onStateChange={(isSelected) => controller.setHints(isSelected)}
+        >
+          おしえて！
+        </SelectableButton>
       </div>
 
       <div style={styles.historyControls}>
