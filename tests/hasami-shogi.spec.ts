@@ -21,12 +21,6 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       expect(opponentPieces.length).toBe(9);
     });
 
-    test('操作ボタンが正しく表示される', async ({ page }) => {
-      // 「おしえて！」ボタンが存在することを確認
-      const hintButton = page.locator('[data-testid="hint-button"]');
-      await expect(hintButton).toBeVisible();
-      await expect(hintButton).toContainText('おしえて！');
-    });
   });
 
   test.describe('駒の移動と選択', () => {
@@ -126,48 +120,4 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
   // ゲーム終了のE2Eテストは、単体テストでコアロジックを網羅的にテストする方針に切り替えたため、削除します。
   // 複雑なゲームシーケンスをE2Eテストで再現するのは不安定であり、
   // コアロジックの単体テストの方がロバスト性が高いためです。
-
-  test.describe('ゲームリセット機能', () => {
-    // This test is being repurposed to test the hint button, as the reset button is not available during gameplay.
-    test('「おしえて！」ボタンが正しくトグルされる', async ({ page }) => {
-      const hintButton = page.locator('[data-testid="hint-button"]');
-
-      // Initial state (ghost variant)
-      await expect(hintButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-
-      // Toggle ON (success variant)
-      await hintButton.click();
-      await expect(hintButton).toHaveCSS('background-color', 'rgb(22, 163, 74)');
-
-      // Toggle OFF (ghost variant)
-      await hintButton.click();
-      await expect(hintButton).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    });
-  });
-
-  test.describe('「おしえて！」機能', () => {
-    test('「おしえて！」をONにすると、移動可能なマスがハイライトされる', async ({ page }) => {
-      // 「おしえて！」をONにする
-      await page.locator('[data-testid="hint-button"]').click();
-
-      // 駒を選択
-      await page.locator('[data-testid="cell-8-0"]').click();
-
-      // 移動可能なマスがハイライトされていることを確認
-      const movableCell = page.locator('[data-testid="cell-7-0"]');
-      await expect(movableCell).toHaveCSS('background-color', 'rgb(154, 230, 180)'); // #9ae6b4 (green)
-    });
-
-    test('「おしえて！」がOFFの場合、移動可能なマスはハイライトされない', async ({ page }) => {
-      // 「おしえて！」がOFFであることを確認（デフォルト）
-
-      // 駒を選択
-      await page.locator('[data-testid="cell-8-0"]').click();
-
-      // 移動可能なマスがハイライトされていないことを確認
-      const movableCell = page.locator('[data-testid="cell-7-0"]');
-      await expect(movableCell).not.toHaveCSS('background-color', /#9ae6b4/);
-      await expect(movableCell).not.toHaveCSS('background-color', /#feb2b2/);
-    });
-  });
 });

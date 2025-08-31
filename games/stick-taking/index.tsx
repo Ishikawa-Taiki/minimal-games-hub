@@ -135,13 +135,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           ))}
         </div>
         <div style={styles.controls}>
-          <SelectableButton
-            data-testid="hint-button"
-            isSelected={controller.hintState.enabled}
-            onStateChange={(isSelected) => controller.setHints(isSelected)}
-          >
-            おしえて！
-          </SelectableButton>
           <PositiveButton
             size="large"
             onClick={takeSticks}
@@ -149,7 +142,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
-          <Button data-testid="reset-button" onClick={controller.resetGame}>リセット</Button>
         </div>
       </div>
     );

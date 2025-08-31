@@ -147,15 +147,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
         )}
       </div>
 
-      <div style={{...styles.controlSection, ...(isMobileLayout ? styles.buttonGroup : styles.buttonGroupDesktop)}}>
-        <SelectableButton
-          data-testid="hint-button"
-          isSelected={hintsEnabled}
-          onStateChange={(isSelected) => setHints(isSelected)}
-        >
-          おしえて！
-        </SelectableButton>
-      </div>
 
       {winner && (
         <div data-testid="game-over-modal" style={styles.gameOverOverlay}>

@@ -43,7 +43,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
 
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
-  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
   const [visualBoard, setVisualBoard] = useState<Board>(controller.gameState.board);
 
   useEffect(() => {
@@ -55,7 +54,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     controller.resetGame();
     setFlippingCells([]);
     setIsFlipping(false);
-    setShowResetConfirmModal(false); // Close modal on game init
   }, [controller, logger]);
 
   const handleCellClick = async (r: number, c: number) => {
@@ -240,18 +238,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         )}
       </div>
 
-      <div style={styles.buttonGroup}>
-        <button data-testid="reset-button" onClick={() => setShowResetConfirmModal(true)} style={styles.resetButtonLarge}>
-          はじめから<br />やりなおす
-        </button>
-        <SelectableButton
-          data-testid="hint-button"
-          isSelected={controller.hintState.enabled}
-          onStateChange={(isSelected) => controller.setHints(isSelected)}
-        >
-          おしえて！
-        </SelectableButton>
-      </div>
 
       <div style={styles.historyControls}>
         <button 
@@ -295,22 +281,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         <div style={styles.skippedMessage}>
           <DiscIcon player={controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
           <span>はパスしました。</span>
-        </div>
-      )}
-
-      {/* Reset Confirmation Modal */}
-      {showResetConfirmModal && (
-        <div data-testid="reset-confirm-modal" style={styles.gameOverOverlay}>
-          <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>ゲームをリセットしますか？</h2>
-            <p style={{ marginBottom: '1rem' }}>現在のゲームは失われます。</p>
-            <button data-testid="confirm-reset-button" onClick={initializeGame} style={{ ...styles.resetButton, marginRight: '1rem' }}>
-              はい
-            </button>
-            <button onClick={() => setShowResetConfirmModal(false)} style={styles.resetButton}>
-              いいえ
-            </button>
-          </div>
         </div>
       )}
 
