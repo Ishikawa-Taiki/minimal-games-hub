@@ -133,12 +133,11 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   const renderHintButton = () => {
     const hintController = gameController as HintableGameController<TState, TAction>;
     if (hintController.toggleHints && hintController.hintState) {
-      // The hint level logic is now unified: 'on' or 'off'
-      const isHintSelected = hintController.hintState.level !== 'off';
+      const isHintSelected = hintController.hintState.level === 'basic';
       return (
         <SelectableButton
           isSelected={isHintSelected}
-          onStateChange={hintController.toggleHints}
+          onStateChange={() => hintController.toggleHints()}
           ariaLabel="ヒントの表示を切り替える"
           data-testid="control-panel-hint-button"
         >

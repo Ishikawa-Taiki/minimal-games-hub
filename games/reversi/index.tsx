@@ -65,7 +65,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     logger.log('CELL_CLICK', { row: r, col: c, hintLevel: controller.gameState.hintLevel, hasValidMove: !!stonesToFlip });
 
     // フルヒントモードの場合の特別な処理
-    if (controller.gameState.hintLevel === 'advanced') {
+    if (controller.gameState.hintLevel === 'basic') {
       if (controller.gameState.selectedHintCell && 
           controller.gameState.selectedHintCell[0] === r && 
           controller.gameState.selectedHintCell[1] === c) {
@@ -147,16 +147,14 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
   const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
 
   const getHintButtonText = () => {
-    if (controller.gameState.hintLevel === 'off') return 'ヒントなし';
-    if (controller.gameState.hintLevel === 'basic') return 'おけるばしょ';
-    return 'ぜんぶヒント';
+    if (controller.gameState.hintLevel === 'basic') return 'ぜんぶヒント';
+    return 'おけるばしょ';
   };
 
   const getHintButtonStyle = (): CSSProperties => {
     const baseStyle = styles.hintButton;
-    if (controller.gameState.hintLevel === 'off') return { ...baseStyle, ...styles.hintButtonNone };
-    if (controller.gameState.hintLevel === 'basic') return { ...baseStyle, ...styles.hintButtonPlaceable };
-    return { ...baseStyle, ...styles.hintButtonFull };
+    if (controller.gameState.hintLevel === 'basic') return { ...baseStyle, ...styles.hintButtonFull };
+    return { ...baseStyle, ...styles.hintButtonPlaceable };
   };
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
@@ -164,12 +162,12 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     const cellContent = controller.gameState.board[r][c];
     const opponent = controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK';
 
-    // Highlight placeable cells when hint is active
-    if (controller.gameState.hintLevel !== 'off' && controller.gameState.validMoves.has(`${r},${c}`)) {
+    // Highlight placeable cells
+    if (controller.gameState.validMoves.has(`${r},${c}`)) {
       style.backgroundColor = '#68d391'; // A slightly different green for placeable cells
     }
 
-    if (controller.gameState.hintLevel === 'advanced' && controller.gameState.selectedHintCell) {
+    if (controller.gameState.hintLevel === 'basic' && controller.gameState.selectedHintCell) {
       const [selectedR, selectedC] = controller.gameState.selectedHintCell;
       const moveKey = `${selectedR},${selectedC}`;
       const stonesToFlip = controller.gameState.validMoves.get(moveKey);
@@ -230,18 +228,16 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                    }}
                  />
                 )}
-                {controller.gameState.hintLevel !== 'off' && moveInfo && (
+                {moveInfo && (
                   <>
+                    <div
+                      data-testid={`placeable-hint-${r}-${c}`}
+                      style={{
+                        ...styles.placeableHint,
+                        backgroundColor: controller.gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
+                      }}
+                    />
                     {controller.gameState.hintLevel === 'basic' &&
-                      <div
-                        data-testid={`placeable-hint-${r}-${c}`}
-                        style={{
-                          ...styles.placeableHint,
-                          backgroundColor: controller.gameState.currentPlayer === 'BLACK' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
-                        }}
-                      />
-                    }
-                    {controller.gameState.hintLevel === 'advanced' &&
                       <span className="moveHint" style={styles.moveHint}>
                         {moveInfo.length}
                       </span>
