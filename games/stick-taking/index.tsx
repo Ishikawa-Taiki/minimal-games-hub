@@ -4,6 +4,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
+import { useDialog } from '../../app/components/ui/DialogProvider';
 import { Button, PositiveButton, SelectableButton } from '../../app/components/ui';
 
 interface StickTakingGameProps {
@@ -13,20 +14,24 @@ interface StickTakingGameProps {
 const StickTakingGame = ({ controller: externalController }: StickTakingGameProps) => {
   const internalController = useStickTaking();
   const controller = externalController || internalController;
+  const { alert } = useDialog();
 
-  const { gameState, selectStick, takeSticks, startGame } = controller;
+  const { gameState, selectStick, takeSticks, startGame, resetGame, getDisplayStatus } = controller;
 
-  const [showModal, setShowModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
 
   useEffect(() => {
-    if (gameState?.winner) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
+    const { winner, currentPlayer } = gameState;
+    if (winner) {
+      alert({
+        title: 'けっか',
+        message: `${getDisplayStatus()}\n(${currentPlayer}がさいごのぼうをとったよ)`,
+      }).then(() => {
+        resetGame();
+      });
     }
-  }, [gameState?.winner]);
+  }, [gameState.winner, gameState.currentPlayer, alert, getDisplayStatus, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
@@ -61,11 +66,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const handleInteractionEnd = () => {
     setIsDragging(false);
     setDragAction(null);
-  };
-
-  const handlePlayAgain = () => {
-    setShowModal(false);
-    controller.resetGame();
   };
 
   const renderDifficultyScreen = () => (
@@ -136,8 +136,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
         </div>
         <div style={styles.controls}>
           <SelectableButton
-            onPress={controller.toggleHints}
-            selected={controller.hintState.level !== 'off'}
+            isSelected={controller.hintState.level !== 'off'}
+            onStateChange={() => controller.toggleHints()}
           >
             ヒント
           </SelectableButton>
@@ -148,26 +148,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
-          <Button onClick={controller.resetGame}>リセット</Button>
+          <Button data-testid="reset-button" onClick={controller.resetGame}>リセット</Button>
         </div>
-        {showModal && (
-          <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
-            <div style={styles.gameOverModal}>
-              <h2 style={styles.gameOverTitle}>けっか</h2>
-              <p style={styles.winnerText}>{controller.getDisplayStatus()}</p>
-              <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
-              <div style={styles.modalButtons}>
-                <PositiveButton
-                  size="large"
-                  data-testid="play-again-button"
-                  onClick={handlePlayAgain}
-                >
-                  もういっかい
-                </PositiveButton>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

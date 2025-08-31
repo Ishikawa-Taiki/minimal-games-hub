@@ -121,7 +121,7 @@ test.describe('UIコンポーネントのデバッグページ', () => {
       // ダイアログが表示されることを確認
       const dialog = page.getByRole('dialog', { name: 'かくにん' });
       await expect(dialog).toBeVisible();
-      await expect(dialog).toContainText('いまのゲームは きえちゃうけど ほんとうにいいかな？');
+      await expect(dialog).toContainText('いまのゲームは きえちゃうけど いいかな？');
 
       // キャンセルを押してダイアログが閉じ、ゲームがリセットされていないことを確認
       await dialog.getByRole('button', { name: 'キャンセル' }).click();

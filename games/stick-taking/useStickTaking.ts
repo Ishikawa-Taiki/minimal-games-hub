@@ -12,7 +12,6 @@ import {
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
-  toggleHintVisibility as toggleHintVisibilityCore,
   getHintData,
   Difficulty,
   Player,

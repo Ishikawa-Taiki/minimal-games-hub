@@ -43,6 +43,7 @@ export interface BaseButtonProps {
   fullWidth?: boolean;
   fixedWidth?: number;
   ariaLabel?: string;
+  'data-testid'?: string;
 }
 
 export function BaseButton({
@@ -54,6 +55,7 @@ export function BaseButton({
   fullWidth = false,
   fixedWidth,
   ariaLabel,
+  'data-testid': dataTestId,
 }: BaseButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -84,6 +86,7 @@ export function BaseButton({
       onMouseLeave={handleMouseLeave}
       disabled={disabled}
       aria-label={ariaLabel}
+      data-testid={dataTestId}
       type="button"
     >
       <span style={styles.contentWrapper}>{children}</span>

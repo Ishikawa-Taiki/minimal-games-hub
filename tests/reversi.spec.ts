@@ -67,9 +67,11 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     await page.waitForTimeout(500);
 
     // リセットボタンを押し、確認ダイアログでOKする
-    await page.getByTestId('control-panel-reset-button').click();
-    await expect(page.getByRole('dialog', { name: 'かくにん' })).toBeVisible();
-    await page.getByRole('button', { name: 'OK' }).click();
+    await page.getByTestId('reset-button').click();
+    const dialog = page.getByTestId('reset-confirm-modal');
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('confirm-reset-button').click();
+
 
     // 初期状態に戻っているか検証
     const blackScore = await page.locator('[data-testid="score-black"]').textContent();
@@ -80,26 +82,25 @@ test.describe('リバーシゲームのE2Eテスト', () => {
   });
 
   test('ヒント機能が正しく動作する', async ({ page }) => {
-    const hintButton = page.getByRole('button', { name: 'おしえて！' });
+    const hintButton = page.getByTestId('hint-button');
+    const hintOverlay = page.locator('[data-testid="placeable-hint-2-3"]');
 
     // 初期状態ではヒント(緑の円)が表示されていないことを確認
-    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).not.toBeVisible();
+    await expect(hintOverlay).not.toBeVisible();
 
     // ヒントボタンをクリックして「おけるばしょ」ヒントを表示
     await hintButton.click();
-    await page.waitForTimeout(200);
-    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).toBeVisible();
+    await expect(hintOverlay).toBeVisible();
 
     // もう一度クリックして「ぜんぶヒント」を表示
     await hintButton.click();
-    await page.waitForTimeout(200);
-    const moveHint = await page.locator('[data-testid="cell-2-3"] .moveHint').textContent();
-    expect(moveHint).toBe('1');
+    const moveHint = page.locator('[data-testid="cell-2-3"] .moveHint');
+    await expect(moveHint).toBeVisible();
+    await expect(moveHint).toHaveText('1');
 
     // もう一度クリックしてヒントを非表示に戻す
     await hintButton.click();
-    await page.waitForTimeout(200);
-    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).not.toBeVisible();
+    await expect(hintOverlay).not.toBeVisible();
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {

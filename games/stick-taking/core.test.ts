@@ -3,7 +3,6 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
-  toggleHintVisibility,
   getHintData,
 } from './core';
 
@@ -135,17 +134,6 @@ describe('棒消しゲームのコアロジック', () => {
   });
 
   describe('ヒント機能', () => {
-    it('toggleHintVisibilityでヒントの表示・非表示が切り替わること', () => {
-      let state = createInitialState('easy');
-      expect(state.isHintVisible).toBe(false);
-
-      state = toggleHintVisibility(state);
-      expect(state.isHintVisible).toBe(true);
-
-      state = toggleHintVisibility(state);
-      expect(state.isHintVisible).toBe(false);
-    });
-
     it('getHintDataが初期状態で正しい値を返すこと', () => {
       const state = createInitialState('easy');
       const hintData = getHintData(state);

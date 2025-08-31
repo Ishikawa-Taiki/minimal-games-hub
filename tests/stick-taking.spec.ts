@@ -59,9 +59,10 @@ test.describe('棒消しゲーム', () => {
     await page.locator('[data-testid="row-0"] > div').nth(0).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    await expect(page.getByTestId('game-over-modal')).toBeVisible();
-    await expect(page.getByTestId('game-over-modal').getByText('かったのは プレイヤー1！')).toBeVisible();
-    await expect(page.getByText('(プレイヤー2がさいごのぼうをとったよ)')).toBeVisible();
+    const dialog = page.getByRole('dialog', { name: 'けっか' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('かったのは プレイヤー1！');
+    await expect(dialog).toContainText('プレイヤー2がさいごのぼうをとったよ');
   });
 
   // TODO: GameLayoutとの連携起因でコンポーネントが再レンダリングされずテストが失敗する。要調査。
@@ -71,8 +72,9 @@ test.describe('棒消しゲーム', () => {
 
     // ゲームが終了するまでループ
     for (let i = 0; i < 10; i++) { // 10ターンあれば必ず終わる
-      const modalVisible = await page.getByTestId('game-over-modal').isVisible();
-      if (modalVisible) break;
+      const dialog = page.getByRole('dialog', { name: 'けっか' });
+      const isVisible = await dialog.isVisible();
+      if (isVisible) break;
 
       const availableSticks = page.locator('[data-testid^="stick-"]:not([style*="background-color: rgb(211, 211, 211)"])');
       await availableSticks.first().click();
@@ -81,11 +83,12 @@ test.describe('棒消しゲーム', () => {
       await page.waitForTimeout(100);
     }
 
-    await expect(page.getByTestId('game-over-modal')).toBeVisible();
-    await page.getByTestId('play-again-button').click();
+    const dialog = page.getByRole('dialog', { name: 'けっか' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('alert-dialog-confirm-button').click();
 
     // ゲームがリセットされ、モーダルが消え、難易度選択画面に戻ることを確認
-    await expect(page.getByTestId('game-over-modal')).not.toBeVisible();
+    await expect(dialog).not.toBeVisible();
     await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
   });
 

@@ -53,6 +53,7 @@ export const SelectableButton: React.FC<SelectableButtonProps> = ({
   isSelected,
   onStateChange,
   children,
+  'data-testid': dataTestId,
   ...baseButtonProps
 }) => {
   const handleClick = () => {
@@ -69,6 +70,7 @@ export const SelectableButton: React.FC<SelectableButtonProps> = ({
     <BaseButton
       variant={variant}
       onClick={handleClick}
+      data-testid={dataTestId}
       {...baseButtonProps}
     >
       <div style={styles.container}>
