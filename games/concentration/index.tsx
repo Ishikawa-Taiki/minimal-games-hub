@@ -148,23 +148,25 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
 
   return (
     <div style={styles.gameContent}>
-      <div style={styles.difficultySelector} data-testid="difficulty-selector">
-        <h2 style={styles.difficultyTitle}>難易度選択</h2>
-        <div style={styles.radioGroup}>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-            かんたん
-          </label>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-            ふつう
-          </label>
-          <label style={styles.radioLabel}>
-            <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-            むずかしい
-          </label>
+      {!isGameStarted() && (
+        <div style={styles.difficultySelector} data-testid="difficulty-selector">
+          <h2 style={styles.difficultyTitle}>難易度選択</h2>
+          <div style={styles.radioGroup}>
+            <label style={styles.radioLabel}>
+              <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
+              かんたん
+            </label>
+            <label style={styles.radioLabel}>
+              <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
+              ふつう
+            </label>
+            <label style={styles.radioLabel}>
+              <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
+              むずかしい
+            </label>
+          </div>
         </div>
-      </div>
+      )}
       <div style={styles.boardContainer}>
         <div style={boardStyle}>
           {board.map((card, index) => (

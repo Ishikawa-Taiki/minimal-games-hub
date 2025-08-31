@@ -74,12 +74,18 @@ test.describe('Tic-Tac-Toe Game', () => {
   });
 
   test('should reset the game', async ({ page }) => {
-    await page.getByTestId('cell-0-0').waitFor();
     await page.getByTestId('cell-0-0').click();
-    await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click();
-    await page.getByTestId('control-panel-reset-button').waitFor();
-    await page.getByTestId('control-panel-reset-button').click();
+
+    const resetButton = page.getByTestId('control-panel-reset-button');
+    await expect(resetButton).toBeVisible();
+    await resetButton.click();
+
+    // 確認ダイアログでOKをクリック
+    const dialog = page.getByRole('dialog', { name: 'かくにん' });
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('confirmation-dialog-confirm-button').click();
+
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
     const status = await page.getByTestId('status').textContent();
@@ -88,12 +94,11 @@ test.describe('Tic-Tac-Toe Game', () => {
 
   test('should toggle hints and show hint', async ({ page }) => {
     const hintButton = page.getByTestId('hint-button');
-    await hintButton.waitFor();
-    const hintButtonText1 = await hintButton.textContent();
-    expect(hintButtonText1).toBe('ヒント: OFF');
+    await expect(hintButton).toBeVisible();
+    await expect(hintButton).toHaveText('ヒント');
+
+    // Toggle hint on
     await hintButton.click();
-    const hintButtonText2 = await hintButton.textContent();
-    expect(hintButtonText2).toBe('ヒント: ON');
 
     // Make moves to create a winning opportunity for O
     await page.getByTestId('cell-0-0').waitFor();
@@ -120,8 +125,9 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-1-1"]').click(); // X
       await page.locator('[data-testid="cell-0-2"]').click(); // O
 
-      await expect(page.locator('[data-testid="game-over-modal"]')).toBeVisible();
-      await expect(page.locator('[data-testid="winner-message"]')).toHaveText('勝者: O');
+      const dialog = page.getByRole('dialog', { name: 'ゲーム終了' });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText('勝者: O');
     });
 
     test('should show game over modal on a draw', async ({ page }) => {
@@ -135,8 +141,9 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-2-0"]').click(); // X
       await page.locator('[data-testid="cell-2-2"]').click(); // O
 
-      await expect(page.locator('[data-testid="game-over-modal"]')).toBeVisible();
-      await expect(page.locator('[data-testid="winner-message"]')).toHaveText('引き分け！');
+      const dialog = page.getByRole('dialog', { name: 'ゲーム終了' });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText('引き分け！');
     });
 
     test('should reset the game when "Play Again" is clicked', async ({ page }) => {
@@ -146,9 +153,12 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-1-1"]').click(); // X
       await page.locator('[data-testid="cell-0-2"]').click(); // O
 
-      await page.locator('[data-testid="play-again-button"]').click();
+      const dialog = page.getByRole('dialog', { name: 'ゲーム終了' });
+      await expect(dialog).toBeVisible();
+      await dialog.getByTestId('alert-dialog-confirm-button').click();
 
-      await expect(page.locator('[data-testid="game-over-modal"]')).not.toBeVisible();
+
+      await expect(dialog).not.toBeVisible();
       await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
       await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
       const status = await page.getByTestId('status').textContent();
@@ -173,9 +183,13 @@ test.describe('Tic-Tac-Toe Game', () => {
       // リセットボタンが直接表示されることを確認（サイドバー内）
       const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).toBeVisible();
+      await resetButton.click();
+      const dialog = page.getByRole('dialog', { name: 'かくにん' });
+      await expect(dialog).toBeVisible();
+      await dialog.getByTestId('confirmation-dialog-cancel-button').click(); // close dialog
       
       // ルールリンクが直接表示されることを確認
-      const rulesLink = page.getByRole('link', { name: 'ルールを見る' });
+      const rulesLink = page.getByRole('button', { name: 'ルールを見る' });
       await expect(rulesLink).toBeVisible();
     });
 
@@ -213,9 +227,13 @@ test.describe('Tic-Tac-Toe Game', () => {
       // リセットボタンがボトムシート内に表示されることを確認
       const resetButton = page.getByTestId('control-panel-reset-button');
       await expect(resetButton).toBeVisible();
-      
+      await resetButton.click();
+      const dialog = page.getByRole('dialog', { name: 'かくにん' });
+      await expect(dialog).toBeVisible();
+      await dialog.getByTestId('confirmation-dialog-cancel-button').click(); // close dialog
+
       // ルールリンクが表示されることを確認
-      const rulesLink = page.getByRole('link', { name: 'ルールを見る' });
+      const rulesLink = page.getByRole('button', { name: 'ルールを見る' });
       await expect(rulesLink).toBeVisible();
     });
 

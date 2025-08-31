@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useReversi } from './useReversi';
 
 describe('useReversi Hook', () => {
@@ -141,39 +141,35 @@ describe('useReversi Hook', () => {
 
   it('ヒント機能が正しく動作する', () => {
     const { result } = renderHook(() => useReversi());
+
+    // 初期状態は 'off'
+    expect(result.current.gameState.hintLevel).toBe('off');
     
-    expect(result.current.gameState.hintLevel).toBe('none');
-    expect(result.current.hintState.level).toBe('off');
-    
-    // ヒントレベルを切り替え
+    // ヒントを 'basic' に切り替え
     act(() => {
-      result.current.toggleHintLevel();
+      result.current.toggleHints();
     });
-    
-    expect(result.current.gameState.hintLevel).toBe('placeable');
-    expect(result.current.hintState.level).toBe('basic');
-    
+    expect(result.current.gameState.hintLevel).toBe('basic');
+
+    // ヒントを 'advanced' に切り替え
     act(() => {
-      result.current.toggleHintLevel();
+      result.current.toggleHints();
     });
+    expect(result.current.gameState.hintLevel).toBe('advanced');
     
-    expect(result.current.gameState.hintLevel).toBe('full');
-    expect(result.current.hintState.level).toBe('advanced');
-    
+    // ヒントを 'off' に戻す
     act(() => {
-      result.current.toggleHintLevel();
+      result.current.toggleHints();
     });
-    
-    expect(result.current.gameState.hintLevel).toBe('none');
-    expect(result.current.hintState.level).toBe('off');
+    expect(result.current.gameState.hintLevel).toBe('off');
   });
 
-  it('フルヒントモードで2回タップが必要', () => {
+  it('フルヒントモードで2回タップが必要', async () => {
     const { result } = renderHook(() => useReversi());
     
-    // フルヒントモードに設定
+    // フルヒントモード('advanced')に設定
     act(() => {
-      result.current.setHintLevel('full');
+      result.current.setHintLevel('advanced');
     });
     
     // 1回目のタップ（セル選択）
@@ -181,7 +177,10 @@ describe('useReversi Hook', () => {
       result.current.makeMove(2, 3);
     });
     
-    expect(result.current.gameState.selectedHintCell).toEqual([2, 3]);
+    await waitFor(() => {
+      expect(result.current.gameState.selectedHintCell).toEqual([2, 3]);
+    });
+
     expect(result.current.gameHistory.length).toBe(1); // まだ手は打たれていない
     expect(result.current.gameState.currentPlayer).toBe('BLACK');
     
@@ -190,7 +189,9 @@ describe('useReversi Hook', () => {
       result.current.makeMove(2, 3);
     });
     
-    expect(result.current.gameState.selectedHintCell).toBeNull();
+    await waitFor(() => {
+      expect(result.current.gameState.selectedHintCell).toBeNull();
+    });
     expect(result.current.gameHistory.length).toBe(2); // 手が打たれた
     expect(result.current.gameState.currentPlayer).toBe('WHITE');
   });

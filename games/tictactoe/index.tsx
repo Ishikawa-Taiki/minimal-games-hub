@@ -9,7 +9,9 @@ import {
   handleCellClick,
   adaptToBaseGameState,
 } from './core';
-import { BaseGameController } from '../../types/game';
+import { useDialog } from '../../app/components/ui/DialogProvider';
+import { BaseGameController, HintableGameController, HintState } from '../../types/game';
+import { SelectableButton } from '../../app/components/ui/SelectableButton';
 import { styles } from './styles';
 
 // アクション型定義
@@ -26,23 +28,20 @@ function ticTacToeReducer(state: GameState, action: TicTacToeAction): GameState 
       return newState || state;
     case 'RESET_GAME':
       return createInitialState();
+    case 'TOGGLE_HINTS':
+      return { ...state, hintLevel: state.hintLevel === 0 ? 1 : 0 };
     default:
       return state;
   }
 }
 
 // カスタムフック: GameControllerインターフェースに準拠
-function useTicTacToeController(): BaseGameController<TicTacToeGameState, TicTacToeAction> & {
+function useTicTacToeController(): HintableGameController<TicTacToeGameState, TicTacToeAction> & {
   makeMove: (row: number, col: number) => void;
-  showHints: boolean;
-  toggleHints: () => void;
 } {
   const [legacyState, dispatch] = useReducer(ticTacToeReducer, createInitialState());
-  const [showHints, setShowHints] = useState(false);
   
   const gameState = adaptToBaseGameState(legacyState);
-  
-
   
   const resetGame = () => {
     dispatch({ type: 'RESET_GAME' });
@@ -53,7 +52,7 @@ function useTicTacToeController(): BaseGameController<TicTacToeGameState, TicTac
   };
   
   const toggleHints = () => {
-    setShowHints(!showHints);
+    dispatch({ type: 'TOGGLE_HINTS' });
   };
   
   const getDisplayStatus = () => {
@@ -69,24 +68,26 @@ function useTicTacToeController(): BaseGameController<TicTacToeGameState, TicTac
       return 'ゲーム開始';
     }
   };
+
+  const hintState: HintState = {
+    level: legacyState.hintLevel > 0 ? 'basic' : 'off',
+  };
   
   return {
     gameState,
     dispatch,
     resetGame,
     makeMove,
-    showHints,
     toggleHints,
     getDisplayStatus,
+    hintState,
   };
 }
 
 // プロップスでコントローラーを受け取るバージョン
 interface TicTacToeProps {
-  controller?: BaseGameController<TicTacToeGameState, TicTacToeAction> & {
+  controller?: HintableGameController<TicTacToeGameState, TicTacToeAction> & {
     makeMove: (row: number, col: number) => void;
-    showHints: boolean;
-    toggleHints: () => void;
   };
 }
 
@@ -94,22 +95,23 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
   // 外部からコントローラーが渡された場合はそれを使用、そうでなければ内部で作成
   const internalController = useTicTacToeController();
   const controller = externalController || internalController;
-  
-  const [showModal, setShowModal] = useState(false);
+  const { alert } = useDialog();
 
   useEffect(() => {
-    if (controller.gameState.winner || (controller.gameState as any).isDraw) {
-      setShowModal(true);
+    const { winner, isDraw } = controller.gameState as TicTacToeGameState;
+    if (winner || isDraw) {
+      const message = winner ? `勝者: ${winner}` : '引き分け！';
+      alert({
+        title: 'ゲーム終了',
+        message,
+      }).then(() => {
+        controller.resetGame();
+      });
     }
-  }, [controller.gameState.winner, (controller.gameState as any).isDraw]);
+  }, [controller.gameState.winner, (controller.gameState as any).isDraw, alert, controller.resetGame]);
 
   const handleClick = (row: number, col: number) => {
     controller.makeMove(row, col);
-  };
-
-  const handlePlayAgain = () => {
-    controller.resetGame();
-    setShowModal(false);
   };
 
   // レガシー状態にアクセスするためのヘルパー
@@ -125,7 +127,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
     if (legacyState.winningLines && legacyState.winningLines.some(line => line.includes(index))) {
       return styles.winningCell.backgroundColor as string;
     }
-    if (controller.showHints) {
+    if (controller.hintState.level !== 'off') {
       if (isBothPlayersReaching(index)) {
         return styles.bothReachingCell.backgroundColor as string;
       } else if (legacyState.reachingLines.some(rl => rl.index === index)) {
@@ -160,7 +162,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
               disabled={!!cell || !!controller.gameState.winner || legacyState.isDraw}
             >
               {cell ? cell : (
-                controller.showHints && reachingPlayerMark && !isBothPlayersReaching(index) && (
+                controller.hintState.level !== 'off' && reachingPlayerMark && !isBothPlayersReaching(index) && (
                   <span style={styles.faintMark}>
                     {reachingPlayerMark}
                   </span>
@@ -173,32 +175,14 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
       
       {/* ヒント切り替えボタン（ゲーム内に配置） */}
       <div style={styles.gameControls}>
-        <button
+        <SelectableButton
           data-testid="hint-button"
-          style={styles.toggleButton}
-          onClick={controller.toggleHints}
+          isSelected={controller.hintState.level !== 'off'}
+          onStateChange={() => controller.toggleHints()}
         >
-          ヒント: {controller.showHints ? 'ON' : 'OFF'}
-        </button>
+          ヒント
+        </SelectableButton>
       </div>
-
-      {showModal && (
-        <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
-          <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
-            <div data-testid="winner-message">
-              {controller.gameState.winner ? `勝者: ${controller.gameState.winner}` : '引き分け！'}
-            </div>
-            <button
-              data-testid="play-again-button"
-              style={styles.resetButton}
-              onClick={handlePlayAgain}
-            >
-              もう一度プレイ
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

@@ -4,6 +4,8 @@ import React, { useState, useEffect, memo } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
+import { useDialog } from '../../app/components/ui/DialogProvider';
+import { Button, PositiveButton, SelectableButton } from '../../app/components/ui';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -12,20 +14,24 @@ interface StickTakingGameProps {
 const StickTakingGame = ({ controller: externalController }: StickTakingGameProps) => {
   const internalController = useStickTaking();
   const controller = externalController || internalController;
+  const { alert } = useDialog();
 
-  const { gameState, selectStick, takeSticks, startGame, difficulty } = controller;
+  const { gameState, selectStick, takeSticks, startGame, resetGame, getDisplayStatus } = controller;
 
-  const [showModal, setShowModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
 
   useEffect(() => {
-    if (gameState?.winner) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
+    const { winner, currentPlayer } = gameState;
+    if (winner) {
+      alert({
+        title: 'けっか',
+        message: `${getDisplayStatus()}\n(${currentPlayer}がさいごのぼうをとったよ)`,
+      }).then(() => {
+        resetGame();
+      });
     }
-  }, [gameState?.winner]);
+  }, [gameState.winner, gameState.currentPlayer, alert, getDisplayStatus, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
@@ -62,19 +68,14 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     setDragAction(null);
   };
 
-  const handlePlayAgain = () => {
-    setShowModal(false);
-    controller.resetGame();
-  };
-
   const renderDifficultyScreen = () => (
     <div style={styles.container}>
       <h1 style={styles.title}>ぼうけしゲーム</h1>
       <h2 style={styles.subtitle}>むずかしさをえらんでね</h2>
       <div style={styles.difficultyButtons}>
-        <button style={styles.button} onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</button>
-        <button style={styles.button} onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</button>
+        <Button size="large" onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</Button>
+        <Button size="large" onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</Button>
+        <Button size="large" onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</Button>
       </div>
     </div>
   );
@@ -134,26 +135,21 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           ))}
         </div>
         <div style={styles.controls}>
-          <button
-            style={styles.button}
+          <SelectableButton
+            isSelected={controller.hintState.level !== 'off'}
+            onStateChange={() => controller.toggleHints()}
+          >
+            ヒント
+          </SelectableButton>
+          <PositiveButton
+            size="large"
             onClick={takeSticks}
             disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
           >
             えらんだぼうをとる
-          </button>
+          </PositiveButton>
+          <Button data-testid="reset-button" onClick={controller.resetGame}>リセット</Button>
         </div>
-        {showModal && (
-          <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
-            <div style={styles.gameOverModal}>
-              <h2 style={styles.gameOverTitle}>けっか</h2>
-              <p style={styles.winnerText}>{controller.getDisplayStatus()}</p>
-              <p style={styles.reasonText}>({gameState.currentPlayer}がさいごのぼうをとったよ)</p>
-              <div style={styles.modalButtons}>
-                <button data-testid="play-again-button" style={styles.button} onClick={handlePlayAgain}>もういっかい</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   };

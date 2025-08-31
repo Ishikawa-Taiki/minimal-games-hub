@@ -44,13 +44,13 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       isDismissible={false}
       showCloseButton={false}
     >
-      <div>
+      <div data-testid="confirmation-dialog-content">
         <p style={styles.message}>{message}</p>
         <div style={styles.footer}>
-          <NegativeButton onClick={onCancel}>
+          <NegativeButton onClick={onCancel} data-testid="confirmation-dialog-cancel-button">
             キャンセル
           </NegativeButton>
-          <PositiveButton onClick={onConfirm}>
+          <PositiveButton onClick={onConfirm} data-testid="confirmation-dialog-confirm-button">
             OK
           </PositiveButton>
         </div>

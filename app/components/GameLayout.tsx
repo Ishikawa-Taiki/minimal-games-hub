@@ -29,12 +29,41 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
   isVisible?: boolean;
 }
 
+import {
+  Button,
+  NegativeButton,
+  SelectableButton,
+} from './ui';
+
+import { useDialog } from './ui';
+
 function ControlPanel<TState extends BaseGameState, TAction>({
   gameController,
   slug,
   isVisible = true
 }: ControlPanelProps<TState, TAction>) {
   const { gameState, resetGame } = gameController;
+  const { confirm } = useDialog();
+
+  const handleReset = async () => {
+    const result = await confirm({
+      title: 'かくにん',
+      message: 'いまのゲームは きえちゃうけど いいかな？',
+    });
+    if (result) {
+      resetGame();
+    }
+  };
+
+  const handleGoHome = async () => {
+    const result = await confirm({
+      title: 'かくにん',
+      message: 'ゲームをとめて ほーむに もどるけど いいかな？',
+    });
+    if (result) {
+      window.location.href = '/';
+    }
+  };
 
   // ゲーム状態の表示テキストを生成（ポリモーフィック設計）
   const getStatusText = () => {
@@ -100,16 +129,19 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 
   // ヒント機能のボタン
   const renderHintButton = () => {
-    const hintController = gameController as BaseGameController<TState, TAction> & { toggleHints?: () => void };
-    if (hintController.toggleHints) {
+    const hintController = gameController as HintableGameController<TState, TAction>;
+    if (hintController.toggleHints && hintController.hintState) {
+      // The hint level logic is now unified: 'on' or 'off'
+      const isHintSelected = hintController.hintState.level !== 'off';
       return (
-        <button
-          style={gameLayoutStyles.controlButton}
-          onClick={hintController.toggleHints}
+        <SelectableButton
+          isSelected={isHintSelected}
+          onStateChange={hintController.toggleHints}
+          ariaLabel="ヒントの表示を切り替える"
           data-testid="control-panel-hint-button"
         >
-          ヒント切り替え
-        </button>
+          おしえて！
+        </SelectableButton>
       );
     }
     return null;
@@ -127,26 +159,16 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
-        <Link
-          href={`/games/${slug}/rules`}
-          style={gameLayoutStyles.controlButton}
-        >
+        <Button variant="ghost" onClick={() => window.location.href = `/games/${slug}/rules`}>
           ルールを見る
-        </Link>
-        <button
-          style={gameLayoutStyles.controlButton}
-          onClick={resetGame}
-          data-testid="control-panel-reset-button"
-        >
+        </Button>
+        <NegativeButton onClick={handleReset} data-testid="control-panel-reset-button">
           リセット
-        </button>
+        </NegativeButton>
         {renderHintButton()}
-        <Link
-          href="/"
-          style={gameLayoutStyles.controlButton}
-        >
-          ホームに戻る
-        </Link>
+        <Button variant="secondary" onClick={handleGoHome}>
+          ほーむにもどる
+        </Button>
       </div>
     </div>
   );

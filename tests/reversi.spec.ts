@@ -63,13 +63,15 @@ test.describe('リバーシゲームのE2Eテスト', () => {
 
   test('ゲームをリセットできる', async ({ page }) => {
     // 駒を置く
-    await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(500);
 
-    // リセットボタンを押す
-    await page.locator('[data-testid="reset-button"]').click();
-    await page.locator('[data-testid="confirm-reset-button"]').click();
+    // リセットボタンを押し、確認ダイアログでOKする
+    await page.getByTestId('reset-button').click();
+    const dialog = page.getByTestId('reset-confirm-modal');
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId('confirm-reset-button').click();
+
 
     // 初期状態に戻っているか検証
     const blackScore = await page.locator('[data-testid="score-black"]').textContent();
@@ -80,28 +82,25 @@ test.describe('リバーシゲームのE2Eテスト', () => {
   });
 
   test('ヒント機能が正しく動作する', async ({ page }) => {
-    const hintButton = page.locator('[data-testid="hint-button"]');
+    const hintButton = page.getByTestId('hint-button');
+    const hintOverlay = page.locator('[data-testid="placeable-hint-2-3"]');
 
-    // 初期状態の「ヒントなし」を確認
-    const hintLevelText1 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText1).toBe('(ヒントなし)');
-    await expect(page.locator('[data-testid="cell-2-3"] > .moveHint')).not.toBeVisible();
-    await expect(page.locator('[data-testid="cell-2-3"] > .placeableHint')).not.toBeVisible();
+    // 初期状態ではヒント(緑の円)が表示されていないことを確認
+    await expect(hintOverlay).not.toBeVisible();
 
-    // 「おけるばしょ」に切り替え
+    // ヒントボタンをクリックして「おけるばしょ」ヒントを表示
     await hintButton.click();
-    await page.waitForTimeout(200);
-    const hintLevelText2 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText2).toBe('(おけるばしょ)');
-    await expect(page.locator('[data-testid="placeable-hint-2-3"]')).toBeVisible();
+    await expect(hintOverlay).toBeVisible();
 
-    // 「ぜんぶヒント」に切り替え
+    // もう一度クリックして「ぜんぶヒント」を表示
     await hintButton.click();
-    await page.waitForTimeout(200);
-    const hintLevelText3 = await page.locator('[data-testid="hint-level-text"]').textContent();
-    expect(hintLevelText3).toBe('(ぜんぶヒント)');
-    const moveHint = await page.locator('[data-testid="cell-2-3"] > .moveHint').textContent();
-    expect(moveHint).toBe('1');
+    const moveHint = page.locator('[data-testid="cell-2-3"] .moveHint');
+    await expect(moveHint).toBeVisible();
+    await expect(moveHint).toHaveText('1');
+
+    // もう一度クリックしてヒントを非表示に戻す
+    await hintButton.click();
+    await expect(hintOverlay).not.toBeVisible();
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {

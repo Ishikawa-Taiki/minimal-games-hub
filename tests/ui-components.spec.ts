@@ -106,4 +106,36 @@ test.describe('UIコンポーネントのデバッグページ', () => {
         await expect(output).toHaveText('Last dialog result: Confirmation result: true');
     });
   });
+
+  test.describe('ゲーム画面との連携', () => {
+    test('リセットボタンで確認ダイアログが表示され、動作する', async ({ page }) => {
+      await page.goto('/games/reversi');
+
+      // 1手進める
+      await page.locator('[data-testid="cell-2-3"]').click();
+      await expect(page.getByText('黒: 4')).toBeVisible();
+
+      // リセットボタンを押す
+      await page.getByTestId('control-panel-reset-button').click();
+
+      // ダイアログが表示されることを確認
+      const dialog = page.getByRole('dialog', { name: 'かくにん' });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText('いまのゲームは きえちゃうけど いいかな？');
+
+      // キャンセルを押してダイアログが閉じ、ゲームがリセットされていないことを確認
+      await dialog.getByRole('button', { name: 'キャンセル' }).click();
+      await expect(dialog).not.toBeVisible();
+      await expect(page.getByText('黒: 4')).toBeVisible();
+
+      // 再度リセットし、OKを押す
+      await page.getByTestId('control-panel-reset-button').click();
+      await expect(dialog).toBeVisible();
+      await dialog.getByRole('button', { name: 'OK' }).click();
+
+      // ダイアログが閉じ、ゲームがリセットされたことを確認
+      await expect(dialog).not.toBeVisible();
+      await expect(page.getByText('黒: 2')).toBeVisible();
+    });
+  });
 });

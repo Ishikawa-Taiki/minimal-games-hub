@@ -40,10 +40,10 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
       isDismissible={false} // This is the key change
       showCloseButton={false}
     >
-      <div>
+      <div data-testid="alert-dialog-content">
         <p style={styles.message}>{message}</p>
         <div style={styles.footer}>
-          <PositiveButton onClick={onConfirm}>
+          <PositiveButton onClick={onConfirm} data-testid="alert-dialog-confirm-button">
             OK
           </PositiveButton>
         </div>

@@ -12,7 +12,6 @@ import {
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
-  toggleHintVisibility as toggleHintVisibilityCore,
   getHintData,
   Difficulty,
   Player,
@@ -33,7 +32,7 @@ export interface StickTakingGameState extends BaseGameState {
   winner: Player | null;
   difficulty: Difficulty | null;
   selectedSticks: CoreGameState['selectedSticks'];
-  isHintVisible: boolean;
+  hintLevel: number;
 }
 
 function createNewInitialState(difficulty: Difficulty | null): StickTakingGameState {
@@ -44,7 +43,7 @@ function createNewInitialState(difficulty: Difficulty | null): StickTakingGameSt
       winner: null,
       difficulty: null,
       selectedSticks: [],
-      isHintVisible: false,
+      hintLevel: 0,
       status: 'waiting',
     };
   }
@@ -60,23 +59,21 @@ function stickTakingReducer(state: StickTakingGameState, action: StickTakingActi
   switch (action.type) {
     case 'SELECT_STICK': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty };
+      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintLevel };
       const newState = selectStickCore(coreState, action.rowIndex, action.stickId);
-      return { ...newState, status: 'playing' };
+      return { ...state, ...newState, status: 'playing' };
     }
     case 'TAKE_STICKS': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty };
+      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintLevel };
       const newState = handleTakeSticksCore(coreState);
-      return { ...newState, status: newState.winner ? 'ended' : 'playing' };
+      return { ...state, ...newState, status: newState.winner ? 'ended' : 'playing' };
     }
     case 'RESET_GAME':
       return createNewInitialState(action.difficulty);
     case 'TOGGLE_HINT': {
-      if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty };
-      const newState = toggleHintVisibilityCore(coreState);
-      return { ...newState, status: 'playing' };
+      if (state.status !== 'playing') return state;
+      return { ...state, hintLevel: state.hintLevel === 0 ? 1 : 0 };
     }
     default:
       return state;
@@ -135,8 +132,8 @@ export function useStickTaking(): StickTakingController {
   }, [gameState]);
 
   const getScoreInfo = useCallback((): ScoreInfo | null => {
-    if (gameState.status !== 'playing' || !gameState.isHintVisible || !gameState.currentPlayer || !gameState.difficulty) return null;
-    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty };
+    if (gameState.status !== 'playing' || !(gameState.hintLevel > 0) || !gameState.currentPlayer || !gameState.difficulty) return null;
+    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintLevel };
     const hintData = getHintData(coreState);
     return {
       title: 'ヒント',
@@ -148,8 +145,8 @@ export function useStickTaking(): StickTakingController {
   }, [gameState]);
 
   const hintState: HintState = useMemo(() => ({
-    level: gameState?.isHintVisible ? 'basic' : 'off',
-  }), [gameState?.isHintVisible]);
+    level: gameState?.hintLevel > 0 ? 'basic' : 'off',
+  }), [gameState?.hintLevel]);
 
   return {
     gameState,
