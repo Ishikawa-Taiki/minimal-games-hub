@@ -7,6 +7,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
 
   test.describe('初期表示', () => {
     test('盤面と駒が正しく表示される', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
       // 9x9のマスが存在することを確認
       await page.waitForSelector('[data-testid="cell-0-0"]');
       const cells = await page.locator('[data-testid^="cell-"]').all();
@@ -25,6 +26,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
 
   test.describe('駒の移動と選択', () => {
     test('駒を選択すると選択状態になり、再度クリックすると選択が解除される', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
       const piece = page.locator('[data-testid="cell-8-0"]');
 
       // 最初は選択されていない
@@ -40,6 +42,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
 
     test('駒を選択した後に別の自分の駒を選択すると、選択が切り替わる', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
       const piece1 = page.locator('[data-testid="cell-8-0"]');
       const piece2 = page.locator('[data-testid="cell-8-1"]');
 
@@ -75,6 +78,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
     // });
 
     test('他の駒を飛び越えて移動することはできない', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
       // 8-0 の駒を 8-2 の前に移動させる
       await page.locator('[data-testid="cell-8-0"]').click();
       await page.locator('[data-testid="cell-7-0"]').click();
@@ -93,6 +97,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
 
   test.describe('駒の捕獲', () => {
     test('相手の駒を挟むと、その駒を捕獲できる', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
       // 捕獲のセットアップ
       // 1. 先手: (8,1) -> (1,1)
       await page.locator('[data-testid="cell-8-1"]').click();

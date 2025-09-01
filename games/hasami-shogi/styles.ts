@@ -185,5 +185,25 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: '2px',
     pointerEvents: 'none',
-  }
+  },
+  preGameContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+    gap: '1.5rem',
+  },
+  preGameTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  preGameButtonContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    width: '100%',
+    maxWidth: '300px',
+  },
 });

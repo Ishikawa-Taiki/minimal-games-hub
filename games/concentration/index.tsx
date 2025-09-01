@@ -5,11 +5,30 @@ import { BoardCard, Suit, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '../../hooks/useResponsive';
+import GameLayout from '../../app/components/GameLayout';
+import { PositiveButton } from '../../app/components/ui';
 
 interface ConcentrationProps {
   controller?: ReturnType<typeof useConcentration>;
   slug?: string;
 }
+
+const PreGameScreen = ({ onSelect }: { onSelect: (difficulty: Difficulty) => void }) => (
+  <div style={styles.preGameContainer} data-testid="pre-game-screen">
+    <h2 style={styles.preGameTitle}>難易度を選んでください</h2>
+    <div style={styles.preGameButtonContainer}>
+      <PositiveButton onClick={() => onSelect('easy')} data-testid="difficulty-easy">
+        かんたん
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('normal')} data-testid="difficulty-normal">
+        ふつう
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('hard')} data-testid="difficulty-hard">
+        むずかしい
+      </PositiveButton>
+    </div>
+  </div>
+);
 
 const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProps) => {
   const gameController = controller || useConcentration('easy');
@@ -20,7 +39,6 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     getDifficulty,
     getBoard,
     getHintedIndices,
-    isGameStarted,
     resetGame,
     hintState,
   } = gameController;
@@ -36,11 +54,6 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
 
   const onCardClick = (index: number) => {
     handleCardClick(index);
-  };
-
-  const handleDifficultyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDifficulty = e.target.value as Difficulty;
-    setDifficulty(newDifficulty);
   };
 
   const difficulty = getDifficulty();
@@ -146,27 +159,20 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     ...getBoardDimensions(),
   };
 
-  return (
+  if (gameState.status === 'waiting') {
+    return (
+      <GameLayout
+        gameName="神経衰弱"
+        slug="concentration"
+        gameController={gameController}
+      >
+        <PreGameScreen onSelect={setDifficulty} />
+      </GameLayout>
+    );
+  }
+
+  const gameContent = (
     <div style={styles.gameContent}>
-      {!isGameStarted() && (
-        <div style={styles.difficultySelector} data-testid="difficulty-selector">
-          <h2 style={styles.difficultyTitle}>難易度選択</h2>
-          <div style={styles.radioGroup}>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="easy" checked={difficulty === 'easy'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-              かんたん
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="normal" checked={difficulty === 'normal'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-              ふつう
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="difficulty" value="hard" checked={difficulty === 'hard'} onChange={handleDifficultyChange} disabled={isGameStarted()} />
-              むずかしい
-            </label>
-          </div>
-        </div>
-      )}
       <div style={styles.boardContainer}>
         <div style={boardStyle}>
           {board.map((card, index) => (
@@ -176,6 +182,16 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
       </div>
       <GameOverModal winner={gameState.winner} onReset={() => resetGame()} />
     </div>
+  );
+
+  return (
+    <GameLayout
+      gameName="神経衰弱"
+      slug="concentration"
+      gameController={gameController}
+    >
+      {gameContent}
+    </GameLayout>
   );
 };
 
