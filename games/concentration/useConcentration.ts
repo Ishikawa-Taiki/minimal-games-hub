@@ -43,7 +43,7 @@ function createInitialConcentrationState(difficulty: Difficulty = 'easy'): Conce
     gameStatus: coreState.status,
     difficulty,
     // BaseGameState required fields
-    status: 'playing' as GameStatus,
+    status: 'waiting' as GameStatus,
     winner: coreState.winner === 'draw' ? 'DRAW' : 
             coreState.winner === 1 ? 'player1' :
             coreState.winner === 2 ? 'player2' : null,
@@ -129,8 +129,13 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
         hintsEnabled: action.enabled,
       };
     
-    case 'SET_DIFFICULTY':
-      return createInitialConcentrationState(action.difficulty);
+    case 'SET_DIFFICULTY': {
+      const newState = createInitialConcentrationState(action.difficulty);
+      return {
+        ...newState,
+        status: 'playing' as GameStatus,
+      };
+    }
     
     default:
       return state;

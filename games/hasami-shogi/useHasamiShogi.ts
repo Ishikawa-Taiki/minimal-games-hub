@@ -29,7 +29,7 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
   return {
     ...coreState,
     // BaseGameState required fields
-    status: 'playing' as GameStatus,
+    status: 'waiting' as GameStatus,
     winner: null,
     // ヒント関連
     hintsEnabled: false,
@@ -90,6 +90,7 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
       return {
         ...state,
         ...newCoreState,
+        status: 'playing',
         // BaseGameState必須フィールドを明示的に更新
         currentPlayer: newCoreState.currentPlayer,
         winner: newCoreState.winner,

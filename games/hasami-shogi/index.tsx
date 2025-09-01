@@ -8,7 +8,7 @@ import {
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
 import GameLayout from '../../app/components/GameLayout';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
-import { SelectableButton } from '../../app/components/ui';
+import { PositiveButton } from '../../app/components/ui';
 import { styles } from './styles';
 
 // Piece component for the game board
@@ -32,6 +32,23 @@ const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
   return <div style={pieceStyle}>{char}</div>;
 };
 
+const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => void }) => (
+  <div style={styles.preGameContainer} data-testid="pre-game-screen">
+    <h2 style={styles.preGameTitle}>勝利条件を選んでください</h2>
+    <div style={styles.preGameButtonContainer}>
+      <PositiveButton onClick={() => onSelect('standard')} data-testid="win-cond-standard">
+        ふつうのルール (8個先取)
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('five_captures')} data-testid="win-cond-five">
+        5こさきどり
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('total_capture')} data-testid="win-cond-total">
+        ぜんぶとる
+      </PositiveButton>
+    </div>
+  </div>
+);
+
 
 // プロップスでコントローラーを受け取るバージョン
 interface HasamiShogiProps {
@@ -53,7 +70,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     setHints,
     hintState,
     resetGame,
-    isGameStarted
   } = controller;
 
   const hintsEnabled = hintState.enabled;
@@ -63,11 +79,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const onCellClick = (r: number, c: number) => {
     if (gameState.gameStatus === 'GAME_OVER') return;
     makeMove(r, c);
-  };
-
-  const onWinConditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCondition = e.target.value as WinCondition;
-    setWinCondition(newCondition);
   };
 
   const getCellStyle = (r: number, c: number): CSSProperties => {
@@ -100,30 +111,21 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
 
   const winner = gameState.winner;
 
+  if (gameState.status === 'waiting') {
+    return (
+      <GameLayout
+        title="はさみ将棋"
+        description="相手の駒を自分の駒ではさんで取っていく、日本の伝統的なボードゲームです。"
+        controller={controller}
+      >
+        <PreGameScreen onSelect={setWinCondition} />
+      </GameLayout>
+    );
+  }
+
   // GameLayoutを使用したレンダリング
   const gameContent = (
     <>
-      <div style={styles.controlPanel} data-testid="h-shogi-control-panel">
-        <div style={styles.controlSection} data-testid="win-condition-selector">
-          <h2 style={styles.controlTitle}>かちかたのルール</h2>
-          <div style={isMobileLayout ? styles.radioGroup : styles.radioGroupDesktop}>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="win-condition" value="standard" checked={gameState.winCondition === 'standard'} onChange={onWinConditionChange} disabled={isGameStarted()} />
-              ふつうのルール
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="win-condition" value="five_captures" checked={gameState.winCondition === 'five_captures'} onChange={onWinConditionChange} disabled={isGameStarted()} />
-              ５こさきどり
-            </label>
-            <label style={styles.radioLabel}>
-              <input type="radio" name="win-condition" value="total_capture" checked={gameState.winCondition === 'total_capture'} onChange={onWinConditionChange} disabled={isGameStarted()} />
-              ぜんぶとる
-            </label>
-          </div>
-        </div>
-
-      </div>
-
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {
@@ -168,7 +170,15 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     </>
   );
 
-  return gameContent;
+  return (
+    <GameLayout
+      title="はさみ将棋"
+      description="相手の駒を自分の駒ではさんで取っていく、日本の伝統的なボードゲームです。"
+      controller={controller}
+    >
+      {gameContent}
+    </GameLayout>
+  );
 };
 
 // GameControllerを外部に公開するためのラッパーコンポーネント

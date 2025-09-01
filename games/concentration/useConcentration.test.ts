@@ -15,7 +15,7 @@ describe('useConcentration', () => {
     it('デフォルト設定（easy）で正しく初期化される', () => {
       const { result } = renderHook(() => useConcentration());
       
-      expect(result.current.gameState.status).toBe('playing');
+      expect(result.current.gameState.status).toBe('waiting');
       expect(result.current.gameState.currentPlayer).toBe('player1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.getDifficulty()).toBe('easy');
@@ -141,6 +141,7 @@ describe('useConcentration', () => {
       
       // ゲームを進行させる
       act(() => {
+        result.current.setDifficulty('normal');
         result.current.handleCardClick(0);
         result.current.handleCardClick(1);
       });
@@ -150,7 +151,7 @@ describe('useConcentration', () => {
         result.current.resetGame();
       });
       
-      expect(result.current.gameState.status).toBe('playing');
+      expect(result.current.gameState.status).toBe('waiting');
       expect(result.current.gameState.currentPlayer).toBe('player1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.getScores()).toEqual({ player1: 0, player2: 0 });

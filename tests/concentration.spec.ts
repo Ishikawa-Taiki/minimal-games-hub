@@ -8,10 +8,10 @@ test.describe('神経衰弱ゲーム', () => {
 
   test('初期表示と難易度選択', async ({ page }) => {
     // 初期表示の確認
-    await expect(page.getByRole('heading', { name: '難易度選択' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '難易度を選んでください' })).toBeVisible();
 
     // 難易度を選択
-    await page.getByLabel('かんたん').click();
+    await page.getByTestId('difficulty-easy').click();
 
     // ゲームボードが表示されることを確認
     await expect(page.locator('[data-testid^="card-"]')).toHaveCount(20);
