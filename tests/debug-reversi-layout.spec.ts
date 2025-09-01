@@ -28,16 +28,6 @@ test.describe('Reversi GameLayout Debug', () => {
     await expect(scoreWhite).toBeVisible();
     console.log('Scores are visible');
     
-    // ヒントボタンをチェック
-    const hintButton = page.locator('[data-testid="hint-button"]');
-    await expect(hintButton).toBeVisible();
-    console.log('Hint button is visible');
-    
-    // ヒントボタンをクリックしてヒント機能をテスト
-    await hintButton.click();
-    
-    // ボタンの状態が変わることを確認（ここでは単純にクリックできるかで判定）
-    await expect(hintButton).toBeEnabled();
     
     // 有効な移動をクリックしてゲームが動作するかテスト
     const validMoveCell = page.locator('[data-testid="cell-2-3"]');
@@ -124,11 +114,6 @@ test.describe('Reversi GameLayout Debug', () => {
     }
     
     // ゲームの操作を行ってログが増えるかテスト
-    const hintButton = page.locator('[data-testid="hint-button"]');
-    if (await hintButton.isVisible()) {
-      await hintButton.click();
-      await page.waitForTimeout(500);
-    }
     
     const validMoveCell = page.locator('[data-testid="cell-2-3"]');
     if (await validMoveCell.isVisible()) {

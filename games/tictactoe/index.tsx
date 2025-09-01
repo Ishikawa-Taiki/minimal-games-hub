@@ -92,16 +92,6 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
         })}
       </div>
       
-      {/* ヒント切り替えボタン（ゲーム内に配置） */}
-      <div style={styles.gameControls}>
-        <SelectableButton
-          data-testid="hint-button"
-          isSelected={hintState.enabled}
-          onStateChange={(isSelected) => setHints(isSelected)}
-        >
-          おしえて！
-        </SelectableButton>
-      </div>
     </>
   );
 };
