@@ -159,18 +159,6 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
     ...getBoardDimensions(),
   };
 
-  if (gameState.status === 'waiting') {
-    return (
-      <GameLayout
-        gameName="神経衰弱"
-        slug="concentration"
-        gameController={gameController}
-      >
-        <PreGameScreen onSelect={setDifficulty} />
-      </GameLayout>
-    );
-  }
-
   const gameContent = (
     <div style={styles.gameContent}>
       <div style={styles.boardContainer}>
@@ -185,13 +173,13 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
   );
 
   return (
-    <GameLayout
-      gameName="神経衰弱"
-      slug="concentration"
-      gameController={gameController}
-    >
-      {gameContent}
-    </GameLayout>
+    <>
+      {gameState.status === 'waiting' ? (
+        <PreGameScreen onSelect={setDifficulty} />
+      ) : (
+        gameContent
+      )}
+    </>
   );
 };
 

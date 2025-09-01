@@ -111,19 +111,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
 
   const winner = gameState.winner;
 
-  if (gameState.status === 'waiting') {
-    return (
-      <GameLayout
-        gameName="はさみ将棋"
-        slug="hasami-shogi"
-        gameController={controller}
-      >
-        <PreGameScreen onSelect={setWinCondition} />
-      </GameLayout>
-    );
-  }
-
-  // GameLayoutを使用したレンダリング
   const gameContent = (
     <>
       <div style={styles.board}>
@@ -171,13 +158,13 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   );
 
   return (
-    <GameLayout
-      gameName="はさみ将棋"
-      slug="hasami-shogi"
-      gameController={controller}
-    >
-      {gameContent}
-    </GameLayout>
+    <>
+      {gameState.status === 'waiting' ? (
+        <PreGameScreen onSelect={setWinCondition} />
+      ) : (
+        gameContent
+      )}
+    </>
   );
 };
 
