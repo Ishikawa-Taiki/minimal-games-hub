@@ -162,9 +162,9 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
   if (gameState.status === 'waiting') {
     return (
       <GameLayout
-        title="神経衰弱"
-        description="カードをめくって同じ数字のペアを見つける記憶力ゲームです。"
-        controller={gameController}
+        gameName="神経衰弱"
+        slug="concentration"
+        gameController={gameController}
       >
         <PreGameScreen onSelect={setDifficulty} />
       </GameLayout>
@@ -186,9 +186,9 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
 
   return (
     <GameLayout
-      title="神経衰弱"
-      description="カードをめくって同じ数字のペアを見つける記憶力ゲームです。"
-      controller={gameController}
+      gameName="神経衰弱"
+      slug="concentration"
+      gameController={gameController}
     >
       {gameContent}
     </GameLayout>

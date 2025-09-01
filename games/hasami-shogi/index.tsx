@@ -114,9 +114,9 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   if (gameState.status === 'waiting') {
     return (
       <GameLayout
-        title="はさみ将棋"
-        description="相手の駒を自分の駒ではさんで取っていく、日本の伝統的なボードゲームです。"
-        controller={controller}
+        gameName="はさみ将棋"
+        slug="hasami-shogi"
+        gameController={controller}
       >
         <PreGameScreen onSelect={setWinCondition} />
       </GameLayout>
@@ -172,9 +172,9 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
 
   return (
     <GameLayout
-      title="はさみ将棋"
-      description="相手の駒を自分の駒ではさんで取っていく、日本の伝統的なボードゲームです。"
-      controller={controller}
+      gameName="はさみ将棋"
+      slug="hasami-shogi"
+      gameController={controller}
     >
       {gameContent}
     </GameLayout>
