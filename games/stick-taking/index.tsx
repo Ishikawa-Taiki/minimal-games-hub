@@ -73,9 +73,9 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
       <h1 style={styles.title}>ぼうけしゲーム</h1>
       <h2 style={styles.subtitle}>むずかしさをえらんでね</h2>
       <div style={styles.difficultyButtons}>
-        <Button size="large" onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</Button>
-        <Button size="large" onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</Button>
-        <Button size="large" onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</Button>
+        <PositiveButton size="large" onClick={() => handleDifficultySelect('easy')}>かんたん (3だん)</PositiveButton>
+        <PositiveButton size="large" onClick={() => handleDifficultySelect('normal')}>ふつう (5だん)</PositiveButton>
+        <PositiveButton size="large" onClick={() => handleDifficultySelect('hard')}>むずかしい (7だん)</PositiveButton>
       </div>
     </div>
   );

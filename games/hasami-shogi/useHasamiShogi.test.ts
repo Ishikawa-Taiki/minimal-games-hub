@@ -8,7 +8,7 @@ describe('useHasamiShogi', () => {
     it('初期状態が正しく設定される', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
-      expect(result.current.gameState.status).toBe('playing');
+      expect(result.current.gameState.status).toBe('waiting');
       expect(result.current.gameState.currentPlayer).toBe('PLAYER1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.gameState.hintsEnabled).toBe(false);
@@ -44,6 +44,10 @@ describe('useHasamiShogi', () => {
     it('resetGameで初期状態に戻る', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
+      act(() => {
+        result.current.setWinCondition('five_captures');
+      });
+
       // ヒントをオンにして状態を変更
       act(() => {
         result.current.setHints(true);
@@ -56,7 +60,7 @@ describe('useHasamiShogi', () => {
         result.current.resetGame();
       });
       
-      expect(result.current.gameState.status).toBe('playing');
+      expect(result.current.gameState.status).toBe('waiting');
       expect(result.current.gameState.currentPlayer).toBe('PLAYER1');
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.gameState.hintsEnabled).toBe(false);
