@@ -25,13 +25,13 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     const { winner, currentPlayer } = gameState;
     if (winner) {
       alert({
-        title: 'けっか',
-        message: `${getDisplayStatus()}\n(${currentPlayer}がさいごのぼうをとったよ)`,
+        title: `${winner}のかち`,
+        message: `${currentPlayer}がさいごのぼうをとったよ！`,
       }).then(() => {
         resetGame();
       });
     }
-  }, [gameState.winner, gameState.currentPlayer, alert, getDisplayStatus, resetGame]);
+  }, [gameState.winner, gameState.currentPlayer, alert, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);

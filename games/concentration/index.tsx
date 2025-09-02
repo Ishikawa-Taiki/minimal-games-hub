@@ -7,6 +7,7 @@ import { useConcentration } from './useConcentration';
 import { useResponsive } from '../../hooks/useResponsive';
 import GameLayout from '../../app/components/GameLayout';
 import { PositiveButton } from '../../app/components/ui';
+import { useDialog } from '../../app/components/ui/DialogProvider';
 
 interface ConcentrationProps {
   controller?: ReturnType<typeof useConcentration>;
@@ -45,6 +46,28 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
 
   const { screenWidth } = useResponsive();
   const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 0);
+  const { alert } = useDialog();
+
+  useEffect(() => {
+    if (gameState.winner) {
+      if (gameState.winner === 'DRAW') {
+        alert({
+          title: 'ひきわけ',
+          message: `プレイヤー1もプレイヤー2も ${gameState.scores.player1}ペアとったよ！`,
+        }).then(() => {
+          resetGame();
+        });
+      } else {
+        const winnerText = gameState.winner === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
+        alert({
+          title: `${winnerText}のかち`,
+          message: `プレイヤー1が${gameState.scores.player1}ペア、プレイヤー2が${gameState.scores.player2}ペアとったよ！`,
+        }).then(() => {
+          resetGame();
+        });
+      }
+    }
+  }, [gameState.winner, gameState.scores, alert, resetGame]);
 
   useEffect(() => {
     const handleResize = () => setWindowHeight(window.innerHeight);
@@ -168,7 +191,6 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
           ))}
         </div>
       </div>
-      <GameOverModal winner={gameState.winner} onReset={() => resetGame()} />
     </div>
   );
 
@@ -180,29 +202,6 @@ const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProp
         gameContent
       )}
     </>
-  );
-};
-
-const GameOverModal = ({ winner, onReset }: { winner: string | 'DRAW' | null, onReset: () => void }) => {
-  if (!winner) return null;
-
-  const getWinnerText = () => {
-    if (winner === 'DRAW') return "引き分け！";
-    if (winner === 'player1') return "プレイヤー1の勝ち！";
-    if (winner === 'player2') return "プレイヤー2の勝ち！";
-    return `${winner}の勝ち！`;
-  };
-
-  return (
-    <div style={styles.gameOverOverlay} data-testid="game-over-modal">
-      <div style={styles.gameOverModal}>
-        <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
-        <p style={styles.winnerText} data-testid="winner-message">{getWinnerText()}</p>
-        <button onClick={onReset} style={styles.resetButton} data-testid="play-again-button">
-          もう一度プレイ
-        </button>
-      </div>
-    </div>
   );
 };
 

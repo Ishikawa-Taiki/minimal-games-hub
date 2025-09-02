@@ -12,6 +12,7 @@ import { useReversi, ReversiController } from './useReversi';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { styles } from './styles';
 import { SelectableButton } from '../../app/components/ui';
+import { useDialog } from '../../app/components/ui/DialogProvider';
 
 // 駒のアイコンコンポーネント
 const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (
@@ -44,17 +45,34 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
   const [flippingCells, setFlippingCells] = useState<[number, number][]>([]);
   const [isFlipping, setIsFlipping] = useState(false);
   const [visualBoard, setVisualBoard] = useState<Board>(controller.gameState.board);
+  const { alert } = useDialog();
+  const { gameState } = controller;
+  const { winner, scores } = gameState;
+
+  useEffect(() => {
+    if (winner) {
+      const winnerText = winner === 'BLACK' ? 'くろ' : 'しろ';
+      if (winner === 'DRAW') {
+        alert({
+          title: 'ひきわけ',
+          message: `くろいしも しろいしも ${scores.BLACK}こだったよ！`,
+        }).then(() => {
+          controller.resetGame();
+        });
+      } else {
+        alert({
+          title: `${winnerText}のかち`,
+          message: `くろいしが${scores.BLACK}こ、しろいしが${scores.WHITE}こだったよ！`,
+        }).then(() => {
+          controller.resetGame();
+        });
+      }
+    }
+  }, [winner, scores, alert, controller]);
 
   useEffect(() => {
     setVisualBoard(controller.gameState.board);
   }, [controller.gameState.board]);
-
-  const initializeGame = useCallback(() => {
-    logger.log('INITIALIZE_GAME_CALLED', {});
-    controller.resetGame();
-    setFlippingCells([]);
-    setIsFlipping(false);
-  }, [controller, logger]);
 
   const handleCellClick = async (r: number, c: number) => {
     const moveKey = `${r},${c}`;
@@ -141,7 +159,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     }
   };
 
-  const winner = controller.gameState.winner;
   const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
   const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
 
@@ -284,24 +301,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         </div>
       )}
 
-      {winner && (
-        <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
-          <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>ゲーム終了</h2>
-            <div data-testid="winner-message" style={styles.winnerText}>
-              {winner === 'DRAW' ? '引き分け' : (
-                <>
-                  <DiscIcon player={winner as Player} />
-                  <span>の勝ち!</span>
-                </>
-              )}
-            </div>
-            <button data-testid="play-again-button" onClick={initializeGame} style={styles.resetButton}>
-              もう一度プレイ
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
