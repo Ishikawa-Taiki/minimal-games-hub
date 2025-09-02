@@ -50,11 +50,12 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     gap: '0.25rem',
     backgroundColor: '#2f855a',
     padding: '0.5rem',
-    borderRadius: '0.375rem'
+    borderRadius: '0.375rem',
+    width: '100%',
+    maxWidth: '560px',
+    aspectRatio: '1 / 1',
   },
   cellContainer: {
-    width: '2.5rem',
-    height: '2.5rem',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
