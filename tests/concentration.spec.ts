@@ -37,30 +37,27 @@ test.describe('神経衰弱ゲーム', () => {
   test.skip('ゲーム終了時に結果ダイアログが表示され、もう一度遊べること', async ({ page }) => {
     await page.getByTestId('difficulty-easy').click();
 
-    const cards = await page.locator('[data-testid^="card-"]').all();
-    for (let i = 0; i < cards.length; i++) {
-      // カードがまだ操作可能な場合のみクリック
-      const card = page.locator(`[data-testid="card-${i}"]`);
-      if (await card.isEnabled()) {
-        await card.click();
-        await page.waitForTimeout(100); // 状態更新を待つ
-      }
+    // プレイヤー1が全10ペアを取得する
+    for (let i = 0; i < 10; i++) {
+      const card1_index = i * 2;
+      const card2_index = i * 2 + 1;
+      await page.locator(`[data-testid="card-${card1_index}"]`).click();
+      await page.locator(`[data-testid="card-${card2_index}"]`).click();
+      await page.waitForTimeout(200); // 状態更新を待つ
     }
 
-    // ゲーム終了まで待機
-    await page.waitForTimeout(5000);
+    const winner = 'プレイヤー1';
+    const p1_score = 10;
+    const p2_score = 0;
+    const expectedTitle = `${winner}のかち`;
+    const expectedMessage = `プレイヤー1が${p1_score}ペア、プレイヤー2が${p2_score}ペアとったよ！`;
 
-    // ダイアログの表示を待つ
-    await expect(page.locator('[data-testid="alert-dialog"]')).toBeVisible({ timeout: 15000 });
-
-    const title = await page.locator('[role="dialog"] h2').textContent();
-    const message = await page.locator('[role="dialog"] p').textContent();
-
-    expect(title).toMatch(/のかち|ひきわけ/);
-    expect(message).toContain('ペアとったよ！');
+    const dialog = page.getByRole('dialog', { name: expectedTitle });
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+    await expect(dialog).toContainText(expectedMessage);
 
     // OKボタンをクリックしてゲームをリセット
-    await page.getByRole('button', { name: 'OK' }).click();
+    await dialog.getByTestId('alert-dialog-confirm-button').click();
 
     // 難易度選択画面に戻ることを確認
     await expect(page.getByRole('heading', { name: '難易度を選んでください' })).toBeVisible();

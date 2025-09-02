@@ -18,6 +18,7 @@ interface AnimalChessGameState extends BaseGameState {
   capturedPieces: GameState['capturedPieces'];
   selectedCell: GameState['selectedCell'];
   selectedCaptureIndex: GameState['selectedCaptureIndex'];
+  winReason: 'catch' | 'try' | null;
   // ヒント関連
   hintsEnabled: boolean;
 }
@@ -36,6 +37,7 @@ function createInitialAnimalChessState(): AnimalChessGameState {
     capturedPieces: coreState.capturedPieces,
     selectedCell: coreState.selectedCell,
     selectedCaptureIndex: coreState.selectedCaptureIndex,
+    winReason: null,
     // BaseGameState required fields
     status: 'playing' as GameStatus,
     winner: coreState.status === 'sente_win' ? SENTE : 
@@ -57,6 +59,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
                 state.status === 'ended' && state.winner === GOTE ? 'gote_win' : 'playing',
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
+        winReason: state.winReason,
       };
       
       const newCoreState = handleCellClickCore(coreState, action.row, action.col);
@@ -68,6 +71,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         capturedPieces: newCoreState.capturedPieces,
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
+        winReason: newCoreState.winReason,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'sente_win' ? SENTE : 
@@ -85,6 +89,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
                 state.status === 'ended' && state.winner === GOTE ? 'gote_win' : 'playing',
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
+        winReason: state.winReason,
       };
       
       const newCoreState = handleCaptureClickCore(coreState, action.player, action.index);
@@ -96,6 +101,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         capturedPieces: newCoreState.capturedPieces,
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
+        winReason: newCoreState.winReason,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'sente_win' ? SENTE : 

@@ -70,6 +70,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ pie
   );
 };
 
+
 interface AnimalChessProps {
   controller?: AnimalChessController;
 }
@@ -79,18 +80,17 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   const gameController = externalController || internalController;
   const { gameState, handleCellClick, handleCaptureClick, hintState, resetGame } = gameController;
   const { alert } = useDialog();
-  const { winner, capturedPieces } = gameState;
+  const { winner } = gameState;
 
   useEffect(() => {
+    const { winner, winReason } = gameState;
     if (winner) {
       const winnerText = winner === SENTE ? 'プレイヤー1' : 'プレイヤー2';
-      const opponent = winner === SENTE ? GOTE : SENTE;
-
       let message = '';
-      if (capturedPieces[opponent].includes(LION)) {
-        message = 'ライオンをとったよ！';
-      } else {
-        message = 'トライ！';
+      if (winReason === 'catch') {
+        message = 'キャッチ！(ライオンをとったよ！)';
+      } else if (winReason === 'try') {
+        message = 'トライ！ (さいごのますにとうたつしたよ！)';
       }
 
       alert({
@@ -100,7 +100,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         resetGame();
       });
     }
-  }, [winner, capturedPieces, resetGame, alert]);
+  }, [gameState.winner, gameState.winReason, resetGame, alert]);
   
   const showHints = hintState.enabled;
   const isGameInProgress = gameState.status === 'playing';
@@ -112,7 +112,8 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
     capturedPieces: gameState.capturedPieces,
     status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
     selectedCell: gameState.selectedCell,
-    selectedCaptureIndex: gameState.selectedCaptureIndex
+    selectedCaptureIndex: gameState.selectedCaptureIndex,
+    winReason: gameState.winReason,
   };
 
   // ヒント計算のヘルパー関数
