@@ -4,10 +4,10 @@ import { CSSProperties } from 'react';
 export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   container: {
     display: 'flex',
+    flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '100vh',
     backgroundColor: '#f0f0f0',
     fontFamily: 'sans-serif',
   },

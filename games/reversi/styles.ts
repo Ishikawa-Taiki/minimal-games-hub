@@ -8,7 +8,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     padding: '1rem',
     backgroundColor: '#f7fafc',
-    minHeight: '100vh',
     userSelect: 'none', // Disable text selection
   },
   title: {
