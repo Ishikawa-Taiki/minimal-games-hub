@@ -4,10 +4,10 @@ import { CSSProperties } from 'react';
 export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   container: {
     display: 'flex',
+    flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '100vh',
     backgroundColor: '#f0f0f0',
     fontFamily: 'sans-serif',
   },
@@ -45,6 +45,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     gap: '16px',
     marginBottom: '2rem',
+    width: '100%',
+    maxWidth: '500px',
   },
   row: {
     display: 'flex',
@@ -52,9 +54,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     gap: '12px',
   },
   stick: {
-    width: '24px',
     height: '60px',
     backgroundColor: '#8B4513',
+    flex: '0 1 24px',
+    minWidth: '10px',
     borderRadius: '3px',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
