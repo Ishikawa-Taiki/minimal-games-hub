@@ -12,6 +12,7 @@
 -   **[人間向けガイド](./rules/human-developer-guide.md)**
 -   **技術ガイド**
     -   [アプリケーションアーキテクチャ](./rules/technical-guide-application-architecture.md)
+    -   [レスポンシブアーキテクチャ](./rules/technical-guide-responsive-architecture.md)
     -   [開発ワークフロー](./rules/technical-guide-development-workflow.md)
     -   [ドキュメント標準](./rules/technical-guide-documentation-standards.md)
     -   [セットアップと環境](./rules/technical-guide-setup-and-environment.md)
