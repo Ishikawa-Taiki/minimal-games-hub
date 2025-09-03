@@ -40,7 +40,7 @@ const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
   '[-1,-1]': styles.indicatorNW,
 };
 
-const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ piece, showIndicators }) => {
+const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectable?: boolean }> = ({ piece, showIndicators, isSelectable }) => {
   const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
   const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
@@ -48,6 +48,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ pie
   const imageStyle: CSSProperties = {
     transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
     objectFit: 'contain',
+    ...(isSelectable ? styles.selectablePiece : {}),
   };
 
   const baseMoves = MOVES[piece.type];
@@ -178,11 +179,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
       }
     }
 
-    // If the cell is not a move target, check if it contains a piece that can be selected
-    if (showHints && !cellStyle.backgroundColor && piece && piece.owner === gameState.currentPlayer && isGameInProgress) {
-      cellStyle.backgroundColor = styles.selectableCellHighlight.backgroundColor;
-    }
-
     // The currently selected piece's highlight should have the highest priority
     if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
       cellStyle.backgroundColor = styles.selectedCell.backgroundColor;
@@ -219,21 +215,25 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         {/* Game Board */}
         <div style={styles.board} data-testid="animal-chess-board">
           {gameState.board.map((row, rowIndex) => (
-            row.map((cell, colIndex) => (
-              <button
-                key={`${rowIndex}-${colIndex}`}
-                data-testid={`cell-${rowIndex}-${colIndex}`}
-                style={{
-                  ...styles.cell,
-                  ...getCellStyle(rowIndex, colIndex),
-                  cursor: isGameInProgress ? 'pointer' : 'default',
-                }}
-                onClick={() => onCellClick(rowIndex, colIndex)}
-                disabled={!isGameInProgress}
-              >
-                {cell && <PieceDisplay piece={cell} showIndicators={true} />}
-              </button>
-            ))
+            row.map((cell, colIndex) => {
+              const piece = gameState.board[rowIndex][colIndex];
+              const isSelectable = !!(piece && piece.owner === gameState.currentPlayer && isGameInProgress);
+              return (
+                <button
+                  key={`${rowIndex}-${colIndex}`}
+                  data-testid={`cell-${rowIndex}-${colIndex}`}
+                  style={{
+                    ...styles.cell,
+                    ...getCellStyle(rowIndex, colIndex),
+                    cursor: isGameInProgress ? 'pointer' : 'default',
+                  }}
+                  onClick={() => onCellClick(rowIndex, colIndex)}
+                  disabled={!isGameInProgress}
+                >
+                  {cell && <PieceDisplay piece={cell} showIndicators={true} isSelectable={isSelectable} />}
+                </button>
+              );
+            })
           ))}
         </div>
 

@@ -53,8 +53,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   threatenedCell: {
     boxShadow: 'inset 0 0 0 4px #fca5a5',
   },
-  selectableCellHighlight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  selectablePiece: {
+    filter: 'drop-shadow(0 0 5px #fff) drop-shadow(0 0 5px #fff)',
   },
   capturedPiecesBox: {
     width: '100%',
