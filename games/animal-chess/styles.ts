@@ -54,7 +54,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     boxShadow: 'inset 0 0 0 4px #fca5a5',
   },
   selectablePiece: {
-    filter: 'drop-shadow(0 0 5px #fff) drop-shadow(0 0 5px #fff)',
+    filter: 'drop-shadow(0 0 4px gold) drop-shadow(0 0 2px gold)',
   },
   capturedPiecesBox: {
     width: '100%',
