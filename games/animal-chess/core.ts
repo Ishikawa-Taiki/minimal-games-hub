@@ -32,6 +32,7 @@ export interface GameState {
   status: 'playing' | 'sente_win' | 'gote_win';
   selectedCell: { row: number; col: number } | null;
   selectedCaptureIndex: { player: Player; index: number } | null;
+  winReason: 'catch' | 'try' | null;
 }
 
 // Movement vectors [row, col] relative to the piece owner (SENTE)
@@ -72,6 +73,7 @@ export const createInitialState = (): GameState => {
     status: 'playing',
     selectedCell: null,
     selectedCaptureIndex: null,
+    winReason: null,
   };
 };
 
@@ -164,7 +166,12 @@ export function getValidDrops(state: GameState, player: Player): { row: number, 
 }
 
 
-function checkWinner(board: Board, mover: Player): 'playing' | 'sente_win' | 'gote_win' {
+interface WinResult {
+  status: 'playing' | 'sente_win' | 'gote_win';
+  reason: 'catch' | 'try' | null;
+}
+
+function checkWinner(board: Board, mover: Player): WinResult {
     const opponent = getOpponent(mover);
 
     // 1. Check for "Try" (Lion in the final rank)
@@ -174,7 +181,10 @@ function checkWinner(board: Board, mover: Player): 'playing' | 'sente_win' | 'go
             if (piece && piece.type === LION && piece.owner === mover) {
                 const finalRank = mover === SENTE ? 0 : BOARD_ROWS - 1;
                 if (r === finalRank) {
-                    return mover === SENTE ? 'sente_win' : 'gote_win';
+                    return {
+                        status: mover === SENTE ? 'sente_win' : 'gote_win',
+                        reason: 'try'
+                    };
                 }
             }
         }
@@ -194,10 +204,13 @@ function checkWinner(board: Board, mover: Player): 'playing' | 'sente_win' | 'go
     }
 
     if (!opponentLionOnBoard) {
-        return mover === SENTE ? 'sente_win' : 'gote_win';
+        return {
+            status: mover === SENTE ? 'sente_win' : 'gote_win',
+            reason: 'catch'
+        };
     }
 
-    return 'playing';
+    return { status: 'playing', reason: null };
 }
 
 export function movePiece(state: GameState, from: { row: number, col: number }, to: { row: number, col: number }): GameState {
@@ -233,14 +246,15 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
         newBoard[to.row][to.col] = { ...pieceToMove, type: ROOSTER };
     }
 
-    const newStatus = checkWinner(newBoard, state.currentPlayer);
+    const winResult = checkWinner(newBoard, state.currentPlayer);
 
     return {
         ...state,
         board: newBoard,
         currentPlayer: getOpponent(state.currentPlayer),
         capturedPieces: newCapturedPieces,
-        status: newStatus,
+        status: winResult.status,
+        winReason: winResult.reason,
         selectedCell: null,
         selectedCaptureIndex: null,
     };

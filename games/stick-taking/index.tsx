@@ -24,14 +24,18 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   useEffect(() => {
     const { winner, currentPlayer } = gameState;
     if (winner) {
+      // ゲームのルール上、最後の1本を取ったプレイヤーが負け。
+      // このuseEffectが呼ばれる時点では、`winner`が確定し、
+      // `currentPlayer`は最後に手を動かしたプレイヤー（＝敗者）を指している。
+      const loser = currentPlayer;
       alert({
-        title: 'けっか',
-        message: `${getDisplayStatus()}\n(${currentPlayer}がさいごのぼうをとったよ)`,
+        title: `${winner}のかち`,
+        message: `${loser}がさいごのぼうをとったので、${winner}のかち！`,
       }).then(() => {
         resetGame();
       });
     }
-  }, [gameState.winner, gameState.currentPlayer, alert, getDisplayStatus, resetGame]);
+  }, [gameState.winner, gameState.currentPlayer, alert, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);

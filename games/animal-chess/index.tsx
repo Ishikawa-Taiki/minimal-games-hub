@@ -1,6 +1,6 @@
 "use client";
 
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useEffect } from 'react';
 import {
   Piece,
   PieceType,
@@ -11,11 +11,13 @@ import {
   MOVES,
   SENTE,
   GOTE,
+  LION,
 } from './core';
 import Image from 'next/image';
 import { styles } from './styles';
 import { AnimalChessController, useAnimalChess } from './useAnimalChess';
 import GameLayout from '../../app/components/GameLayout';
+import { useDialog } from '../../app/components/ui/DialogProvider';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -68,23 +70,6 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean }> = ({ pie
   );
 };
 
-const GameOverModal: React.FC<{ status: 'playing' | 'sente_win' | 'gote_win'; onReset: () => void }> = ({ status, onReset }) => {
-  if (status === 'playing') return null;
-
-  const winnerText = status === 'sente_win' ? 'プレイヤー1の勝ち！' : 'プレイヤー2の勝ち！';
-
-  return (
-    <div style={styles.modalOverlay}>
-      <div style={styles.modalContent}>
-        <h2 style={styles.modalTitle}>ゲーム終了</h2>
-        <p style={styles.modalText}>{winnerText}</p>
-        <button style={styles.modalButton} onClick={onReset}>
-          もう一度遊ぶ
-        </button>
-      </div>
-    </div>
-  );
-};
 
 interface AnimalChessProps {
   controller?: AnimalChessController;
@@ -93,7 +78,29 @@ interface AnimalChessProps {
 const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
   const internalController = useAnimalChess();
   const gameController = externalController || internalController;
-  const { gameState, handleCellClick, handleCaptureClick, hintState } = gameController;
+  const { gameState, handleCellClick, handleCaptureClick, hintState, resetGame } = gameController;
+  const { alert } = useDialog();
+  const { winner } = gameState;
+
+  useEffect(() => {
+    const { winner, winReason } = gameState;
+    if (winner) {
+      const winnerText = winner === SENTE ? 'プレイヤー1' : 'プレイヤー2';
+      let message = '';
+      if (winReason === 'catch') {
+        message = 'キャッチ！(ライオンをとったよ！)';
+      } else if (winReason === 'try') {
+        message = 'トライ！ (さいごのますにとうたつしたよ！)';
+      }
+
+      alert({
+        title: `${winnerText}のかち`,
+        message: message,
+      }).then(() => {
+        resetGame();
+      });
+    }
+  }, [gameState.winner, gameState.winReason, resetGame, alert]);
   
   const showHints = hintState.enabled;
   const isGameInProgress = gameState.status === 'playing';
@@ -105,7 +112,8 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
     capturedPieces: gameState.capturedPieces,
     status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
     selectedCell: gameState.selectedCell,
-    selectedCaptureIndex: gameState.selectedCaptureIndex
+    selectedCaptureIndex: gameState.selectedCaptureIndex,
+    winReason: gameState.winReason,
   };
 
   // ヒント計算のヘルパー関数
@@ -185,12 +193,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
   return (
     <>
-      <GameOverModal 
-        status={gameState.winner === SENTE ? 'sente_win' : 
-               gameState.winner === GOTE ? 'gote_win' : 'playing'} 
-        onReset={gameController.resetGame} 
-      />
-
       <div style={styles.gameArea}>
         {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>

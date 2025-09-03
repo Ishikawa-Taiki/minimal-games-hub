@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, CSSProperties } from 'react';
+import React, { useCallback, CSSProperties, useEffect } from 'react';
 import {
   Player,
   WinCondition,
@@ -10,6 +10,7 @@ import GameLayout from '../../app/components/GameLayout';
 import { useResponsive, isMobile } from '../../hooks/useResponsive';
 import { PositiveButton } from '../../app/components/ui';
 import { styles } from './styles';
+import { useDialog } from '../../app/components/ui/DialogProvider';
 
 // Piece component for the game board
 const Piece: React.FC<{ player: Player }> = ({ player }) => {
@@ -37,7 +38,7 @@ const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => vo
     <h2 style={styles.preGameTitle}>勝利条件を選んでください</h2>
     <div style={styles.preGameButtonContainer}>
       <PositiveButton onClick={() => onSelect('standard')} data-testid="win-cond-standard">
-        ふつうのルール (8個先取)
+        ふつうのルール (5個先取)
       </PositiveButton>
       <PositiveButton onClick={() => onSelect('five_captures')} data-testid="win-cond-five">
         5こさきどり
@@ -75,6 +76,23 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   const hintsEnabled = hintState.enabled;
   const responsiveState = useResponsive();
   const isMobileLayout = isMobile(responsiveState);
+  const { alert } = useDialog();
+
+  useEffect(() => {
+    if (gameState.winner) {
+      const winnerText = gameState.winner === 'PLAYER1' ? 'プレイヤー1' : 'プレイヤー2';
+      const capturedCount =
+        gameState.winner === 'PLAYER1'
+          ? gameState.capturedPieces.PLAYER2
+          : gameState.capturedPieces.PLAYER1;
+      alert({
+        title: `${winnerText}のかち`,
+        message: `${winnerText}が${capturedCount}こ駒をとったよ！`,
+      }).then(() => {
+        resetGame();
+      });
+    }
+  }, [gameState.winner, gameState.capturedPieces, alert, resetGame]);
 
   const onCellClick = (r: number, c: number) => {
     if (gameState.gameStatus === 'GAME_OVER') return;
@@ -137,23 +155,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
       </div>
 
 
-      {winner && (
-        <div data-testid="game-over-modal" style={styles.gameOverOverlay}>
-          <div style={styles.gameOverModal}>
-            <h2 style={styles.gameOverTitle}>おしまい</h2>
-            <div data-testid="winner-message" style={styles.winnerText}>
-              {winner === 'PLAYER1'
-                 ? <IndicatorPiece player="PLAYER1" />
-                 : <IndicatorPiece player="PLAYER2" />
-              }
-              <span>のかち！</span>
-            </div>
-            <button data-testid="play-again-button" onClick={resetGame} style={isMobileLayout ? styles.resetButton : styles.resetButtonDesktop}>
-              もういちど
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 
