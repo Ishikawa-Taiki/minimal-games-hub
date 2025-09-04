@@ -38,10 +38,10 @@ const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => vo
     <h2 style={styles.preGameTitle}>勝利条件を選んでください</h2>
     <div style={styles.preGameButtonContainer}>
       <PositiveButton onClick={() => onSelect('standard')} data-testid="win-cond-standard">
-        ふつうのルール (5個先取)
+        5こ とるか 3こ さをつける
       </PositiveButton>
       <PositiveButton onClick={() => onSelect('five_captures')} data-testid="win-cond-five">
-        5こさきどり
+        5こ さきどり
       </PositiveButton>
       <PositiveButton onClick={() => onSelect('total_capture')} data-testid="win-cond-total">
         ぜんぶとる
