@@ -13,7 +13,7 @@
     "test:e2e": "npx playwright test",
     "test:e2e-ui": "npx playwright test --ui",
     "gemini": "gemini",
-    "update:license": "npx license-checker --production --json | node scripts/license-update.mjs",
+    "update:license": "node scripts/license-update.js",
     "prepare": "husky",
     "postinstall": "npx playwright install && npm run update:license"
   },
