@@ -5,7 +5,7 @@ interface LogEntry {
   timestamp: number;
   component: string;
   event: string;
-  data: any;
+  data: unknown;
   stackTrace?: string;
 }
 
@@ -13,7 +13,7 @@ class GameStateLogger {
   private logs: LogEntry[] = [];
   private maxLogs = 100;
 
-  log(component: string, event: string, data: any) {
+  log(component: string, event: string, data: unknown) {
     const entry: LogEntry = {
       timestamp: Date.now(),
       component,
@@ -56,10 +56,10 @@ const gameStateLogger = new GameStateLogger();
 // React hook for logging game state changes
 export function useGameStateLogger(
   component: string,
-  gameState: BaseGameState | any,
-  additionalData?: any
+  gameState: BaseGameState | Record<string, unknown>,
+  additionalData?: unknown
 ) {
-  const prevStateRef = useRef<any>(null);
+  const prevStateRef = useRef<unknown>(null);
   const mountedRef = useRef(false);
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export function useGameStateLogger(
   }, [component, gameState, additionalData]);
 
   return {
-    log: (event: string, data: any) => gameStateLogger.log(component, event, data),
+    log: (event: string, data: unknown) => gameStateLogger.log(component, event, data),
     getLogs: () => gameStateLogger.getLogs(),
     getComponentLogs: () => gameStateLogger.getLogsForComponent(component),
     clearLogs: () => gameStateLogger.clearLogs(),
@@ -104,7 +104,7 @@ export function useGameStateLogger(
 // Hook for manual logging
 export function useGameLogger(component: string) {
   return {
-    log: (event: string, data: any) => gameStateLogger.log(component, event, data),
+    log: (event: string, data: unknown) => gameStateLogger.log(component, event, data),
     getLogs: () => gameStateLogger.getLogs(),
     getComponentLogs: () => gameStateLogger.getLogsForComponent(component),
     clearLogs: () => gameStateLogger.clearLogs(),

@@ -1,5 +1,5 @@
-const fs = require('fs');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import { exit } from 'process';
 
 // NOTE: This script is intended to be run with `npx license-checker --production --json` piped to stdin.
 // Example: npx license-checker --production --json | node scripts/license-update.js
@@ -43,5 +43,5 @@ This file contains the licenses for the libraries used in this project.
 } catch (error) {
   console.error('Failed to generate license file. Is the JSON from license-checker being piped correctly?');
   console.error(error);
-  process.exit(1);
+  exit(1);
 }

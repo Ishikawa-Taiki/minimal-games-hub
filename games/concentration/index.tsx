@@ -32,7 +32,8 @@ const PreGameScreen = ({ onSelect }: { onSelect: (difficulty: Difficulty) => voi
 );
 
 const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProps) => {
-  const gameController = controller || useConcentration('easy');
+  const concentrationHook = useConcentration('easy');
+  const gameController = controller || concentrationHook;
   const {
     gameState,
     handleCardClick,

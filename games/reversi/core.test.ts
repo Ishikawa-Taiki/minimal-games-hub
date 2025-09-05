@@ -44,7 +44,7 @@ describe('Reversi Core Logic', () => {
 
     // パスが発生するシナリオを処理することを確認
   it('パスが発生するシナリオを処理することを確認', () => {
-    let state: GameState = {
+    const state: GameState = {
       board: [
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
@@ -77,7 +77,7 @@ describe('Reversi Core Logic', () => {
 
   // 盤面がすべて埋まったときにゲームが終了することを確認
   it('盤面がすべて埋まったときにゲームが終了することを確認', () => {
-    let state = createInitialState();
+    const state = createInitialState();
     // For simplicity, let's manually fill the board for this test
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -92,7 +92,7 @@ describe('Reversi Core Logic', () => {
 
     // 両プレイヤーともに有効な手がない場合にゲームが終了することを確認
   it('両プレイヤーともに有効な手がない場合にゲームが終了することを確認', () => {
-    let state: GameState = {
+    const state: GameState = {
       board: [
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
@@ -122,7 +122,7 @@ describe('Reversi Core Logic', () => {
 
   // 勝者が正しく決定されることを確認
   it('勝者が正しく決定されることを確認', () => {
-    let state = createInitialState();
+    const state = createInitialState();
     // Simulate a game where Black wins
     state.scores.BLACK = 30;
     state.scores.WHITE = 10;

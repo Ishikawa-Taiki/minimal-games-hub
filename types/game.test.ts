@@ -10,6 +10,8 @@ import {
   GameController,
 } from './game';
 
+type DummyAction = { type: 'DUMMY' };
+
 describe('ヒント機能の型定義', () => {
   it('Position型が正しく定義されている', () => {
     const position: Position = { row: 1, col: 2 };
@@ -64,7 +66,7 @@ describe('ヒント機能の型定義', () => {
 
   it('HintableGameController型が正しく定義されている', () => {
     // モックのコントローラーを作成
-    const mockController: HintableGameController<HintableGameState, any> = {
+    const mockController: HintableGameController<HintableGameState, DummyAction> = {
       gameState: {
         status: 'playing',
         currentPlayer: 'player1',
@@ -87,7 +89,7 @@ describe('ヒント機能の型定義', () => {
 
   it('GameController型の型ガードが正しく動作する', () => {
     // ベースコントローラー
-    const baseController: BaseGameController<BaseGameState, any> = {
+    const baseController: BaseGameController<BaseGameState, DummyAction> = {
       gameState: { status: 'waiting', currentPlayer: null, winner: null },
       dispatch: () => {},
       resetGame: () => {},
@@ -95,7 +97,7 @@ describe('ヒント機能の型定義', () => {
     };
 
     // ヒント機能付きコントローラー
-    const hintController: HintableGameController<HintableGameState, any> = {
+    const hintController: HintableGameController<HintableGameState, DummyAction> = {
       gameState: {
         status: 'playing',
         currentPlayer: 'player1',
@@ -110,7 +112,7 @@ describe('ヒント機能の型定義', () => {
     };
 
     // GameController型として扱える
-    const controllers: GameController<any, any>[] = [baseController, hintController];
+    const controllers: GameController<BaseGameState, DummyAction>[] = [baseController, hintController];
     expect(controllers).toHaveLength(2);
   });
 });

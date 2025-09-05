@@ -120,7 +120,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
   });
 
   it('引き分けを検出することを確認', () => {
-    let state: GameState | null = createInitialState();
+    const state: GameState | null = createInitialState();
     if (!state) return;
     // Manually set up a draw board state
     state.board = [

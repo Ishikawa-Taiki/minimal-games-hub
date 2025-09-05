@@ -166,7 +166,7 @@ describe('棒消しゲームのコアロジック', () => {
     });
 
     it('getHintDataがすべての棒がなくなったときに0を返すこと', () => {
-      let state = createInitialState('easy');
+      const state = createInitialState('easy');
       state.rows = state.rows.map(row =>
         row.map(stick => ({...stick, isTaken: true}))
       );
