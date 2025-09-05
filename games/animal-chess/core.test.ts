@@ -126,7 +126,7 @@ describe('Animal Chess Core Logic', () => {
   });
 
   it('should return valid drop locations', () => {
-    let state = createInitialState();
+    const state = createInitialState();
     state.capturedPieces[SENTE] = [CHICK];
     const drops = getValidDrops(state, SENTE);
     // Initial board has 12 total cells, 8 are occupied -> 4 empty cells

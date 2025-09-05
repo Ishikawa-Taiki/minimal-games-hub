@@ -69,7 +69,7 @@ export interface HintableGameState extends BaseGameState {
 
 // 履歴機能付きゲーム状態
 export interface HistoryGameState extends BaseGameState {
-  history: any[]; // ゲーム固有の履歴データ
+  history: unknown[]; // ゲーム固有の履歴データ
   currentHistoryIndex: number;
 }
 
