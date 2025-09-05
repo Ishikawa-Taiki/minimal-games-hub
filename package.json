@@ -18,7 +18,7 @@
     "postinstall": "npx playwright install && npm run update:license"
   },
   "dependencies": {
-    "next": "15.4.4",
+    "next": "^15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-markdown": "^10.1.0",
