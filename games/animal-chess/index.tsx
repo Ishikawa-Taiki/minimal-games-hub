@@ -11,12 +11,10 @@ import {
   MOVES,
   SENTE,
   GOTE,
-  LION,
 } from './core';
 import Image from 'next/image';
 import { styles } from './styles';
 import { AnimalChessController, useAnimalChess } from './useAnimalChess';
-import GameLayout from '../../app/components/GameLayout';
 import { useDialog } from '../../app/components/ui/DialogProvider';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -81,7 +79,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   const gameController = externalController || internalController;
   const { gameState, handleCellClick, handleCaptureClick, hintState, resetGame } = gameController;
   const { alert } = useDialog();
-  const { winner } = gameState;
 
   useEffect(() => {
     const { winner, winReason } = gameState;
@@ -101,7 +98,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         resetGame();
       });
     }
-  }, [gameState.winner, gameState.winReason, resetGame, alert]);
+  }, [gameState, resetGame, alert]);
   
   const showHints = hintState.enabled;
   const isGameInProgress = gameState.status === 'playing';
@@ -152,7 +149,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
   const getCellStyle = (row: number, col: number): CSSProperties => {
     const cellStyle: CSSProperties = {}; // Start with an empty style object
-    const piece = gameState.board[row][col];
 
     // Apply hints for valid moves, captures, and threats first
     if (showHints) {
@@ -216,8 +212,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         <div style={styles.board} data-testid="animal-chess-board">
           {gameState.board.map((row, rowIndex) => (
             row.map((cell, colIndex) => {
-              const piece = gameState.board[rowIndex][colIndex];
-              const isSelectable = !!(piece && piece.owner === gameState.currentPlayer && isGameInProgress);
+              const isSelectable = !!(cell && cell.owner === gameState.currentPlayer && isGameInProgress);
               return (
                 <button
                   key={`${rowIndex}-${colIndex}`}

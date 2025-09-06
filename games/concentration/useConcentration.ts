@@ -6,7 +6,6 @@ import {
   handleCardClick as handleCardClickCore,
   clearNonMatchingFlippedCards,
   Difficulty,
-  Player
 } from './core';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 

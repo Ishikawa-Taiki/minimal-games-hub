@@ -5,7 +5,6 @@ import {
   clearNonMatchingFlippedCards,
   calculateHintedIndices,
   GameState,
-  Card,
   Rank,
 } from './core';
 

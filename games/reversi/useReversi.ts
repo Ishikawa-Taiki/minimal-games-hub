@@ -1,4 +1,4 @@
-import { useReducer, useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '../../types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player } from './core';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';

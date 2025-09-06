@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 import { useDialog } from '../../app/components/ui/DialogProvider';
-import { Button, PositiveButton, SelectableButton } from '../../app/components/ui';
+import { PositiveButton } from '../../app/components/ui';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -16,7 +16,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const controller = externalController || internalController;
   const { alert } = useDialog();
 
-  const { gameState, selectStick, takeSticks, startGame, resetGame, getDisplayStatus } = controller;
+  const { gameState, selectStick, takeSticks, startGame, resetGame } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -35,7 +35,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
         resetGame();
       });
     }
-  }, [gameState.winner, gameState.currentPlayer, alert, resetGame]);
+  }, [gameState, alert, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
@@ -114,7 +114,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           const touch = e.touches[0];
           const element = document.elementFromPoint(touch.clientX, touch.clientY);
           if (element && element.getAttribute('data-testid')?.startsWith('stick-')) {
-            const [_, rowStr, stickIdStr] = element.getAttribute('data-testid')!.split('-');
+            const [, rowStr, stickIdStr] = element.getAttribute('data-testid')!.split('-');
             handleStickInteractionMove(parseInt(rowStr), parseInt(stickIdStr));
           }
         }}

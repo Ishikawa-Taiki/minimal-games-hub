@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAnimalChess } from './useAnimalChess';
-import { SENTE, GOTE, CHICK, LION } from './core';
+import { SENTE, GOTE, CHICK } from './core';
 
 describe('useAnimalChess', () => {
   describe('初期状態', () => {
@@ -240,7 +240,7 @@ describe('useAnimalChess', () => {
     });
 
     it('ゲーム終了時の表示が正しい', () => {
-      const { result } = renderHook(() => useAnimalChess());
+      renderHook(() => useAnimalChess());
       
       // ゲーム状態を手動で終了状態に設定（テスト用）
       // 実際のゲームでは勝利条件を満たすことで終了する

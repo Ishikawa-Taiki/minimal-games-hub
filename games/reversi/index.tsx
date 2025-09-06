@@ -1,17 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, CSSProperties } from 'react';
+import React, { useState, useEffect, CSSProperties } from 'react';
 import {
   Player,
-  GameState,
-  createInitialState,
-  handleCellClick as handleCellClickCore,
   Board, // Import Board type
 } from './core';
 import { useReversi, ReversiController } from './useReversi';
 import { useGameStateLogger } from '../../hooks/useGameStateLogger';
 import { styles } from './styles';
-import { SelectableButton } from '../../app/components/ui';
 import { useDialog } from '../../app/components/ui/DialogProvider';
 
 // 駒のアイコンコンポーネント
@@ -24,8 +20,6 @@ const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player,
     }}
   />
 );
-
-type HintLevel = 'none' | 'placeable' | 'full';
 
 interface ReversiProps {
   controller?: ReversiController;

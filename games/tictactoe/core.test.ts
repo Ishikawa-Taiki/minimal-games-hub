@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createInitialState, handleCellClick, checkWinner, checkDraw, GameState, Player, Board } from './core';
+import { createInitialState, handleCellClick, checkWinner, checkDraw, GameState, Board } from './core';
 
 describe('Tic-Tac-Toe Core Logic', () => {
   let gameState: GameState;
@@ -30,7 +30,6 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(state).not.toBeNull();
     if (!state) return;
 
-    const originalState = { ...state };
     state = handleCellClick(state, 0, 0); // Try to move on the same cell
     expect(state).toBeNull(); // State should be null for invalid move
   });
@@ -50,7 +49,6 @@ describe('Tic-Tac-Toe Core Logic', () => {
     if (!state) return;
 
     expect(state.winner).toBe('O');
-    const originalState = { ...state };
     const finalState = handleCellClick(state, 2, 2); // Try to make a move after game ended
     expect(finalState).toBeNull(); // State should be null for invalid move
   });
@@ -144,7 +142,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
       ['O', 'X', 'X'],
       ['X', 'O', 'O'],
     ];
-    const { player: winnerAfterDraw, lines: winningLinesAfterDraw } = checkWinner(drawBoard);
+    const { player: winnerAfterDraw } = checkWinner(drawBoard);
     const isDrawAfterDraw = !winnerAfterDraw && checkDraw(drawBoard);
 
     expect(winnerAfterDraw).toBe(null);

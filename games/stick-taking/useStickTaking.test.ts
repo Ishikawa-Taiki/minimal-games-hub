@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStickTaking } from './useStickTaking';
-import { Difficulty } from './core';
 
 describe('useStickTaking', () => {
   describe('初期状態', () => {

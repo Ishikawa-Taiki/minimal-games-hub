@@ -6,7 +6,7 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "test": "npm run test:lint && npm run test:license && npm run test:unit && npm run test:e2e",
-    "test:lint": "eslint .",
+    "test:lint": "eslint . --max-warnings 0",
     "test:license": "npx license-checker --production --summary --failOn \"GPL, AGPL\"",
     "test:unit": "vitest run",
     "test:unit-ui": "vitest --ui",

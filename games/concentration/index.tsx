@@ -5,7 +5,6 @@ import { BoardCard, Suit, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '../../hooks/useResponsive';
-import GameLayout from '../../app/components/GameLayout';
 import { PositiveButton } from '../../app/components/ui';
 import { useDialog } from '../../app/components/ui/DialogProvider';
 
@@ -31,7 +30,7 @@ const PreGameScreen = ({ onSelect }: { onSelect: (difficulty: Difficulty) => voi
   </div>
 );
 
-const Concentration = ({ controller, slug = 'concentration' }: ConcentrationProps) => {
+const Concentration = ({ controller }: ConcentrationProps) => {
   const concentrationHook = useConcentration('easy');
   const gameController = controller || concentrationHook;
   const {
