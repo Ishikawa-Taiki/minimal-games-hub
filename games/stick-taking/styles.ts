@@ -56,8 +56,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   stick: {
     height: '60px',
     backgroundColor: '#8B4513',
-    flex: '0 1 24px',
-    minWidth: '10px',
+    flex: '0 1 44px',
+    minWidth: '44px',
     borderRadius: '3px',
     cursor: 'pointer',
     transition: 'background-color 0.2s',
