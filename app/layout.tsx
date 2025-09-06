@@ -4,7 +4,7 @@ import { DialogProvider } from './components/ui/DialogProvider';
 
 const bodyStyle: React.CSSProperties = {
   font: '14px "Century Gothic", Futura, sans-serif',
-  margin: '20px',
+  margin: 0,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

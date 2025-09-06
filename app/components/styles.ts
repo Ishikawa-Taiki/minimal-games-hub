@@ -39,7 +39,7 @@ export const gameLayoutStyles = StyleSheet.create({
   },
   main: {
     flexGrow: 1,
-    padding: '1rem', // p-4
+    padding: 0, // p-4
     overflowY: 'auto',
   },
 
@@ -71,7 +71,7 @@ export const gameLayoutStyles = StyleSheet.create({
   },
   desktopMain: {
     flex: 1,
-    padding: '2rem',
+    padding: 0,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -108,7 +108,7 @@ export const gameLayoutStyles = StyleSheet.create({
   },
   mobileMain: {
     flex: 1,
-    padding: '1rem',
+    padding: 0,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
