@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useCallback, CSSProperties, useEffect } from 'react';
+import React, { CSSProperties, useEffect } from 'react';
 import {
   Player,
   WinCondition,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
-import GameLayout from '../../app/components/GameLayout';
-import { useResponsive, isMobile } from '../../hooks/useResponsive';
+import { useResponsive } from '../../hooks/useResponsive';
 import { PositiveButton } from '../../app/components/ui';
 import { styles } from './styles';
 import { useDialog } from '../../app/components/ui/DialogProvider';
@@ -17,16 +16,6 @@ const Piece: React.FC<{ player: Player }> = ({ player }) => {
   const pieceStyle: CSSProperties = {
     ...styles.piece,
     transform: player === 'PLAYER2' ? 'rotate(180deg)' : 'none',
-    color: player === 'PLAYER2' ? '#e53e3e' : '#000000',
-  };
-  const char = player === 'PLAYER1' ? '歩' : 'と';
-  return <div style={pieceStyle}>{char}</div>;
-};
-
-// Piece component for the UI indicators (no rotation)
-const IndicatorPiece: React.FC<{ player: Player }> = ({ player }) => {
-  const pieceStyle: CSSProperties = {
-    ...styles.piece,
     color: player === 'PLAYER2' ? '#e53e3e' : '#000000',
   };
   const char = player === 'PLAYER1' ? '歩' : 'と';
@@ -68,14 +57,12 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     getSelectedPiece,
     getValidMoves,
     getPotentialCaptures,
-    setHints,
     hintState,
     resetGame,
   } = controller;
 
   const hintsEnabled = hintState.enabled;
-  const responsiveState = useResponsive();
-  const isMobileLayout = isMobile(responsiveState);
+  useResponsive();
   const { alert } = useDialog();
 
   useEffect(() => {

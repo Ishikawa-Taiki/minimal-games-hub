@@ -117,7 +117,6 @@ test.skip('リセットボタンが機能すること', async ({ page }) => {
 test('「おしえて！」機能が正しく動作すること', async ({ page }) => {
   const hintButton = page.locator('[data-testid="control-panel-hint-button"]');
   const chickCell = page.locator('[data-testid="cell-2-1"]');
-  const highlightedCell = page.locator('[data-testid="cell-1-1"]');
 
   // 「おしえて！」機能をONにする
   await hintButton.click();
@@ -139,16 +138,16 @@ test('「おしえて！」機能が正しく動作すること', async ({ page 
 
 // TODO: ダイアログ表示がテスト環境で不安定なため、一時的にスキップ。要調査。
 test.describe.skip('ゲーム終了とダイアログ', () => {
-  test.skip('ライオンを捕獲して勝利する', async ({ page }) => {
+  test.skip('ライオンを捕獲して勝利する', async () => {
     //
   });
 
-  test.skip('トライして勝利する', async ({ page }) => {
+  test.skip('トライして勝利する', async () => {
     //
   });
 });
 
 // TODO: ダイアログ表示がテスト環境で不安定なため、一時的にスキップ。要調査。
-test.skip('持ち駒を配置できること', async ({ page }) => {
+test.skip('持ち駒を配置できること', async () => {
   //
 });

@@ -10,11 +10,6 @@ const mockInnerWidth = (width: number) => {
   });
 };
 
-// resizeイベントを発火するヘルパー
-const fireResize = () => {
-  window.dispatchEvent(new Event('resize'));
-};
-
 // レスポンシブ状態を作成するヘルパー関数
 const createResponsiveState = (width: number): ResponsiveState => {
   return width < 768 

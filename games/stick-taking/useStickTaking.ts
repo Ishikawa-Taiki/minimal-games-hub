@@ -3,7 +3,6 @@ import {
   BaseGameController,
   HintableGameController,
   BaseGameState,
-  GameStatus,
   HintState,
   ScoreInfo,
 } from '../../types/game';

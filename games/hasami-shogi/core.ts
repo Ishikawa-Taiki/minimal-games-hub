@@ -92,7 +92,6 @@ function getCapturesAfterMove(board: Board, player: Player, toR: number, toC: nu
   ];
 
   for (const dir of directions) {
-    const lineOfSight: [number, number][] = [];
     const potentialCaptures: [number, number][] = [];
     let r = toR + dir.r;
     let c = toC + dir.c;

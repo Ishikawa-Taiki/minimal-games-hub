@@ -5,7 +5,6 @@ import {
   setWinCondition,
   GameState,
   Board,
-  WinCondition,
 } from './core';
 
 describe('はさみ将棋コアロジック', () => {

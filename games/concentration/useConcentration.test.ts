@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useConcentration } from './useConcentration';
-import { Difficulty } from './core';
 
 // useGameStateLoggerをモック化
 vi.mock('../../hooks/useGameStateLogger', () => ({

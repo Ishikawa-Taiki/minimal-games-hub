@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHasamiShogi } from './useHasamiShogi';
-import { WinCondition } from './core';
 
 describe('useHasamiShogi', () => {
   describe('初期状態', () => {

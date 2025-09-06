@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { Player } from './core';
 import { useDialog } from '../../app/components/ui/DialogProvider';
-import { SelectableButton } from '../../app/components/ui/SelectableButton';
 import { styles } from './styles';
 import { useTicTacToe, TicTacToeController } from './useTicTacToe';
 
@@ -16,7 +15,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
   // 外部からコントローラーが渡された場合はそれを使用、そうでなければ内部で作成
   const internalController = useTicTacToe();
   const controller = externalController || internalController;
-  const { gameState, makeMove, resetGame, setHints, hintState } = controller;
+  const { gameState, makeMove, resetGame, hintState } = controller;
   const { alert } = useDialog();
 
   useEffect(() => {
@@ -36,7 +35,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
         resetGame();
       });
     }
-  }, [gameState.winner, gameState.isDraw, alert, resetGame]);
+  }, [gameState, alert, resetGame]);
 
   const handleClick = (row: number, col: number) => {
     makeMove(row, col);

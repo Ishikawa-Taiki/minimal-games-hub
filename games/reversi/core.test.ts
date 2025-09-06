@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createInitialState, handleCellClick, getValidMoves, GameState, Player } from './core';
+import { createInitialState, handleCellClick, getValidMoves, GameState } from './core';
 
 describe('Reversi Core Logic', () => {
   let gameState: GameState;
@@ -37,7 +37,6 @@ describe('Reversi Core Logic', () => {
   });
 
   it('無効な手番が許可されないことを確認', () => {
-    const originalState = { ...gameState };
     const newGameState = handleCellClick(gameState, 0, 0); // Invalid move
     expect(newGameState).toBeNull();
   });
