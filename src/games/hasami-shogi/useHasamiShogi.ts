@@ -1,7 +1,7 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '../../types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '../../../types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Move } from './core';
-import { useGameStateLogger } from '../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
 
 // はさみ将棋固有の状態をBaseGameStateに適合させる
 interface HasamiShogiGameState extends BaseGameState {

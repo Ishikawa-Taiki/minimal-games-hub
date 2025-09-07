@@ -4,9 +4,9 @@ import React, { CSSProperties, useState, useEffect } from 'react';
 import { BoardCard, Suit, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
-import { useResponsive } from '../../hooks/useResponsive';
-import { PositiveButton } from '../../app/components/ui';
-import { useDialog } from '../../app/components/ui/DialogProvider';
+import { useResponsive } from '../../../hooks/useResponsive';
+import { PositiveButton } from '../../../app/components/ui';
+import { useDialog } from '../../../app/components/ui/DialogProvider';
 
 interface ConcentrationProps {
   controller?: ReturnType<typeof useConcentration>;

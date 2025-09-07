@@ -3,7 +3,7 @@
   "displayName": "はさみしょうぎ",
   "shortDescription": "相手の駒を挟んで取る、日本の伝統的なボードゲームです。",
   "path": "/games/hasami-shogi",
-  "rulesFile": "/games/hasami-shogi/rules.md",
-  "specActionFile": "/games/hasami-shogi/spec-action.md",
-  "specDisplayFile": "/games/hasami-shogi/spec-display.md"
+  "rulesFile": "/src/games/hasami-shogi/rules.md",
+  "specActionFile": "/src/games/hasami-shogi/spec-action.md",
+  "specDisplayFile": "/src/games/hasami-shogi/spec-display.md"
 }

@@ -3,7 +3,7 @@
   "displayName": "棒消しゲーム",
   "shortDescription": "各段に並べられた棒を交互に消していき、最後の1本を消したプレイヤーが負けとなるゲームです。",
   "path": "/games/stick-taking",
-  "rulesFile": "/games/stick-taking/rules.md",
-  "specActionFile": "/games/stick-taking/spec-action.md",
-  "specDisplayFile": "/games/stick-taking/spec-display.md"
+  "rulesFile": "/src/games/stick-taking/rules.md",
+  "specActionFile": "/src/games/stick-taking/spec-action.md",
+  "specDisplayFile": "/src/games/stick-taking/spec-display.md"
 }
