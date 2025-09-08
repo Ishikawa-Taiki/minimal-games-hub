@@ -1,4 +1,4 @@
-import StyleSheet from '../../app/styles/StyleSheet';
+import StyleSheet from '../../../app/styles/StyleSheet';
 import { CSSProperties } from 'react';
 import { BOARD_COLS } from './core';
 

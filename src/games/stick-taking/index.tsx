@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
-import { useDialog } from '../../app/components/ui/DialogProvider';
-import { PositiveButton } from '../../app/components/ui';
+import { useDialog } from '../../../app/components/ui/DialogProvider';
+import { PositiveButton } from '../../../app/components/ui';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;

@@ -15,7 +15,7 @@ import {
 import Image from 'next/image';
 import { styles } from './styles';
 import { AnimalChessController, useAnimalChess } from './useAnimalChess';
-import { useDialog } from '../../app/components/ui/DialogProvider';
+import { useDialog } from '../../../app/components/ui/DialogProvider';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 

@@ -3,7 +3,7 @@
   "displayName": "アニマルチェス",
   "shortDescription": "どうぶつしょうぎに似た、3x4マスの盤で遊ぶ簡単な将棋ゲームです。",
   "path": "/games/animal-chess",
-  "rulesFile": "/games/animal-chess/rules.md",
-  "specActionFile": "/games/animal-chess/spec-action.md",
-  "specDisplayFile": "/games/animal-chess/spec-display.md"
+  "rulesFile": "/src/games/animal-chess/rules.md",
+  "specActionFile": "/src/games/animal-chess/spec-action.md",
+  "specDisplayFile": "/src/games/animal-chess/spec-display.md"
 }

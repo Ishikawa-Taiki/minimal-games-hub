@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '../../types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '../../../types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -9,7 +9,7 @@ import {
   SENTE,
   GOTE
 } from './core';
-import { useGameStateLogger } from '../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
 
 // アニマルチェス固有の状態をBaseGameStateに適合させる
 interface AnimalChessGameState extends BaseGameState {

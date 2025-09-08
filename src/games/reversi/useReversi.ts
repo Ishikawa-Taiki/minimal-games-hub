@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '../../types/game';
+import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '../../../types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player } from './core';
-import { useGameStateLogger } from '../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
 
 // リバーシ固有の状態をBaseGameStateに適合させる
 
