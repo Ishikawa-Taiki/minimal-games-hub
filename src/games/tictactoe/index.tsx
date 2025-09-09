@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { Player } from './core';
-import { useDialog } from '../../../app/components/ui/DialogProvider';
+import { useDialog } from '@/app/components/ui/DialogProvider';
 import { styles } from './styles';
 import { useTicTacToe, TicTacToeController } from './useTicTacToe';
 

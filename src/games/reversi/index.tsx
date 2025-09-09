@@ -6,9 +6,9 @@ import {
   Board, // Import Board type
 } from './core';
 import { useReversi, ReversiController } from './useReversi';
-import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { styles } from './styles';
-import { useDialog } from '../../../app/components/ui/DialogProvider';
+import { useDialog } from '@/app/components/ui/DialogProvider';
 
 // 駒のアイコンコンポーネント
 const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (

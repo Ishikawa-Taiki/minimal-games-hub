@@ -1,9 +1,9 @@
 'use client';
 
 import { memo } from 'react';
-import { BaseGameState, GameManifest } from '../../../types/game';
+import { BaseGameState, GameManifest } from '@/core/types/game';
 import GameLoader from './GameLoader';
-import GameLayout from '../../components/GameLayout';
+import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToe } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
 import Concentration, { useConcentration } from '@/games/concentration/index';

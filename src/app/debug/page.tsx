@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PositiveButton } from '../components/ui/PositiveButton';
-import { NegativeButton } from '../components/ui/NegativeButton';
-import { SelectableButton } from '../components/ui/SelectableButton';
-import { useDialog } from '../components/ui/DialogProvider';
-import { ButtonSize } from '../components/ui/BaseButton';
+import { PositiveButton } from '@/app/components/ui/PositiveButton';
+import { NegativeButton } from '@/app/components/ui/NegativeButton';
+import { SelectableButton } from '@/app/components/ui/SelectableButton';
+import { useDialog } from '@/app/components/ui/DialogProvider';
+import { ButtonSize } from '@/app/components/ui/BaseButton';
 
 // --- Styles ---
 const styles: { [key: string]: React.CSSProperties } = {
