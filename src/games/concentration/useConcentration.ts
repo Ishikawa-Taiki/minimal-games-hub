@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '../../../types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -7,7 +7,7 @@ import {
   clearNonMatchingFlippedCards,
   Difficulty,
 } from './core';
-import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
 // 神経衰弱固有の状態をBaseGameStateに適合させる
 interface ConcentrationGameState extends BaseGameState {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useGameLogger } from '../../hooks/useGameStateLogger';
+import { useGameLogger } from '@/core/hooks/useGameStateLogger';
 
 interface GameStateDebuggerProps {
   isVisible?: boolean;

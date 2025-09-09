@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResponsive, isMobile } from '../../hooks/useResponsive';
-import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '../../types/game';
+import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
+import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '@/core/types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
 import GameDebugger from './GameDebugger';
-import { useGameStateLogger } from '../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {

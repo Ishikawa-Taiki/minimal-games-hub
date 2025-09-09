@@ -1,5 +1,5 @@
 import path from 'path';
-import { GameManifest } from '../../../types/game';
+import { GameManifest } from '@/core/types/game';
 import GameClientPage from './GameClientPage';
 import fs from 'fs'; // generateStaticParams で必要なので残す
 import { Metadata } from 'next'; // 追加

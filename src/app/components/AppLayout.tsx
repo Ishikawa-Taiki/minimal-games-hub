@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import StyleSheet from '../styles/StyleSheet';
+import StyleSheet from '@/app/styles/StyleSheet';
 
 const footerStyle = StyleSheet.create({
   footer: {

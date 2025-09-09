@@ -5,7 +5,7 @@ import {
   BaseGameState,
   HintState,
   ScoreInfo,
-} from '../../../types/game';
+} from '@/core/types/game';
 import {
   GameState as CoreGameState,
   createInitialState as createCoreInitialState,
@@ -15,7 +15,7 @@ import {
   Difficulty,
   Player,
 } from './core';
-import { useGameStateLogger } from '../../../hooks/useGameStateLogger';
+import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
 // Union of all possible actions
 type StickTakingAction =

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
-import { GameManifest } from '../../../../types/game';
-import MarkdownViewer from '../../../components/MarkdownViewer';
+import { GameManifest } from '@/core/types/game';
+import MarkdownViewer from '@/app/components/MarkdownViewer';
 import { rulesPageStyles } from './styles';
 
 interface RulesPageProps {

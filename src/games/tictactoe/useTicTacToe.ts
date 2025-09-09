@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { HintableGameController, BaseGameState, HintState } from '../../../types/game';
+import { HintableGameController, BaseGameState, HintState } from '@/core/types/game';
 import { GameState as CoreGameState, createInitialState, handleCellClick, Player, Board } from './core';
 
 // 1. 統一された新しいゲーム状態の定義

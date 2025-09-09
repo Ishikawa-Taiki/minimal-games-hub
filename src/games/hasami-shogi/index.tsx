@@ -6,10 +6,10 @@ import {
   WinCondition,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
-import { useResponsive } from '../../../hooks/useResponsive';
-import { PositiveButton } from '../../../app/components/ui';
+import { useResponsive } from '@/core/hooks/useResponsive';
+import { PositiveButton } from '@/app/components/ui';
 import { styles } from './styles';
-import { useDialog } from '../../../app/components/ui/DialogProvider';
+import { useDialog } from '@/app/components/ui/DialogProvider';
 
 // Piece component for the game board
 const Piece: React.FC<{ player: Player }> = ({ player }) => {
