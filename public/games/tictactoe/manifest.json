@@ -3,7 +3,7 @@
   "displayName": "○×ゲーム",
   "shortDescription": "3x3の盤面で「○」と「×」を交互に配置し、縦・横・斜めのいずれか一列に自分のマークを3つ揃えることを目指すシンプルなボードゲームです。",
   "path": "/games/tictactoe",
-  "rulesFile": "/src/games/tictactoe/rules.md",
+  "rulesFile": "/src/games/tictactoe/spec-rules.md",
   "specActionFile": "/src/games/tictactoe/spec-action.md",
   "specDisplayFile": "/src/games/tictactoe/spec-display.md"
 }

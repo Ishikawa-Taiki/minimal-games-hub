@@ -3,7 +3,7 @@
   "displayName": "リバーシ",
   "shortDescription": "相手の石を挟んでひっくり返す古典的なボードゲームです。",
   "path": "/games/reversi",
-  "rulesFile": "/src/games/reversi/rules.md",
+  "rulesFile": "/src/games/reversi/spec-rules.md",
   "specActionFile": "/src/games/reversi/spec-action.md",
   "specDisplayFile": "/src/games/reversi/spec-display.md"
 }
