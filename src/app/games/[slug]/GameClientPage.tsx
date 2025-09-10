@@ -61,7 +61,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
   );
 });
 
-// 棒取りゲーム用の新しいレイアウト対応コンポーネント
+// 棒消しゲーム用の新しいレイアウト対応コンポーネント
 const StickTakingWithNewLayout = ({ manifest, slug }: GameClientPageProps) => {
   const controller = useStickTaking();
 
@@ -107,7 +107,7 @@ const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manife
 });
 
 const GameClientPage = memo(function GameClientPage({ manifest, slug }: GameClientPageProps) {
-  // 棒取りゲームの場合は新しいレイアウトを使用
+  // 棒消しゲームの場合は新しいレイアウトを使用
   if (slug === 'stick-taking') {
     return <StickTakingWithNewLayout manifest={manifest} slug={slug} />;
   }
