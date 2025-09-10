@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '@/core/types/game';
@@ -16,7 +15,7 @@ import { useDialog } from './ui';
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
   gameName: string;
   slug: string;
-  gameController?: BaseGameController<TState, TAction> |
+  gameController: BaseGameController<TState, TAction> |
   HintableGameController<TState, TAction> |
   HistoryGameController<TState, TAction> |
   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
@@ -257,32 +256,6 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
       </div>
     </div>
   );
-
-  // gameControllerが未定義の場合は従来のレイアウトを使用
-  if (!gameController) {
-    console.log('Using legacy layout - gameController is undefined');
-    return (
-      <>
-        <div style={gameLayoutStyles.container}>
-          <header style={gameLayoutStyles.header}>
-            <h1 style={gameLayoutStyles.headerTitle}>{gameName}</h1>
-            <div style={gameLayoutStyles.linksContainer}>
-              <button onClick={() => setIsRulesModalOpen(true)} style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.rulesLink, background: 'none', border: 'none', cursor: 'pointer' }}>
-                Rules
-              </button>
-              <Link href="/" style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.homeLink }}>
-                Back to Home
-              </Link>
-            </div>
-          </header>
-          <main style={gameLayoutStyles.main}>
-            {children}
-          </main>
-        </div>
-        {isRulesModalOpen && <RulesModal />}
-      </>
-    );
-  }
 
   if (isMobile(responsiveState)) {
     console.log('Using mobile layout');

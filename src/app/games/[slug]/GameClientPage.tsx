@@ -1,8 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { BaseGameState, GameManifest } from '@/core/types/game';
-import GameLoader from './GameLoader';
+import { GameManifest } from '@/core/types/game';
 import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToe } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
@@ -142,16 +141,8 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesConte
     return <HasamiShogiWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
   }
   
-  // 他のゲームは従来のレイアウトを使用
-  return (
-    <GameLayout<BaseGameState, never> 
-      gameName={manifest.displayName} 
-      slug={slug}
-      rulesContent={rulesContent}
-    >
-      <GameLoader slug={slug} />
-    </GameLayout>
-  );
+  // Fallback for any other case, though generateStaticParams should prevent this.
+  return null;
 });
 
 export default GameClientPage;
