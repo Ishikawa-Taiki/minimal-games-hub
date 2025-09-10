@@ -18,7 +18,7 @@
 ├── core.ts             # ゲームのコアロジック (UI非依存)
 ├── index.tsx           # ゲームのUIコンポーネント
 ├── manifest.json       # ゲームのメタデータ
-├── rules.md            # ゲームのルール (ユーザー向け)
+├── spec-rules.md       # ゲームのルール (ユーザー向け)
 ├── spec-action.md      # システム動作仕様書
 └── spec-display.md     # システム表示仕様書
 ```
@@ -31,7 +31,7 @@
 -   `displayName` (string): ユーザーインターフェースに表示するゲーム名。子供でも読みやすいように、**漢字を避け、ひらがな・カタカナ・記号（○×など）を基本とする**（例: はさみしょうぎ, リバーシ, ○×ゲーム）。
 -   `shortDescription` (string): トップページなどで表示する、ゲームの簡潔な説明文。
 -   `path` (string): ゲームページへのパス (例: `/games/tictactoe`)。
--   `rulesFile` (string): `rules.md` へのパス。
+-   `rulesFile` (string): `spec-rules.md` へのパス。
 -   `specActionFile` (string): `spec-action.md` へのパス。
 -   `specDisplayFile` (string): `spec-display.md` へのパス。
 

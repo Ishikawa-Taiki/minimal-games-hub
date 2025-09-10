@@ -3,7 +3,7 @@
   "displayName": "神経衰弱",
   "shortDescription": "裏返しにされたカードをめくり、同じ数字のペアを見つける記憶力ゲームです。すべてのペアを見つけ出すことを目指します。",
   "path": "/games/concentration",
-  "rulesFile": "/src/games/concentration/rules.md",
+  "rulesFile": "/src/games/concentration/spec-rules.md",
   "specActionFile": "/src/games/concentration/spec-action.md",
   "specDisplayFile": "/src/games/concentration/spec-display.md"
 }
