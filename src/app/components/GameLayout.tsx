@@ -9,6 +9,9 @@ import { FloatingActionButton, BottomSheet } from './ui';
 import GameDebugger from './GameDebugger';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
+import MarkdownViewer from './MarkdownViewer';
+import { Button, NegativeButton, SelectableButton } from './ui';
+import { useDialog } from './ui';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
   gameName: string;
@@ -18,6 +21,7 @@ interface GameLayoutProps<TState extends BaseGameState, TAction> {
   HistoryGameController<TState, TAction> |
   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
   children: React.ReactNode;
+  rulesContent: string;
 }
 
 // コントロールパネルコンポーネント
@@ -26,22 +30,14 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
   HintableGameController<TState, TAction> |
   HistoryGameController<TState, TAction> |
   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
-  slug: string;
   isVisible?: boolean;
+  onShowRules: () => void;
 }
-
-import {
-  Button,
-  NegativeButton,
-  SelectableButton,
-} from './ui';
-
-import { useDialog } from './ui';
 
 function ControlPanel<TState extends BaseGameState, TAction>({
   gameController,
-  slug,
-  isVisible = true
+  isVisible = true,
+  onShowRules,
 }: ControlPanelProps<TState, TAction>) {
   const { gameState, resetGame } = gameController;
   const { confirm } = useDialog();
@@ -159,7 +155,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
-        <Button variant="ghost" onClick={() => router.push(`/games/${slug}/rules`)}>
+        <Button variant="ghost" onClick={onShowRules}>
           ルールを見る
         </Button>
         <NegativeButton onClick={handleReset} data-testid="control-panel-reset-button">
@@ -174,18 +170,18 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   );
 }
 
-
-
 export default function GameLayout<TState extends BaseGameState, TAction>({
   gameName,
   slug,
   gameController,
-  children
+  children,
+  rulesContent,
 }: GameLayoutProps<TState, TAction>) {
   console.log('GameLayout rendered with:', { gameName, slug, gameController: !!gameController });
   const responsiveState = useResponsive();
   console.log('Responsive state:', responsiveState);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
 
   // ログ機能
   const logger = useGameStateLogger('GameLayout', gameController?.gameState || {}, {
@@ -205,26 +201,86 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
     setIsBottomSheetOpen(false);
   };
 
+  const modalStyles: { [key: string]: React.CSSProperties } = {
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 2000,
+    },
+    content: {
+      backgroundColor: '#fff',
+      padding: '2rem',
+      borderRadius: '8px',
+      width: '90%',
+      maxWidth: '700px',
+      maxHeight: '80vh',
+      display: 'flex',
+      flexDirection: 'column',
+      color: '#333',
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottom: '1px solid #eee',
+      paddingBottom: '1rem',
+      marginBottom: '1rem',
+    },
+    title: {
+      margin: 0,
+      fontSize: '1.5rem',
+    },
+    body: {
+      overflowY: 'auto',
+    },
+  };
+
+  const RulesModal = () => (
+    <div style={modalStyles.overlay}>
+      <div style={modalStyles.content}>
+        <div style={modalStyles.header}>
+          <h2 style={modalStyles.title}>{gameName}のルール</h2>
+          <Button variant="ghost" onClick={() => setIsRulesModalOpen(false)} aria-label="閉じる">
+            ×
+          </Button>
+        </div>
+        <div style={modalStyles.body}>
+          <MarkdownViewer content={rulesContent} />
+        </div>
+      </div>
+    </div>
+  );
+
   // gameControllerが未定義の場合は従来のレイアウトを使用
   if (!gameController) {
     console.log('Using legacy layout - gameController is undefined');
     return (
-      <div style={gameLayoutStyles.container}>
-        <header style={gameLayoutStyles.header}>
-          <h1 style={gameLayoutStyles.headerTitle}>{gameName}</h1>
-          <div style={gameLayoutStyles.linksContainer}>
-            <Link href={`/games/${slug}/rules`} style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.rulesLink }}>
-              Rules
-            </Link>
-            <Link href="/" style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.homeLink }}>
-              Back to Home
-            </Link>
-          </div>
-        </header>
-        <main style={gameLayoutStyles.main}>
-          {children}
-        </main>
-      </div>
+      <>
+        <div style={gameLayoutStyles.container}>
+          <header style={gameLayoutStyles.header}>
+            <h1 style={gameLayoutStyles.headerTitle}>{gameName}</h1>
+            <div style={gameLayoutStyles.linksContainer}>
+              <button onClick={() => setIsRulesModalOpen(true)} style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.rulesLink, background: 'none', border: 'none', cursor: 'pointer' }}>
+                Rules
+              </button>
+              <Link href="/" style={{ ...gameLayoutStyles.link, ...gameLayoutStyles.homeLink }}>
+                Back to Home
+              </Link>
+            </div>
+          </header>
+          <main style={gameLayoutStyles.main}>
+            {children}
+          </main>
+        </div>
+        {isRulesModalOpen && <RulesModal />}
+      </>
     );
   }
 
@@ -232,93 +288,99 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
     console.log('Using mobile layout');
     // モバイルレイアウト: ミニマルレイアウト + FAB + ボトムシート
     return (
-      <div style={gameLayoutStyles.mobileContainer}>
-        {/* スリムヘッダー */}
-        <header style={gameLayoutStyles.mobileHeader}>
-          <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
-          <div style={gameLayoutStyles.mobileStatus} data-testid="status">
-            {(() => {
-              // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
-              if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
-                return gameController.getDisplayStatus();
-              }
-
-              // フォールバック: 汎用的な状態表示
-              if (gameController.gameState.winner) {
-                if (gameController.gameState.winner === 'DRAW') {
-                  return '引き分け！';
+      <>
+        <div style={gameLayoutStyles.mobileContainer}>
+          {/* スリムヘッダー */}
+          <header style={gameLayoutStyles.mobileHeader}>
+            <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
+            <div style={gameLayoutStyles.mobileStatus} data-testid="status">
+              {(() => {
+                // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
+                if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
+                  return gameController.getDisplayStatus();
                 }
-                return `勝者: ${gameController.gameState.winner}`;
-              } else if (gameController.gameState.status === 'ended') {
-                const extendedState = gameController.gameState as TState & { isDraw?: boolean };
-                return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
-              } else if ((gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer) {
-                return `${gameController.gameState.currentPlayer}の番`;
-              } else {
-                return 'ゲーム開始';
-              }
-            })()}
-          </div>
-        </header>
 
-        {/* ゲームボード（フルエリア） */}
-        <main style={gameLayoutStyles.mobileMain}>
-          {children}
-        </main>
+                // フォールバック: 汎用的な状態表示
+                if (gameController.gameState.winner) {
+                  if (gameController.gameState.winner === 'DRAW') {
+                    return '引き分け！';
+                  }
+                  return `勝者: ${gameController.gameState.winner}`;
+                } else if (gameController.gameState.status === 'ended') {
+                  const extendedState = gameController.gameState as TState & { isDraw?: boolean };
+                  return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
+                } else if ((gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer) {
+                  return `${gameController.gameState.currentPlayer}の番`;
+                } else {
+                  return 'ゲーム開始';
+                }
+              })()}
+            </div>
+          </header>
 
-        {/* フローティングアクションボタン */}
-        <FloatingActionButton
-          onClick={handleFABClick}
-          ariaLabel="コントロールパネルを開く"
-          icon="⚙️"
-        />
+          {/* ゲームボード（フルエリア） */}
+          <main style={gameLayoutStyles.mobileMain}>
+            {children}
+          </main>
 
-        {/* ボトムシート */}
-        <BottomSheet
-          isOpen={isBottomSheetOpen}
-          onClose={handleBottomSheetClose}
-          title="コントロール"
-        >
-          <ControlPanel
-            gameController={gameController}
-            slug={slug}
+          {/* フローティングアクションボタン */}
+          <FloatingActionButton
+            onClick={handleFABClick}
+            ariaLabel="コントロールパネルを開く"
+            icon="⚙️"
           />
-        </BottomSheet>
 
-        {/* デバッガー（開発環境でのみ表示） */}
-        <GameDebugger
-          isVisible={process.env.NODE_ENV === 'development'}
-          position="bottom-left"
-        />
-      </div>
+          {/* ボトムシート */}
+          <BottomSheet
+            isOpen={isBottomSheetOpen}
+            onClose={handleBottomSheetClose}
+            title="コントロール"
+          >
+            <ControlPanel
+              gameController={gameController}
+              onShowRules={() => setIsRulesModalOpen(true)}
+            />
+          </BottomSheet>
+
+          {/* デバッガー（開発環境でのみ表示） */}
+          <GameDebugger
+            isVisible={process.env.NODE_ENV === 'development'}
+            position="bottom-left"
+          />
+        </div>
+        {isRulesModalOpen && <RulesModal />}
+      </>
     );
   } else {
     console.log('Using desktop layout');
     // PCレイアウト: サイドバーレイアウト
     return (
-      <div style={gameLayoutStyles.desktopContainer}>
-        {/* サイドバー（コントロールパネル） */}
-        <aside style={gameLayoutStyles.sidebar}>
-          <div style={gameLayoutStyles.sidebarHeader}>
-            <h1 style={gameLayoutStyles.sidebarTitle}>{gameName}</h1>
-          </div>
-          <ControlPanel
-            gameController={gameController}
-            slug={slug}
+      <>
+        <div style={gameLayoutStyles.desktopContainer}>
+          {/* サイドバー（コントロールパネル） */}
+          <aside style={gameLayoutStyles.sidebar}>
+            <div style={gameLayoutStyles.sidebarHeader}>
+              <h1 style={gameLayoutStyles.sidebarTitle}>{gameName}</h1>
+            </div>
+            <ControlPanel
+              gameController={gameController}
+              onShowRules={() => setIsRulesModalOpen(true)}
+            />
+          </aside>
+
+          {/* メインコンテンツ（ゲームボード） */}
+          <main style={gameLayoutStyles.desktopMain}>
+            {children}
+          </main>
+
+          {/* デバッガー（開発環境でのみ表示） */}
+          <GameDebugger
+            isVisible={process.env.NODE_ENV === 'development'}
+            position="bottom-right"
           />
-        </aside>
-
-        {/* メインコンテンツ（ゲームボード） */}
-        <main style={gameLayoutStyles.desktopMain}>
-          {children}
-        </main>
-
-        {/* デバッガー（開発環境でのみ表示） */}
-        <GameDebugger
-          isVisible={process.env.NODE_ENV === 'development'}
-          position="bottom-right"
-        />
-      </div>
+        </div>
+        {isRulesModalOpen && <RulesModal />}
+      </>
     );
   }
 }
