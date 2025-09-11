@@ -21,7 +21,10 @@ async function getGameData(slug: string) {
   const manifestPath = path.join(process.cwd(), 'public', 'games', slug, 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as GameManifest;
 
-  return { manifest };
+  const rulesPath = manifest.rulesFile ? path.join(process.cwd(), manifest.rulesFile.substring(1)) : '';
+  const rulesContent = rulesPath && fs.existsSync(rulesPath) ? fs.readFileSync(rulesPath, 'utf-8') : 'ルールが見つかりませんでした。';
+
+  return { manifest, rulesContent };
 }
 
 // generateMetadata 関数を追加
@@ -37,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function GamePage({ params }: PageProps) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  const { manifest } = await getGameData(slug);
+  const { manifest, rulesContent } = await getGameData(slug);
 
-  return <GameClientPage manifest={manifest} slug={slug} />;
+  return <GameClientPage manifest={manifest} slug={slug} rulesContent={rulesContent} />;
 }
