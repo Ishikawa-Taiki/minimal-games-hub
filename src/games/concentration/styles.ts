@@ -125,10 +125,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   cardText: {
     fontWeight: 'bold',
-    fontSize: 'clamp(0.5rem, 5vmin, 1.5rem)',
   },
   cardSuit: {
-    fontSize: 'clamp(0.6rem, 6vmin, 2rem)',
+    // This style is no longer used for sizing, but might be kept for other properties.
+    // For now, we remove the fontSize.
   },
   resetButton: {
     padding: '10px 20px',
