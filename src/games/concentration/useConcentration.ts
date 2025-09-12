@@ -241,14 +241,15 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
 
   // ヒント関連
   const hintState: HintState = useMemo(() => {
-    const highlightedCells: Position[] = [];
+    const highlightedCells: (Position & { color: string })[] = [];
     
     // ヒントが有効な場合、ヒント対象のカードをハイライト
     if (gameState.hintsEnabled) {
+      const hintColor = 'rgba(251, 191, 36, 0.7)'; // Yellow for hints
       gameState.hintedIndices.forEach(index => {
         const row = Math.floor(index / getBoardColumns(gameState.difficulty));
         const col = index % getBoardColumns(gameState.difficulty);
-        highlightedCells.push({ row, col });
+        highlightedCells.push({ row, col, color: hintColor });
       });
     }
 

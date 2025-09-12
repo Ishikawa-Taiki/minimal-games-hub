@@ -16,7 +16,7 @@ test.describe('Tic-Tac-Toe Game', () => {
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
     const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('Oの番');
+    expect(status).toBe('○のばん');
   });
 
   test('should allow players to take turns', async ({ page }) => {
@@ -25,14 +25,14 @@ test.describe('Tic-Tac-Toe Game', () => {
     const cell00 = await page.getByTestId('cell-0-0').textContent();
     expect(cell00).toBe('O');
     const status1 = await page.getByTestId('status').textContent();
-    expect(status1).toBe('Xの番');
+    expect(status1).toBe('×のばん');
 
     await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click();
     const cell01 = await page.getByTestId('cell-0-1').textContent();
     expect(cell01).toBe('X');
     const status2 = await page.getByTestId('status').textContent();
-    expect(status2).toBe('Oの番');
+    expect(status2).toBe('○のばん');
   });
 
   test('should declare a winner', async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-0-2').waitFor();
     await page.getByTestId('cell-0-2').click(); // O
     const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('勝者: O');
+    expect(status).toBe('○のかち！');
   });
 
   test('should declare a draw', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-2-2').waitFor();
     await page.getByTestId('cell-2-2').click(); // O
     const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('引き分け！');
+    expect(status).toBe('ひきわけ！');
   });
 
   test('should reset the game', async ({ page }) => {
@@ -89,7 +89,7 @@ test.describe('Tic-Tac-Toe Game', () => {
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
     const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('Oの番');
+    expect(status).toBe('○のばん');
   });
 
   test.describe('Game Over Modal', () => {
@@ -101,9 +101,9 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-1-1"]').click(); // X
       await page.locator('[data-testid="cell-0-2"]').click(); // O
 
-      const dialog = page.getByRole('dialog', { name: 'Oのかち' });
+      const dialog = page.getByRole('dialog', { name: '○のかち！' });
       await expect(dialog).toBeVisible({ timeout: 10000 });
-      await expect(dialog).toContainText('Oがそろったので、Oのかち！');
+      await expect(dialog).toContainText('○がそろったので、○のかち！');
     });
 
     test('should show game over modal on a draw', async ({ page }) => {
@@ -117,7 +117,7 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-2-0"]').click(); // X
       await page.locator('[data-testid="cell-2-2"]').click(); // O
 
-      const dialog = page.getByRole('dialog', { name: 'ひきわけ' });
+      const dialog = page.getByRole('dialog', { name: 'ひきわけ！' });
       await expect(dialog).toBeVisible({ timeout: 10000 });
       await expect(dialog).toContainText('もういちどあそぶ？');
     });
@@ -129,7 +129,7 @@ test.describe('Tic-Tac-Toe Game', () => {
       await page.locator('[data-testid="cell-1-1"]').click(); // X
       await page.locator('[data-testid="cell-0-2"]').click(); // O
 
-      const dialog = page.getByRole('dialog', { name: 'Oのかち' });
+      const dialog = page.getByRole('dialog', { name: '○のかち！' });
       await expect(dialog).toBeVisible();
       await dialog.getByTestId('alert-dialog-confirm-button').click();
 
@@ -138,7 +138,7 @@ test.describe('Tic-Tac-Toe Game', () => {
       await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
       await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
       const status = await page.getByTestId('status').textContent();
-      expect(status).toBe('Oの番');
+      expect(status).toBe('○のばん');
     });
   });
 

@@ -57,13 +57,12 @@ export function calculateHintedIndices(board: BoardCard[], revealedIndices: numb
     }
   });
 
+  // Find all groups of revealed, unmatched cards of the same rank.
+  // A "potential pair" exists if we've seen 2 or more cards of the same rank.
   const potentialPairs = [...revealedAndUnmatched.values()].filter(indices => indices.length >= 2);
 
-  if (potentialPairs.length >= 2) {
-    return potentialPairs.flat();
-  }
-
-  return [];
+  // The spec implies any potential pair should be hinted.
+  return potentialPairs.flat();
 }
 
 

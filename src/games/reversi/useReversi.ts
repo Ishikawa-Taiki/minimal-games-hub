@@ -182,15 +182,18 @@ export function useReversi(): ReversiController {
     setGameHistory(newHistory);
   }, [gameState, currentHistoryIndex, gameHistory, logger]);
 
-  const hintState = useMemo(() => ({
-    enabled: gameState.hintsEnabled,
-    highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
-      const [row, col] = key.split(',').map(Number);
-      return { row, col };
-    }),
-    selectedCell: gameState.selectedHintCell ?
-      { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
-  }), [gameState.hintsEnabled, gameState.validMoves, gameState.selectedHintCell]);
+  const hintState = useMemo(() => {
+    const hintColor = 'rgba(34, 197, 94, 0.7)'; // Green for valid moves
+    return {
+      enabled: gameState.hintsEnabled,
+      highlightedCells: Array.from(gameState.validMoves.keys()).map(key => {
+        const [row, col] = key.split(',').map(Number);
+        return { row, col, color: hintColor };
+      }),
+      selectedCell: gameState.selectedHintCell ?
+        { row: gameState.selectedHintCell[0], col: gameState.selectedHintCell[1] } : null
+    };
+  }, [gameState.hintsEnabled, gameState.validMoves, gameState.selectedHintCell]);
 
   // 履歴関連
   const canUndo = currentHistoryIndex > 0;

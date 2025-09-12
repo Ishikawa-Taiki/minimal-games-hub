@@ -58,24 +58,25 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
     });
 
     // TODO: ターンが切り替わる根本的なロジックに問題があり、テストが不安定なためコメントアウト。要調査。
-    // test('駒を移動させると、ターンが相手に切り替わる', async ({ page }) => {
-    //   const piece = page.locator('[data-testid="cell-8-0"]');
-    //   const destination = page.locator('[data-testid="cell-7-0"]');
+    test('駒を移動させると、ターンが相手に切り替わる', async ({ page }) => {
+      await page.getByTestId('win-cond-standard').click();
+      const piece = page.locator('[data-testid="cell-8-0"]');
+      const destination = page.locator('[data-testid="cell-7-0"]');
 
-    //   // 駒を移動
-    //   await piece.click();
-    //   await destination.click();
+      // 駒を移動
+      await piece.click();
+      await destination.click();
 
-    //   // ターン表示が「と」の番に切り替わるのを待つ
-    //   await expect(page.getByTestId('status')).toHaveText('「と」の番');
+      // ターン表示が「と」の番に切り替わるのを待つ
+      await expect(page.getByTestId('status')).toHaveText('「と」の番');
 
-    //   // ターンが切り替わったので、相手（後手）の駒を選択できる
-    //   const opponentPiece = page.locator('[data-testid="cell-0-0"]');
-    //   await opponentPiece.click();
+      // ターンが切り替わったので、相手（後手）の駒を選択できる
+      const opponentPiece = page.locator('[data-testid="cell-0-0"]');
+      await opponentPiece.click();
 
-    //   // 相手の駒が選択されていることを確認
-    //   await expect(opponentPiece).toHaveAttribute('data-selected', 'true');
-    // });
+      // 相手の駒が選択されていることを確認
+      await expect(opponentPiece).toHaveAttribute('data-selected', 'true');
+    });
 
     test('他の駒を飛び越えて移動することはできない', async ({ page }) => {
       await page.getByTestId('win-cond-standard').click();

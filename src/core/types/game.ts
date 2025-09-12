@@ -57,7 +57,7 @@ export interface HintOverlayData {
 export interface HintState {
   enabled: boolean;
   // ゲーム固有のヒント表示データ
-  highlightedCells?: Position[]; // ハイライト対象のセル
+  highlightedCells?: (Position & { color: string })[]; // ハイライト対象のセル
   overlayData?: HintOverlayData[]; // オーバーレイ表示データ
   selectedCell?: Position | null; // 選択中のセル（フルヒントモード用）
 }

@@ -99,7 +99,7 @@ export function handleCellClick(currentState: GameState, row: number, col: numbe
   return {
     ...currentState,
     board: newBoard,
-    currentPlayer: currentState.currentPlayer === 'O' ? 'X' : 'O',
+    currentPlayer: (winner || isDraw) ? currentState.currentPlayer : (currentState.currentPlayer === 'O' ? 'X' : 'O'),
     winner,
     isDraw,
     winningLines,

@@ -221,7 +221,7 @@ describe('神経衰弱ゲームのコアロジック', () => {
         .filter((index) => index !== -1);
     };
 
-    it('ペア候補が1組だけでは、何もハイライトされない', () => {
+    it('ペア候補が1組あれば、そのカードがハイライトされる', () => {
       const state = createInitialState('hard');
       const r1_indices = findCardIndicesByRank(state, '01');
       const r2_indices = findCardIndicesByRank(state, '02');
@@ -229,7 +229,8 @@ describe('神経衰弱ゲームのコアロジック', () => {
       const revealedIndices = [r1_indices[0], r1_indices[1], r2_indices[0], r3_indices[0]];
 
       const hinted = calculateHintedIndices(state.board, revealedIndices);
-      expect(hinted).toEqual([]);
+      expect(hinted).toHaveLength(2);
+      expect(hinted).toEqual(expect.arrayContaining([r1_indices[0], r1_indices[1]]));
     });
 
     it('ペア候補が2組以上ある場合、対象のカードがハイライトされる', () => {
@@ -258,8 +259,9 @@ describe('神経衰弱ゲームのコアロジック', () => {
       const revealedIndices = [...r1_indices, ...r2_indices];
       const hinted = calculateHintedIndices(state.board, revealedIndices);
 
-      // r1は除外され、r2のペア候補は1組だけなので、ヒントは表示されない
-      expect(hinted).toEqual([]);
+      // r1は除外され、r2のペア候補は1組だけなので、ヒントは表示される
+      expect(hinted).toHaveLength(4);
+      expect(hinted).toEqual(expect.arrayContaining(r2_indices));
     });
   });
 });

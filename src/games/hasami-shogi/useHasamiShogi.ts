@@ -158,7 +158,9 @@ export function useHasamiShogi(): HasamiShogiController {
     enabled: gameState.hintsEnabled,
     highlightedCells: gameState.selectedPiece ? Array.from(gameState.validMoves.keys()).map(key => {
       const [row, col] = key.split(',').map(Number);
-      return { row, col };
+      const isCapture = (gameState.validMoves.get(key)?.captures.length ?? 0) > 0;
+      const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red for capture, Green for move
+      return { row, col, color };
     }) : [],
     selectedCell: gameState.selectedPiece ? 
       { row: gameState.selectedPiece.r, col: gameState.selectedPiece.c } : null
