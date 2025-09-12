@@ -57,11 +57,12 @@ test('「おしえて！」機能が正しく動作すること', async ({ page 
   const hintButton = page.locator('[data-testid="control-panel-hint-button"]');
   const chickCell = page.locator('[data-testid="cell-2-1"]');
   const validMoveCell = page.locator('[data-testid="cell-1-1"]');
-  const captureHighlightColor = 'rgba(239, 68, 68, 0.7)'; // Red for capture
+  // このテストケースでは、(1,1)への移動は相手のライオンに取られるため「危険マス」となる
+  const dangerHighlightColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for danger
 
   await hintButton.click();
   await chickCell.click();
-  await expect(validMoveCell).toHaveCSS('background-color', captureHighlightColor);
+  await expect(validMoveCell).toHaveCSS('background-color', dangerHighlightColor);
 });
 
 test('持ち駒を配置できること', async ({ page }) => {

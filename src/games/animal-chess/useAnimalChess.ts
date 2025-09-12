@@ -13,6 +13,7 @@ import {
   GOTE,
   getValidMoves,
   getValidDrops,
+  isSquareThreatened,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -221,7 +222,8 @@ export function useAnimalChess(): AnimalChessController {
 
     // 持ち駒選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
-      const drops = getValidDrops(coreState, gameState.currentPlayer);
+      const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
+      const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
       drops.forEach(drop => {
         highlightedCells.push({ ...drop, color: 'rgba(251, 191, 36, 0.7)' }); // Yellow
       });
@@ -230,9 +232,20 @@ export function useAnimalChess(): AnimalChessController {
     else if (gameState.selectedCell) {
       const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
       moves.forEach(move => {
-        const isCapture = !!gameState.board[move.row][move.col];
-        const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red or Green
-        highlightedCells.push({ ...move, color });
+        // Simulate the move to check for threats
+        const tempBoard = coreState.board.map(r => [...r]);
+        tempBoard[move.row][move.col] = tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col];
+        tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col] = null;
+
+        const isThreatened = isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
+
+        if (isThreatened) {
+          highlightedCells.push({ ...move, color: 'rgba(196, 181, 253, 0.7)' }); // Light purple for danger
+        } else {
+          const isCapture = !!gameState.board[move.row][move.col];
+          const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red or Green
+          highlightedCells.push({ ...move, color });
+        }
       });
     }
     // 駒未選択時のヒント (取られる可能性がある駒)

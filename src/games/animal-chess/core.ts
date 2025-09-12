@@ -151,13 +151,17 @@ export function getValidMoves(state: GameState, fromRow: number, fromCol: number
   return getValidMovesForPiece(state.board, state.currentPlayer, fromRow, fromCol);
 }
 
-export function getValidDrops(state: GameState, player: Player): { row: number, col: number }[] {
+export function getValidDrops(state: GameState, player: Player, pieceType: PieceType): { row: number, col: number }[] {
     const validDrops: { row: number, col: number }[] = [];
-    if (state.capturedPieces[player].length === 0) return [];
+    const finalRank = player === SENTE ? 0 : BOARD_ROWS - 1;
 
     for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
             if (state.board[r][c] === null) {
+                // ヒヨコは相手の最終段には置けない
+                if (pieceType === CHICK && r === finalRank) {
+                    continue;
+                }
                 validDrops.push({ row: r, col: c });
             }
         }
