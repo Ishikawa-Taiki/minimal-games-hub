@@ -7,13 +7,14 @@ import {
   handleCellClick as handleCellClickCore,
   handleCaptureClick as handleCaptureClickCore,
   Player,
-  SENTE,
+  OKASHI_TEAM,
+  OHANA_TEAM,
   BOARD_ROWS,
   BOARD_COLS,
-  GOTE,
   getValidMoves,
   getValidDrops,
   isSquareThreatened,
+  getValidMovesForPiece,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -29,11 +30,12 @@ interface AnimalChessGameState extends BaseGameState {
   hintsEnabled: boolean;
 }
 
-type AnimalChessAction = 
+type AnimalChessAction =
   | { type: 'CELL_CLICK'; row: number; col: number }
   | { type: 'CAPTURE_CLICK'; player: Player; index: number }
   | { type: 'RESET_GAME' }
-  | { type: 'SET_HINTS_ENABLED'; enabled: boolean };
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
+  | { type: 'SET_GAME_STATE_FOR_TEST'; state: AnimalChessGameState };
 
 function createInitialAnimalChessState(): AnimalChessGameState {
   const coreState = createInitialState();
@@ -46,8 +48,8 @@ function createInitialAnimalChessState(): AnimalChessGameState {
     winReason: null,
     // BaseGameState required fields
     status: 'playing' as GameStatus,
-    winner: coreState.status === 'sente_win' ? SENTE : 
-            coreState.status === 'gote_win' ? GOTE : null,
+    winner: coreState.status === 'okashi_win' ? OKASHI_TEAM :
+            coreState.status === 'ohana_win' ? OHANA_TEAM : null,
     // ヒント関連
     hintsEnabled: false,
   };
@@ -61,8 +63,8 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         currentPlayer: state.currentPlayer,
         capturedPieces: state.capturedPieces,
         status: state.status === 'playing' ? 'playing' : 
-                state.status === 'ended' && state.winner === SENTE ? 'sente_win' :
-                state.status === 'ended' && state.winner === GOTE ? 'gote_win' : 'playing',
+                state.status === 'ended' && state.winner === OKASHI_TEAM ? 'okashi_win' :
+                state.status === 'ended' && state.winner === OHANA_TEAM ? 'ohana_win' : 'playing',
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
         winReason: state.winReason,
@@ -79,9 +81,9 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
         winReason: newCoreState.winReason,
         // BaseGameState必須フィールドを明示的に更新
-        status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
-        winner: newCoreState.status === 'sente_win' ? SENTE : 
-                newCoreState.status === 'gote_win' ? GOTE : null,
+        status: newCoreState.status === 'okashi_win' || newCoreState.status === 'ohana_win' ? 'ended' : 'playing',
+        winner: newCoreState.status === 'okashi_win' ? OKASHI_TEAM :
+                newCoreState.status === 'ohana_win' ? OHANA_TEAM : null,
       };
     }
     
@@ -91,8 +93,8 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         currentPlayer: state.currentPlayer,
         capturedPieces: state.capturedPieces,
         status: state.status === 'playing' ? 'playing' : 
-                state.status === 'ended' && state.winner === SENTE ? 'sente_win' :
-                state.status === 'ended' && state.winner === GOTE ? 'gote_win' : 'playing',
+                state.status === 'ended' && state.winner === OKASHI_TEAM ? 'okashi_win' :
+                state.status === 'ended' && state.winner === OHANA_TEAM ? 'ohana_win' : 'playing',
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
         winReason: state.winReason,
@@ -109,9 +111,9 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
         winReason: newCoreState.winReason,
         // BaseGameState必須フィールドを明示的に更新
-        status: newCoreState.status === 'sente_win' || newCoreState.status === 'gote_win' ? 'ended' : 'playing',
-        winner: newCoreState.status === 'sente_win' ? SENTE : 
-                newCoreState.status === 'gote_win' ? GOTE : null,
+        status: newCoreState.status === 'okashi_win' || newCoreState.status === 'ohana_win' ? 'ended' : 'playing',
+        winner: newCoreState.status === 'okashi_win' ? OKASHI_TEAM :
+                newCoreState.status === 'ohana_win' ? OHANA_TEAM : null,
       };
     }
     
@@ -124,6 +126,9 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         hintsEnabled: action.enabled,
       };
     
+    case 'SET_GAME_STATE_FOR_TEST':
+      return action.state;
+
     default:
       return state;
   }
@@ -146,13 +151,18 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
     getScoreInfo: () => ScoreInfo | null;
   };
 
+const TEAM_NAMES: { [key in Player]: string } = {
+  OKASHI: 'おかしチーム',
+  OHANA: 'おはなチーム',
+};
+
 export function useAnimalChess(): AnimalChessController {
   const [gameState, dispatch] = useReducer(animalChessReducer, createInitialAnimalChessState());
   const { alert } = useDialog();
 
   useEffect(() => {
     if (gameState.winner) {
-      const winnerName = gameState.winner;
+      const winnerName = TEAM_NAMES[gameState.winner];
       const reasonText = gameState.winReason === 'catch'
         ? 'キャッチ！(ライオンをとったよ！)'
         : 'トライ！ (さいごのますにとうたつしたよ！)';
@@ -172,8 +182,8 @@ export function useAnimalChess(): AnimalChessController {
     selectedCell: gameState.selectedCell,
     selectedCaptureIndex: gameState.selectedCaptureIndex,
     capturedPiecesCount: {
-      SENTE: gameState.capturedPieces.SENTE.length,
-      GOTE: gameState.capturedPieces.GOTE.length
+      OKASHI: gameState.capturedPieces.OKASHI.length,
+      OHANA: gameState.capturedPieces.OHANA.length
     }
   });
 
@@ -220,19 +230,27 @@ export function useAnimalChess(): AnimalChessController {
       winReason: gameState.winReason,
     };
 
+    const dangerColor = 'rgba(239, 68, 68, 0.7)'; // Red for danger
+    const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
+    const safeMoveColor = 'rgba(34, 197, 94, 0.7)'; // Green for safe move
+    const canBeCapturedColor = 'rgba(59, 130, 246, 0.7)'; // Blue for "can be captured"
+
     // 持ち駒選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
       const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
       drops.forEach(drop => {
-        highlightedCells.push({ ...drop, color: 'rgba(251, 191, 36, 0.7)' }); // Yellow
+        const tempBoard = coreState.board.map(r => [...r]);
+        tempBoard[drop.row][drop.col] = { type: pieceType, owner: gameState.currentPlayer };
+        const isThreatened = isSquareThreatened(tempBoard, drop.row, drop.col, gameState.currentPlayer);
+        const color = isThreatened ? dangerColor : safeMoveColor;
+        highlightedCells.push({ ...drop, color });
       });
     }
     // 盤上の駒選択時のヒント
     else if (gameState.selectedCell) {
       const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
       moves.forEach(move => {
-        // Simulate the move to check for threats
         const tempBoard = coreState.board.map(r => [...r]);
         tempBoard[move.row][move.col] = tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col];
         tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col] = null;
@@ -240,24 +258,24 @@ export function useAnimalChess(): AnimalChessController {
         const isThreatened = isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
 
         if (isThreatened) {
-          highlightedCells.push({ ...move, color: 'rgba(196, 181, 253, 0.7)' }); // Light purple for danger
+          highlightedCells.push({ ...move, color: dangerColor });
         } else {
           const isCapture = !!gameState.board[move.row][move.col];
-          const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red or Green
+          const color = isCapture ? captureColor : safeMoveColor;
           highlightedCells.push({ ...move, color });
         }
       });
     }
     // 駒未選択時のヒント (取られる可能性がある駒)
     else {
-      const opponent = gameState.currentPlayer === SENTE ? GOTE : SENTE;
+      const opponent = gameState.currentPlayer === OKASHI_TEAM ? OHANA_TEAM : OKASHI_TEAM;
       const threatenedCells = new Set<string>();
 
       for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
           const piece = gameState.board[r][c];
           if (piece && piece.owner === opponent) {
-            const moves = getValidMoves(coreState, r, c);
+            const moves = getValidMovesForPiece(coreState.board, opponent, r, c);
             moves.forEach(move => {
               const targetPiece = gameState.board[move.row][move.col];
               if (targetPiece && targetPiece.owner === gameState.currentPlayer) {
@@ -269,7 +287,7 @@ export function useAnimalChess(): AnimalChessController {
       }
       threatenedCells.forEach(cell => {
         const [row, col] = cell.split(',').map(Number);
-        highlightedCells.push({ row, col, color: 'rgba(59, 130, 246, 0.7)' }); // Blue for "can be captured"
+        highlightedCells.push({ row, col, color: canBeCapturedColor });
       });
     }
 
@@ -294,11 +312,11 @@ export function useAnimalChess(): AnimalChessController {
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
-      return `勝者: ${gameState.winner}`;
+      return `勝者: ${TEAM_NAMES[gameState.winner]}`;
     } else if (gameState.status === 'ended') {
       return 'ゲーム終了';
     } else if (gameState.status === 'playing' && gameState.currentPlayer) {
-      return `いまのばん: ${gameState.currentPlayer === SENTE ? 'プレイヤー1' : 'プレイヤー2'}`;
+      return `いまのばん: ${TEAM_NAMES[gameState.currentPlayer]}`;
     } else {
       return 'ゲーム開始';
     }
@@ -308,8 +326,8 @@ export function useAnimalChess(): AnimalChessController {
     return {
       title: '捕獲駒数',
       items: [
-        { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
-        { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }
+        { label: TEAM_NAMES.OKASHI, value: `${gameState.capturedPieces.OKASHI.length}個` },
+        { label: TEAM_NAMES.OHANA, value: `${gameState.capturedPieces.OHANA.length}個` }
       ]
     };
   }, [gameState.capturedPieces]);

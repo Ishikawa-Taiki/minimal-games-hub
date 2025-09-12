@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { DialogProvider } from '@/app/components/ui/DialogProvider';
 import { useAnimalChess } from './useAnimalChess';
-import { SENTE, GOTE, CHICK } from './core';
+import { OKASHI_TEAM, OHANA_TEAM, CHICK, ELEPHANT } from './core';
 
 describe('useAnimalChess', () => {
   const wrapper = DialogProvider;
@@ -12,7 +12,7 @@ describe('useAnimalChess', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       
       expect(result.current.gameState.status).toBe('playing');
-      expect(result.current.gameState.currentPlayer).toBe(SENTE);
+      expect(result.current.gameState.currentPlayer).toBe(OKASHI_TEAM);
       expect(result.current.gameState.winner).toBeNull();
       expect(result.current.gameState.hintsEnabled).toBe(false);
       expect(result.current.getSelectedCell()).toBeNull();
@@ -24,30 +24,30 @@ describe('useAnimalChess', () => {
       const board = result.current.getBoard();
       
       expect(board[0][0]?.type).toBe('ELEPHANT');
-      expect(board[0][0]?.owner).toBe(GOTE);
+      expect(board[0][0]?.owner).toBe(OHANA_TEAM);
       expect(board[0][1]?.type).toBe('LION');
-      expect(board[0][1]?.owner).toBe(GOTE);
+      expect(board[0][1]?.owner).toBe(OHANA_TEAM);
       expect(board[0][2]?.type).toBe('GIRAFFE');
-      expect(board[0][2]?.owner).toBe(GOTE);
+      expect(board[0][2]?.owner).toBe(OHANA_TEAM);
       expect(board[1][1]?.type).toBe('CHICK');
-      expect(board[1][1]?.owner).toBe(GOTE);
+      expect(board[1][1]?.owner).toBe(OHANA_TEAM);
 
       expect(board[3][0]?.type).toBe('GIRAFFE');
-      expect(board[3][0]?.owner).toBe(SENTE);
+      expect(board[3][0]?.owner).toBe(OKASHI_TEAM);
       expect(board[3][1]?.type).toBe('LION');
-      expect(board[3][1]?.owner).toBe(SENTE);
+      expect(board[3][1]?.owner).toBe(OKASHI_TEAM);
       expect(board[3][2]?.type).toBe('ELEPHANT');
-      expect(board[3][2]?.owner).toBe(SENTE);
+      expect(board[3][2]?.owner).toBe(OKASHI_TEAM);
       expect(board[2][1]?.type).toBe('CHICK');
-      expect(board[2][1]?.owner).toBe(SENTE);
+      expect(board[2][1]?.owner).toBe(OKASHI_TEAM);
     });
 
     it('初期の捕獲駒が空である', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       const capturedPieces = result.current.getCapturedPieces();
       
-      expect(capturedPieces[SENTE]).toEqual([]);
-      expect(capturedPieces[GOTE]).toEqual([]);
+      expect(capturedPieces[OKASHI_TEAM]).toEqual([]);
+      expect(capturedPieces[OHANA_TEAM]).toEqual([]);
     });
   });
 
@@ -92,9 +92,9 @@ describe('useAnimalChess', () => {
       });
       const board = result.current.getBoard();
       expect(board[1][1]?.type).toBe(CHICK);
-      expect(board[1][1]?.owner).toBe(SENTE);
+      expect(board[1][1]?.owner).toBe(OKASHI_TEAM);
       expect(board[2][1]).toBeNull();
-      expect(result.current.getCurrentPlayer()).toBe(GOTE);
+      expect(result.current.getCurrentPlayer()).toBe(OHANA_TEAM);
     });
 
     it('無効な移動は実行されない', () => {
@@ -107,31 +107,51 @@ describe('useAnimalChess', () => {
       });
       const board = result.current.getBoard();
       expect(board[2][1]?.type).toBe(CHICK);
-      expect(board[2][1]?.owner).toBe(SENTE);
-      expect(result.current.getCurrentPlayer()).toBe(SENTE);
+      expect(board[2][1]?.owner).toBe(OKASHI_TEAM);
+      expect(result.current.getCurrentPlayer()).toBe(OKASHI_TEAM);
     });
   });
 
   describe('駒の捕獲', () => {
     it('相手の駒を捕獲できる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
+      // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
       act(() => {
-        result.current.handleCellClick(2, 1);
-        result.current.handleCellClick(1, 1);
+        result.current.handleCellClick(2, 1); // select
+        result.current.handleCellClick(1, 1); // move
       });
+      // OHANA_TEAM moves ELEPHANT from (0,0) to (1,1) to capture CHICK
+      act(() => {
+        result.current.handleCellClick(0, 0); // select
+        result.current.handleCellClick(1, 1); // move and capture
+      });
+
       const capturedPieces = result.current.getCapturedPieces();
-      expect(capturedPieces[SENTE]).toContain(CHICK);
+      expect(capturedPieces[OHANA_TEAM]).toContain(CHICK);
     });
   });
 
   describe('捕獲駒の使用', () => {
     it('捕獲駒を選択できる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
+      // Manually set up a state with a captured piece
       act(() => {
-        result.current.dispatch({ type: 'CAPTURE_CLICK', player: SENTE, index: 0 });
+        const initialGameState = result.current.gameState;
+        const newGameState = {
+          ...initialGameState,
+          capturedPieces: {
+            ...initialGameState.capturedPieces,
+            [OKASHI_TEAM]: [ELEPHANT],
+          },
+        };
+        result.current.dispatch({ type: 'SET_GAME_STATE_FOR_TEST', state: newGameState });
+      });
+
+      act(() => {
+        result.current.handleCaptureClick(OKASHI_TEAM, 0);
       });
       const selectedCaptureIndex = result.current.getSelectedCaptureIndex();
-      expect(selectedCaptureIndex).toEqual({ player: SENTE, index: 0 });
+      expect(selectedCaptureIndex).toEqual({ player: OKASHI_TEAM, index: 0 });
     });
   });
 
@@ -170,24 +190,24 @@ describe('useAnimalChess', () => {
         result.current.handleCellClick(2, 1);
         result.current.handleCellClick(1, 1);
       });
-      expect(result.current.getCurrentPlayer()).toBe(GOTE);
+      expect(result.current.getCurrentPlayer()).toBe(OHANA_TEAM);
       act(() => {
         result.current.resetGame();
       });
       expect(result.current.gameState.status).toBe('playing');
-      expect(result.current.getCurrentPlayer()).toBe(SENTE);
+      expect(result.current.getCurrentPlayer()).toBe(OKASHI_TEAM);
     });
   });
 
   describe('状態表示', () => {
     it('現在のプレイヤーを正しく表示する', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
-      expect(result.current.getDisplayStatus()).toBe('いまのばん: プレイヤー1');
+      expect(result.current.getDisplayStatus()).toBe('いまのばん: おかしチーム');
       act(() => {
         result.current.handleCellClick(2, 1);
         result.current.handleCellClick(1, 1);
       });
-      expect(result.current.getDisplayStatus()).toBe('いまのばん: プレイヤー2');
+      expect(result.current.getDisplayStatus()).toBe('いまのばん: おはなチーム');
     });
   });
 

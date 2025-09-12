@@ -5,8 +5,8 @@ import {
   Piece,
   PieceType,
   MOVES,
-  SENTE,
-  GOTE,
+  OKASHI_TEAM,
+  OHANA_TEAM,
 } from './core';
 import Image from 'next/image';
 import { styles } from './styles';
@@ -34,18 +34,18 @@ const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
 };
 
 const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectable?: boolean }> = ({ piece, showIndicators, isSelectable }) => {
-  const playerPrefix = piece.owner === SENTE ? 'p1_' : 'p2_';
+  const playerPrefix = piece.owner === OKASHI_TEAM ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
   const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
 
   const imageStyle: CSSProperties = {
-    transform: piece.owner === GOTE ? 'rotate(180deg)' : 'none',
+    transform: piece.owner === OHANA_TEAM ? 'rotate(180deg)' : 'none',
     objectFit: 'contain',
     ...(isSelectable ? styles.selectablePiece : {}),
   };
 
   const baseMoves = MOVES[piece.type];
-  const ownerMoves = piece.owner === SENTE ? baseMoves : baseMoves.map(([r, c]) => [-r, -c] as [number, number]);
+  const ownerMoves = piece.owner === OKASHI_TEAM ? baseMoves : baseMoves.map(([r, c]) => [-r, -c] as [number, number]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -54,7 +54,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectab
         const key = JSON.stringify(move);
         const indicatorStyle = moveVectorToIndicatorMap[key];
         if (indicatorStyle) {
-          const indicatorColor = piece.owner === SENTE ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)';
+          const indicatorColor = piece.owner === OKASHI_TEAM ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)';
           const dynamicStyle = { ...styles.moveIndicator, ...indicatorStyle, backgroundColor: indicatorColor };
           return <div key={key} style={dynamicStyle} />;
         }
@@ -81,7 +81,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
     handleCellClick(row, col);
   };
 
-  const onCaptureClick = (player: typeof SENTE | typeof GOTE, index: number) => {
+  const onCaptureClick = (player: Player, index: number) => {
     if (!isGameInProgress) return;
     handleCaptureClick(player, index);
   };
@@ -107,21 +107,21 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
       <div style={styles.gameArea}>
         {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー2</h3>
+          <h3 style={styles.capturedPiecesTitle}>おはなチーム</h3>
           <div style={styles.capturedPiecesList}>
-            {gameState.capturedPieces[GOTE].map((pieceType, index) => (
+            {gameState.capturedPieces[OHANA_TEAM].map((pieceType, index) => (
               <button
                 key={`gote-${index}`}
                 style={{
                   ...styles.capturedPiece,
-                  ...(gameState.selectedCaptureIndex?.player === GOTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                  ...(gameState.selectedCaptureIndex?.player === OHANA_TEAM && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
                   cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
-                data-testid={`captured-piece-${GOTE}-${pieceType}`}
-                onClick={() => onCaptureClick(GOTE, index)}
+                data-testid={`captured-piece-${OHANA_TEAM}-${pieceType}`}
+                onClick={() => onCaptureClick(OHANA_TEAM, index)}
                 disabled={!isGameInProgress}
               >
-                <PieceDisplay piece={{ type: pieceType, owner: GOTE }} showIndicators={false} />
+                <PieceDisplay piece={{ type: pieceType, owner: OHANA_TEAM }} showIndicators={false} />
               </button>
             ))}
           </div>
@@ -153,21 +153,21 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
         {/* Player 1's captured pieces (bottom) */}
         <div style={styles.capturedPiecesBox}>
-          <h3 style={styles.capturedPiecesTitle}>プレイヤー1</h3>
+          <h3 style={styles.capturedPiecesTitle}>おかしチーム</h3>
           <div style={styles.capturedPiecesList}>
-            {gameState.capturedPieces[SENTE].map((pieceType, index) => (
+            {gameState.capturedPieces[OKASHI_TEAM].map((pieceType, index) => (
               <button
                 key={`sente-${index}`}
                 style={{
                   ...styles.capturedPiece,
-                  ...(gameState.selectedCaptureIndex?.player === SENTE && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
+                  ...(gameState.selectedCaptureIndex?.player === OKASHI_TEAM && gameState.selectedCaptureIndex?.index === index ? styles.selectedCapturedPiece : {}),
                   cursor: isGameInProgress ? 'pointer' : 'default',
                 }}
-                data-testid={`captured-piece-${SENTE}-${pieceType}`}
-                onClick={() => onCaptureClick(SENTE, index)}
+                data-testid={`captured-piece-${OKASHI_TEAM}-${pieceType}`}
+                onClick={() => onCaptureClick(OKASHI_TEAM, index)}
                 disabled={!isGameInProgress}
               >
-                <PieceDisplay piece={{ type: pieceType, owner: SENTE }} showIndicators={false} />
+                <PieceDisplay piece={{ type: pieceType, owner: OKASHI_TEAM }} showIndicators={false} />
               </button>
             ))}
           </div>

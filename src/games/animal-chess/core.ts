@@ -5,9 +5,9 @@
 export const BOARD_ROWS = 4;
 export const BOARD_COLS = 3;
 
-export type Player = 'SENTE' | 'GOTE';
-export const SENTE: Player = 'SENTE';
-export const GOTE: Player = 'GOTE';
+export type Player = 'OKASHI' | 'OHANA';
+export const OKASHI_TEAM: Player = 'OKASHI';
+export const OHANA_TEAM: Player = 'OHANA';
 
 export type PieceType = 'LION' | 'GIRAFFE' | 'ELEPHANT' | 'CHICK' | 'ROOSTER';
 export const LION: PieceType = 'LION';
@@ -29,13 +29,13 @@ export interface GameState {
   board: Board;
   currentPlayer: Player;
   capturedPieces: CapturedPieces;
-  status: 'playing' | 'sente_win' | 'gote_win';
+  status: 'playing' | 'okashi_win' | 'ohana_win';
   selectedCell: { row: number; col: number } | null;
   selectedCaptureIndex: { player: Player; index: number } | null;
   winReason: 'catch' | 'try' | null;
 }
 
-// Movement vectors [row, col] relative to the piece owner (SENTE)
+// Movement vectors [row, col] relative to the piece owner (OKASHI_TEAM)
 export const MOVES: { [key in PieceType]: [number, number][] } = {
   [LION]:    [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]],
   [GIRAFFE]: [[-1, 0], [1, 0], [0, -1], [0, 1]],
@@ -51,24 +51,24 @@ export const MOVES: { [key in PieceType]: [number, number][] } = {
 export const createInitialState = (): GameState => {
   const board: (Piece | null)[][] = Array(BOARD_ROWS).fill(null).map(() => Array(BOARD_COLS).fill(null));
 
-  // SENTE pieces
-  board[3][0] = { type: GIRAFFE, owner: SENTE };
-  board[3][1] = { type: LION,    owner: SENTE };
-  board[3][2] = { type: ELEPHANT,owner: SENTE };
-  board[2][1] = { type: CHICK,   owner: SENTE };
+  // OKASHI_TEAM pieces
+  board[3][0] = { type: GIRAFFE, owner: OKASHI_TEAM };
+  board[3][1] = { type: LION,    owner: OKASHI_TEAM };
+  board[3][2] = { type: ELEPHANT,owner: OKASHI_TEAM };
+  board[2][1] = { type: CHICK,   owner: OKASHI_TEAM };
 
-  // GOTE pieces
-  board[0][0] = { type: ELEPHANT, owner: GOTE };
-  board[0][1] = { type: LION,     owner: GOTE };
-  board[0][2] = { type: GIRAFFE,  owner: GOTE };
-  board[1][1] = { type: CHICK,    owner: GOTE };
+  // OHANA_TEAM pieces
+  board[0][0] = { type: ELEPHANT, owner: OHANA_TEAM };
+  board[0][1] = { type: LION,     owner: OHANA_TEAM };
+  board[0][2] = { type: GIRAFFE,  owner: OHANA_TEAM };
+  board[1][1] = { type: CHICK,    owner: OHANA_TEAM };
 
   return {
     board,
-    currentPlayer: SENTE,
+    currentPlayer: OKASHI_TEAM,
     capturedPieces: {
-      [SENTE]: [],
-      [GOTE]: [],
+      [OKASHI_TEAM]: [],
+      [OHANA_TEAM]: [],
     },
     status: 'playing',
     selectedCell: null,
@@ -86,19 +86,19 @@ function isOutOfBounds(row: number, col: number): boolean {
 }
 
 function getOpponent(player: Player): Player {
-  return player === SENTE ? GOTE : SENTE;
+  return player === OKASHI_TEAM ? OHANA_TEAM : OKASHI_TEAM;
 }
 
 function getPieceMoves(piece: Piece): [number, number][] {
     const moves = MOVES[piece.type];
-    if (piece.owner === GOTE) {
+    if (piece.owner === OHANA_TEAM) {
         // Invert row direction for GOTE player
         return moves.map(([r, c]) => [-r, c]);
     }
     return moves;
 }
 
-function getValidMovesForPiece(board: Board, player: Player, fromRow: number, fromCol: number): { row: number, col: number }[] {
+export function getValidMovesForPiece(board: Board, player: Player, fromRow: number, fromCol: number): { row: number, col: number }[] {
   const piece = board[fromRow][fromCol];
   if (!piece || piece.owner !== player) return [];
 
@@ -153,7 +153,7 @@ export function getValidMoves(state: GameState, fromRow: number, fromCol: number
 
 export function getValidDrops(state: GameState, player: Player, pieceType: PieceType): { row: number, col: number }[] {
     const validDrops: { row: number, col: number }[] = [];
-    const finalRank = player === SENTE ? 0 : BOARD_ROWS - 1;
+    const finalRank = player === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
 
     for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
@@ -171,7 +171,7 @@ export function getValidDrops(state: GameState, player: Player, pieceType: Piece
 
 
 interface WinResult {
-  status: 'playing' | 'sente_win' | 'gote_win';
+  status: 'playing' | 'okashi_win' | 'ohana_win';
   reason: 'catch' | 'try' | null;
 }
 
@@ -183,10 +183,10 @@ function checkWinner(board: Board, mover: Player): WinResult {
         for (let c = 0; c < BOARD_COLS; c++) {
             const piece = board[r][c];
             if (piece && piece.type === LION && piece.owner === mover) {
-                const finalRank = mover === SENTE ? 0 : BOARD_ROWS - 1;
+                const finalRank = mover === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
                 if (r === finalRank) {
                     return {
-                        status: mover === SENTE ? 'sente_win' : 'gote_win',
+                        status: mover === OKASHI_TEAM ? 'okashi_win' : 'ohana_win',
                         reason: 'try'
                     };
                 }
@@ -209,7 +209,7 @@ function checkWinner(board: Board, mover: Player): WinResult {
 
     if (!opponentLionOnBoard) {
         return {
-            status: mover === SENTE ? 'sente_win' : 'gote_win',
+            status: mover === OKASHI_TEAM ? 'okashi_win' : 'ohana_win',
             reason: 'catch'
         };
     }
@@ -230,8 +230,8 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
 
     const newBoard = state.board.map(row => [...row]);
     const newCapturedPieces: CapturedPieces = {
-      SENTE: [...state.capturedPieces.SENTE],
-      GOTE: [...state.capturedPieces.GOTE],
+      OKASHI: [...state.capturedPieces.OKASHI],
+      OHANA: [...state.capturedPieces.OHANA],
     };
 
     const captured = newBoard[to.row][to.col];
@@ -245,7 +245,7 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
     newBoard[from.row][from.col] = null;
 
     // Promotion
-    const promotionRow = state.currentPlayer === SENTE ? 0 : BOARD_ROWS - 1;
+    const promotionRow = state.currentPlayer === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceToMove.type === CHICK && to.row === promotionRow) {
         newBoard[to.row][to.col] = { ...pieceToMove, type: ROOSTER };
     }
@@ -276,7 +276,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
     }
 
     // A chick cannot be dropped in the final rank.
-    const finalRank = player === SENTE ? 0 : BOARD_ROWS - 1;
+    const finalRank = player === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceType === CHICK && to.row === finalRank) {
         return state;
     }
