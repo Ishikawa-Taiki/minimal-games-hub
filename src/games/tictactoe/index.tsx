@@ -21,15 +21,16 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
   useEffect(() => {
     const { winner, isDraw } = gameState;
     if (winner) {
+      const winnerMark = winner === 'O' ? '○' : '×';
       alert({
-        title: `${winner}のかち`,
-        message: `${winner}がそろったので、${winner}のかち！`,
+        title: `${winnerMark}のかち！`,
+        message: `${winnerMark}がそろったので、${winnerMark}のかち！`,
       }).then(() => {
         resetGame();
       });
     } else if (isDraw) {
       alert({
-        title: 'ひきわけ',
+        title: 'ひきわけ！',
         message: 'もういちどあそぶ？',
       }).then(() => {
         resetGame();

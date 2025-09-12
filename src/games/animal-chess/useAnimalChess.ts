@@ -1,5 +1,6 @@
-import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '@/core/types/game';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useDialog } from '@/app/components/ui/DialogProvider';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -7,7 +8,12 @@ import {
   handleCaptureClick as handleCaptureClickCore,
   Player,
   SENTE,
-  GOTE
+  BOARD_ROWS,
+  BOARD_COLS,
+  GOTE,
+  getValidMoves,
+  getValidDrops,
+  isSquareThreatened,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -142,6 +148,23 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
 
 export function useAnimalChess(): AnimalChessController {
   const [gameState, dispatch] = useReducer(animalChessReducer, createInitialAnimalChessState());
+  const { alert } = useDialog();
+
+  useEffect(() => {
+    if (gameState.winner) {
+      const winnerName = gameState.winner;
+      const reasonText = gameState.winReason === 'catch'
+        ? 'キャッチ！(ライオンをとったよ！)'
+        : 'トライ！ (さいごのますにとうたつしたよ！)';
+
+      alert({
+        title: `${winnerName}のかち！`,
+        message: reasonText,
+      }).then(() => {
+        dispatch({ type: 'RESET_GAME' });
+      });
+    }
+  }, [gameState.winner, gameState.winReason, alert]);
   
   // ログ機能
   const logger = useGameStateLogger('useAnimalChess', gameState, {
@@ -182,24 +205,80 @@ export function useAnimalChess(): AnimalChessController {
 
   // ヒント関連
   const hintState: HintState = useMemo(() => {
-    const highlightedCells: Position[] = [];
-    
-    // 選択されたセルがある場合、有効な移動先をハイライト
-    if (gameState.hintsEnabled && gameState.selectedCell) {
-      // ここでは簡単な実装として、選択されたセルのみをハイライト
-      highlightedCells.push({
-        row: gameState.selectedCell.row,
-        col: gameState.selectedCell.col
+    const highlightedCells: HintState['highlightedCells'] = [];
+    if (!gameState.hintsEnabled) {
+      return { enabled: false, highlightedCells, selectedCell: gameState.selectedCell };
+    }
+
+    const coreState: GameState = {
+      board: gameState.board,
+      currentPlayer: gameState.currentPlayer,
+      capturedPieces: gameState.capturedPieces,
+      status: 'playing',
+      selectedCell: gameState.selectedCell,
+      selectedCaptureIndex: gameState.selectedCaptureIndex,
+      winReason: gameState.winReason,
+    };
+
+    // 持ち駒選択時のヒント
+    if (gameState.selectedCaptureIndex !== null) {
+      const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
+      const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
+      drops.forEach(drop => {
+        highlightedCells.push({ ...drop, color: 'rgba(251, 191, 36, 0.7)' }); // Yellow
+      });
+    }
+    // 盤上の駒選択時のヒント
+    else if (gameState.selectedCell) {
+      const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
+      moves.forEach(move => {
+        // Simulate the move to check for threats
+        const tempBoard = coreState.board.map(r => [...r]);
+        tempBoard[move.row][move.col] = tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col];
+        tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col] = null;
+
+        const isThreatened = isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
+
+        if (isThreatened) {
+          highlightedCells.push({ ...move, color: 'rgba(196, 181, 253, 0.7)' }); // Light purple for danger
+        } else {
+          const isCapture = !!gameState.board[move.row][move.col];
+          const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red or Green
+          highlightedCells.push({ ...move, color });
+        }
+      });
+    }
+    // 駒未選択時のヒント (取られる可能性がある駒)
+    else {
+      const opponent = gameState.currentPlayer === SENTE ? GOTE : SENTE;
+      const threatenedCells = new Set<string>();
+
+      for (let r = 0; r < BOARD_ROWS; r++) {
+        for (let c = 0; c < BOARD_COLS; c++) {
+          const piece = gameState.board[r][c];
+          if (piece && piece.owner === opponent) {
+            const moves = getValidMoves(coreState, r, c);
+            moves.forEach(move => {
+              const targetPiece = gameState.board[move.row][move.col];
+              if (targetPiece && targetPiece.owner === gameState.currentPlayer) {
+                threatenedCells.add(`${move.row},${move.col}`);
+              }
+            });
+          }
+        }
+      }
+      threatenedCells.forEach(cell => {
+        const [row, col] = cell.split(',').map(Number);
+        highlightedCells.push({ row, col, color: 'rgba(59, 130, 246, 0.7)' }); // Blue for "can be captured"
       });
     }
 
     return {
       enabled: gameState.hintsEnabled,
       highlightedCells,
-      selectedCell: gameState.selectedCell ? 
-        { row: gameState.selectedCell.row, col: gameState.selectedCell.col } : null
+      selectedCell: gameState.selectedCell
     };
-  }, [gameState.hintsEnabled, gameState.selectedCell]);
+  }, [gameState]);
 
   const setHints = useCallback((enabled: boolean) => {
     logger.log('SET_HINTS_CALLED', { enabled });
@@ -215,12 +294,7 @@ export function useAnimalChess(): AnimalChessController {
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
-      if (gameState.winner === SENTE) {
-        return '勝者: プレイヤー1';
-      } else if (gameState.winner === GOTE) {
-        return '勝者: プレイヤー2';
-      }
-      return 'ゲーム終了'; // その他の勝者の場合
+      return `勝者: ${gameState.winner}`;
     } else if (gameState.status === 'ended') {
       return 'ゲーム終了';
     } else if (gameState.status === 'playing' && gameState.currentPlayer) {

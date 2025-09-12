@@ -1,13 +1,9 @@
 "use client";
 
-import React, { CSSProperties, useEffect } from 'react';
+import React, { CSSProperties } from 'react';
 import {
   Piece,
   PieceType,
-  GameState,
-  getValidMoves,
-  getValidDrops,
-  isSquareThreatened,
   MOVES,
   SENTE,
   GOTE,
@@ -15,7 +11,6 @@ import {
 import Image from 'next/image';
 import { styles } from './styles';
 import { AnimalChessController, useAnimalChess } from './useAnimalChess';
-import { useDialog } from '@/app/components/ui/DialogProvider';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -77,65 +72,9 @@ interface AnimalChessProps {
 const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
   const internalController = useAnimalChess();
   const gameController = externalController || internalController;
-  const { gameState, handleCellClick, handleCaptureClick, hintState, resetGame } = gameController;
-  const { alert } = useDialog();
+  const { gameState, handleCellClick, handleCaptureClick, hintState } = gameController;
 
-  useEffect(() => {
-    const { winner, winReason } = gameState;
-    if (winner) {
-      const winnerText = winner === SENTE ? 'プレイヤー1' : 'プレイヤー2';
-      let message = '';
-      if (winReason === 'catch') {
-        message = 'キャッチ！(ライオンをとったよ！)';
-      } else if (winReason === 'try') {
-        message = 'トライ！ (さいごのますにとうたつしたよ！)';
-      }
-
-      alert({
-        title: `${winnerText}のかち`,
-        message: message,
-      }).then(() => {
-        resetGame();
-      });
-    }
-  }, [gameState, resetGame, alert]);
-  
-  const showHints = hintState.enabled;
   const isGameInProgress = gameState.status === 'playing';
-
-  // GameControllerのgameStateをコアロジックのGameState型に変換
-  const coreGameState: GameState = {
-    board: gameState.board,
-    currentPlayer: gameState.currentPlayer,
-    capturedPieces: gameState.capturedPieces,
-    status: gameState.status as 'playing' | 'sente_win' | 'gote_win',
-    selectedCell: gameState.selectedCell,
-    selectedCaptureIndex: gameState.selectedCaptureIndex,
-    winReason: gameState.winReason,
-  };
-
-  // ヒント計算のヘルパー関数
-  const calculateHints = (from: { row: number; col: number }) => {
-    if (!showHints) return { valid: [], capturable: [], threatened: [] };
-
-    const validMoves = getValidMoves(coreGameState, from.row, from.col);
-
-    const capturableMoves = validMoves.filter(move => {
-      const destinationPiece = gameState.board[move.row][move.col];
-      return destinationPiece && destinationPiece.owner !== gameState.currentPlayer;
-    });
-
-    const threatenedMoves = validMoves.filter(move => {
-      const pieceToMove = coreGameState.board[from.row][from.col];
-      if (!pieceToMove) return false;
-      const tempBoard = coreGameState.board.map(r => [...r]);
-      tempBoard[move.row][move.col] = pieceToMove;
-      tempBoard[from.row][from.col] = null;
-      return isSquareThreatened(tempBoard, move.row, move.col, coreGameState.currentPlayer);
-    });
-
-    return { valid: validMoves, capturable: capturableMoves, threatened: threatenedMoves };
-  };
 
   const onCellClick = (row: number, col: number) => {
     if (!isGameInProgress) return;
@@ -148,31 +87,11 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   };
 
   const getCellStyle = (row: number, col: number): CSSProperties => {
-    const cellStyle: CSSProperties = {}; // Start with an empty style object
+    const cellStyle: CSSProperties = {};
 
-    // Apply hints for valid moves, captures, and threats first
-    if (showHints) {
-      if (gameState.selectedCell) {
-        const hintedMoves = calculateHints(gameState.selectedCell);
-        const isCapturable = hintedMoves.capturable.some(m => m.row === row && m.col === col);
-        const isValid = hintedMoves.valid.some(m => m.row === row && m.col === col);
-        if (isCapturable) {
-          cellStyle.backgroundColor = styles.capturableCell.backgroundColor;
-        } else if (isValid) {
-          cellStyle.backgroundColor = styles.validMoveCell.backgroundColor;
-        }
-
-        const isThreatened = hintedMoves.threatened.some(m => m.row === row && m.col === col);
-        if (isThreatened) {
-          cellStyle.boxShadow = styles.threatenedCell.boxShadow;
-        }
-      }
-      if (gameState.selectedCaptureIndex) {
-        const isDrop = getValidDrops(coreGameState, gameState.currentPlayer).some(d => d.row === row && d.col === col);
-        if (isDrop) {
-          cellStyle.backgroundColor = styles.validDropCell.backgroundColor;
-        }
-      }
+    const highlightedCell = hintState.highlightedCells?.find(h => h.row === row && h.col === col);
+    if (highlightedCell && highlightedCell.color) {
+      cellStyle.backgroundColor = highlightedCell.color;
     }
 
     // The currently selected piece's highlight should have the highest priority

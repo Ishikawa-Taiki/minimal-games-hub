@@ -104,16 +104,17 @@ export function useTicTacToe(): TicTacToeController {
 
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
-      return `勝者: ${gameState.winner}`;
-    } else if (gameState.isDraw) {
-      return '引き分け！';
-    } else if (gameState.status === 'ended') {
-      return 'ゲーム終了';
-    } else if (gameState.status === 'playing' && gameState.currentPlayer) {
-      return `${gameState.currentPlayer}の番`;
-    } else {
-      return 'ゲーム開始';
+      const winnerMark = gameState.winner === 'O' ? '○' : '×';
+      return `${winnerMark}のかち！`;
     }
+    if (gameState.isDraw) {
+      return 'ひきわけ！';
+    }
+    if (gameState.status === 'playing' && gameState.currentPlayer) {
+      const playerMark = gameState.currentPlayer === 'O' ? '○' : '×';
+      return `${playerMark}のばん`;
+    }
+    return 'ゲーム開始';
   }, [gameState]);
 
   const hintState: HintState = useMemo(() => ({

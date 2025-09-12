@@ -24,7 +24,9 @@ test.describe('棒消しゲーム', () => {
     await page.locator('[data-testid="stick-0-0"]').click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    await expect(page.locator('[data-testid="stick-0-0"]')).toHaveCSS('background-color', 'rgb(211, 211, 211)');
+    await expect(page.getByTestId('status')).toHaveText('プレイヤー2のばん');
+    const stick = page.locator('[data-testid="stick-0-0"]');
+    await expect(stick).toHaveAttribute('data-taken', 'true');
   });
 
   test.skip('ゲーム終了時に結果ダイアログが表示され、もう一度遊べること', async ({ page }) => {
@@ -47,7 +49,7 @@ test.describe('棒消しゲーム', () => {
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
     // Check for the dialog
-    await expect(page.getByRole('dialog', { name: 'プレイヤー2のかち' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'プレイヤー2のかち！' })).toBeVisible();
     await expect(page.getByText('プレイヤー1がさいごのぼうをとったよ！')).toBeVisible();
 
     // Click confirm and check for reset

@@ -107,27 +107,25 @@ export function selectStick(
   }
 
   // Add new selection
-  newSelectedSticks.push({ row: rowIndex, stickId });
+  const prospectiveSelection = [...newSelectedSticks, { row: rowIndex, stickId }];
 
-  // Ensure all selected sticks are in the same row and consecutive
-  const selectedStickIds = newSelectedSticks
-    .filter(s => s.row === rowIndex)
-    .map(s => rows[rowIndex].findIndex(rs => rs.id === s.stickId))
-    .sort((a, b) => a - b);
+  // Check for consecutiveness
+  if (prospectiveSelection.length > 1) {
+    const stickIds = prospectiveSelection.map(s => s.stickId).sort((a, b) => a - b);
+    const isConsecutive = stickIds.every((id, i) => i === 0 || id === stickIds[i - 1] + 1);
 
-  const isConsecutive = selectedStickIds.every((id, i) => i === 0 || id === selectedStickIds[i-1] + 1);
-
-  if(!isConsecutive) {
-    // If not consecutive, only keep the last selected stick
-    return {
-      ...currentState,
-      selectedSticks: [{ row: rowIndex, stickId }],
+    if (!isConsecutive) {
+      // If not consecutive, reset selection to only the currently clicked stick
+      return {
+        ...currentState,
+        selectedSticks: [{ row: rowIndex, stickId }],
+      };
     }
   }
 
   return {
     ...currentState,
-    selectedSticks: newSelectedSticks,
+    selectedSticks: prospectiveSelection,
   };
 }
 
@@ -137,23 +135,6 @@ export function handleTakeSticks(currentState: GameState): GameState {
   if (selectedSticks.length === 0) {
     return currentState; // No move made
   }
-
-  // Ensure all selected sticks are in the same row and consecutive
-  const selectedRowIndex = selectedSticks[0].row;
-  const selectedStickIndices = selectedSticks
-    .map(s => rows[selectedRowIndex].findIndex(rs => rs.id === s.stickId))
-    .sort((a, b) => a - b);
-
-  const isConsecutive = selectedStickIndices.every((index, i) => i === 0 || index === selectedStickIndices[i-1] + 1);
-
-  if(!isConsecutive) {
-    // If not consecutive, this is an invalid move. Clear selection.
-    return {
-      ...currentState,
-      selectedSticks: [],
-    }
-  }
-
 
   const newRows = rows.map(row => row.map(stick => ({ ...stick })));
   selectedSticks.forEach(({ row, stickId }) => {

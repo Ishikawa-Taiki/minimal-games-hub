@@ -165,4 +165,56 @@ describe('Tic-Tac-Toe Core Logic', () => {
     // Player O should have a reach at [0,2] to win horizontally
     expect(state.reachingLines.filter(r => r.player === 'O')).toEqual([{ index: 2, player: 'O' }]);
   });
+
+  it('勝利時に手番が交代しないことを確認', () => {
+    let state: GameState | null = createInitialState();
+    state = handleCellClick(state, 0, 0); // O, current is now X
+    if (!state) return;
+    state = handleCellClick(state, 1, 0); // X, current is now O
+    if (!state) return;
+    state = handleCellClick(state, 0, 1); // O, current is now X
+    if (!state) return;
+    state = handleCellClick(state, 1, 1); // X, current is now O
+    if (!state) return;
+
+    const movingPlayer = state.currentPlayer;
+    expect(movingPlayer).toBe('O');
+
+    state = handleCellClick(state, 0, 2); // O wins
+    if (!state) return;
+
+    expect(state.winner).toBe('O');
+    // The player should not have switched, as the game is over.
+    expect(state.currentPlayer).toBe(movingPlayer);
+  });
+
+  it('引き分け時に手番が交代しないことを確認', () => {
+    let state: GameState | null = createInitialState();
+    state = handleCellClick(state, 0, 0); // O
+    if (!state) return;
+    state = handleCellClick(state, 0, 1); // X
+    if (!state) return;
+    state = handleCellClick(state, 0, 2); // O
+    if (!state) return;
+    state = handleCellClick(state, 1, 1); // X
+    if (!state) return;
+    state = handleCellClick(state, 1, 0); // O
+    if (!state) return;
+    state = handleCellClick(state, 1, 2); // X
+    if (!state) return;
+    state = handleCellClick(state, 2, 1); // O
+    if (!state) return;
+    state = handleCellClick(state, 2, 0); // X
+    if (!state) return;
+
+    const movingPlayer = state.currentPlayer;
+    expect(movingPlayer).toBe('O');
+
+    state = handleCellClick(state, 2, 2); // O makes the final move, resulting in a draw
+    if (!state) return;
+
+    expect(state.isDraw).toBe(true);
+    // The player should not have switched.
+    expect(state.currentPlayer).toBe(movingPlayer);
+  });
 });

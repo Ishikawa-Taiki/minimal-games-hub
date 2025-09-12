@@ -44,7 +44,6 @@ function shuffle<T>(array: T[]): T[] {
   return newArray;
 }
 
-// This is now a pure function
 export function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): number[] {
   const revealedAndUnmatched = new Map<string, number[]>();
   revealedIndices.forEach(index => {
@@ -59,6 +58,7 @@ export function calculateHintedIndices(board: BoardCard[], revealedIndices: numb
 
   const potentialPairs = [...revealedAndUnmatched.values()].filter(indices => indices.length >= 2);
 
+  // 候補となるペアが2組以上ある場合のみヒントを出す
   if (potentialPairs.length >= 2) {
     return potentialPairs.flat();
   }

@@ -82,7 +82,7 @@ describe('棒消しゲームのコアロジック', () => {
     it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][0];
-      const stick2 = state.rows[2][2];
+      const stick2 = state.rows[2][2]; // stick1と連続していない
 
       state = selectStick(state, 2, stick1.id);
       state = selectStick(state, 2, stick2.id);

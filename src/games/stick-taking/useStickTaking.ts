@@ -1,4 +1,5 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useDialog } from '@/app/components/ui/DialogProvider';
 import {
   BaseGameController,
   HintableGameController,
@@ -93,6 +94,20 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
 export function useStickTaking(): StickTakingController {
   const [gameState, dispatch] = useReducer(stickTakingReducer, createNewInitialState(null));
   const logger = useGameStateLogger('useStickTaking', gameState);
+  const { alert } = useDialog();
+
+  useEffect(() => {
+    if (gameState.winner) {
+      const loser = gameState.currentPlayer;
+      const winner = gameState.winner;
+      alert({
+        title: `${winner}のかち！`,
+        message: `${loser}がさいごの1本をとったよ！`,
+      }).then(() => {
+        dispatch({ type: 'RESET_GAME', difficulty: null });
+      });
+    }
+  }, [gameState.winner, gameState.currentPlayer, alert]);
 
   const startGame = useCallback((difficulty: Difficulty) => {
     logger.log('START_GAME_CALLED', { difficulty });
@@ -126,7 +141,7 @@ export function useStickTaking(): StickTakingController {
   const getDisplayStatus = useCallback(() => {
     if (gameState.status === 'waiting') return '難易度を選択してください';
     if (gameState.winner) {
-      return `かったのは ${gameState.winner}！`;
+      return `${gameState.winner}のかち！`;
     }
     return `${gameState.currentPlayer}のばん`;
   }, [gameState]);

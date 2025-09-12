@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
-import { useDialog } from '@/app/components/ui/DialogProvider';
 import { PositiveButton } from '@/app/components/ui';
 
 interface StickTakingGameProps {
@@ -14,28 +13,11 @@ interface StickTakingGameProps {
 const StickTakingGame = ({ controller: externalController }: StickTakingGameProps) => {
   const internalController = useStickTaking();
   const controller = externalController || internalController;
-  const { alert } = useDialog();
 
-  const { gameState, selectStick, takeSticks, startGame, resetGame } = controller;
+  const { gameState, selectStick, takeSticks, startGame } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
-
-  useEffect(() => {
-    const { winner, currentPlayer } = gameState;
-    if (winner) {
-      // ゲームのルール上、最後の1本を取ったプレイヤーが負け。
-      // このuseEffectが呼ばれる時点では、`winner`が確定し、
-      // `currentPlayer`は最後に手を動かしたプレイヤー（＝敗者）を指している。
-      const loser = currentPlayer;
-      alert({
-        title: `${winner}のかち`,
-        message: `${loser}がさいごのぼうをとったので、${winner}のかち！`,
-      }).then(() => {
-        resetGame();
-      });
-    }
-  }, [gameState, alert, resetGame]);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
@@ -101,6 +83,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
       <div
         key={stick.id}
         data-testid={`stick-${rowIndex}-${stick.id}`}
+        data-taken={stick.isTaken.toString()}
         style={stickStyle}
         onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
         onMouseEnter={() => handleStickInteractionMove(rowIndex, stick.id)}

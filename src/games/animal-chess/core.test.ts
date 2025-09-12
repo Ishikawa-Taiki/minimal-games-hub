@@ -128,8 +128,24 @@ describe('Animal Chess Core Logic', () => {
   it('should return valid drop locations', () => {
     const state = createInitialState();
     state.capturedPieces[SENTE] = [CHICK];
-    const drops = getValidDrops(state, SENTE);
+    const drops = getValidDrops(state, SENTE, CHICK);
     // Initial board has 12 total cells, 8 are occupied -> 4 empty cells
+    // The final rank for SENTE is row 0, which is occupied, so no restrictions apply initially.
+    expect(drops.length).toBe(4);
+  });
+
+  it('should not allow dropping a CHICK on the final rank', () => {
+    const state = createInitialState();
+    state.capturedPieces[SENTE] = [CHICK];
+    // Clear the final rank to test the drop restriction
+    state.board[0] = [null, null, null];
+
+    const drops = getValidDrops(state, SENTE, CHICK);
+
+    // The final rank (row 0) should not be included in valid drops
+    const hasFinalRankDrop = drops.some(d => d.row === 0);
+    expect(hasFinalRankDrop).toBe(false);
+    // There are 3 empty spots on row 1 and 1 on row 2 = 4 valid spots
     expect(drops.length).toBe(4);
   });
 
