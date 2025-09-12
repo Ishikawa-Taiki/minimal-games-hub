@@ -26,6 +26,7 @@ interface AnimalChessGameState extends BaseGameState {
   selectedCell: GameState['selectedCell'];
   selectedCaptureIndex: GameState['selectedCaptureIndex'];
   winReason: 'catch' | 'try' | null;
+  winner: Player | null;
   // ヒント関連
   hintsEnabled: boolean;
 }
@@ -160,22 +161,6 @@ export function useAnimalChess(): AnimalChessController {
   const [gameState, dispatch] = useReducer(animalChessReducer, createInitialAnimalChessState());
   const { alert } = useDialog();
 
-  useEffect(() => {
-    if (gameState.winner) {
-      const winnerName = TEAM_NAMES[gameState.winner];
-      const reasonText = gameState.winReason === 'catch'
-        ? 'キャッチ！(ライオンをとったよ！)'
-        : 'トライ！ (さいごのますにとうたつしたよ！)';
-
-      alert({
-        title: `${winnerName}のかち！`,
-        message: reasonText,
-      }).then(() => {
-        dispatch({ type: 'RESET_GAME' });
-      });
-    }
-  }, [gameState.winner, gameState.winReason, alert]);
-  
   // ログ機能
   const logger = useGameStateLogger('useAnimalChess', gameState, {
     hintsEnabled: gameState.hintsEnabled,
@@ -191,6 +176,20 @@ export function useAnimalChess(): AnimalChessController {
     logger.log('RESET_GAME_CALLED', {});
     dispatch({ type: 'RESET_GAME' });
   }, [logger]);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      const winnerName = TEAM_NAMES[gameState.winner];
+      const reasonText = gameState.winReason === 'catch'
+        ? 'キャッチ！(ライオンをとったよ！)'
+        : 'トライ！ (さいごのますにとうたつしたよ！)';
+
+      alert({
+        title: `${winnerName}のかち！`,
+        message: reasonText,
+      }).then(resetGame);
+    }
+  }, [gameState.winner, gameState.winReason, alert, resetGame]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
     logger.log('CELL_CLICK_CALLED', { 

@@ -4,6 +4,7 @@ import React, { CSSProperties } from 'react';
 import {
   Piece,
   PieceType,
+  Player,
   MOVES,
   OKASHI_TEAM,
   OHANA_TEAM,
