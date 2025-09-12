@@ -221,47 +221,49 @@ describe('神経衰弱ゲームのコアロジック', () => {
         .filter((index) => index !== -1);
     };
 
-    it('ペア候補が1組あれば、そのカードがハイライトされる', () => {
+    it('ペア候補が1組だけでは、ヒントは表示されない', () => {
       const state = createInitialState('hard');
       const r1_indices = findCardIndicesByRank(state, '01');
       const r2_indices = findCardIndicesByRank(state, '02');
       const r3_indices = findCardIndicesByRank(state, '03');
+      // r1のペアだけが明らかになっている状態
       const revealedIndices = [r1_indices[0], r1_indices[1], r2_indices[0], r3_indices[0]];
 
       const hinted = calculateHintedIndices(state.board, revealedIndices);
-      expect(hinted).toHaveLength(2);
-      expect(hinted).toEqual(expect.arrayContaining([r1_indices[0], r1_indices[1]]));
+      expect(hinted).toHaveLength(0);
     });
 
-    it('ペア候補が2組以上ある場合、対象のカードがハイライトされる', () => {
+    it('ペア候補が2組以上ある場合、対象のカードがすべてハイライトされる', () => {
       const state = createInitialState('hard');
       const r1_indices = findCardIndicesByRank(state, '01');
       const r2_indices = findCardIndicesByRank(state, '02');
-      const revealedIndices = [...r1_indices, ...r2_indices];
+      // r1, r2 のペアが明らかになっている状態
+      const revealedIndices = [...r1_indices.slice(0, 2), ...r2_indices.slice(0, 2)];
 
       const hinted = calculateHintedIndices(state.board, revealedIndices);
 
-      expect(hinted).toHaveLength(8); // 4枚 * 2組
+      expect(hinted).toHaveLength(4);
       expect(hinted).toEqual(expect.arrayContaining(revealedIndices));
     });
 
-    it('ペアが成立すると、ハイライト対象から除外される', () => {
+    it('ペアが成立して候補が1組になると、ヒントは表示されなくなる', () => {
       const state = createInitialState('hard');
       const r1_indices = findCardIndicesByRank(state, '01');
       const r2_indices = findCardIndicesByRank(state, '02');
 
-      // r1をマッチ済みにする
+      // r1, r2のペア候補が明らかになっている
+      const revealedIndices = [...r1_indices.slice(0, 2), ...r2_indices.slice(0, 2)];
+      const initialHinted = calculateHintedIndices(state.board, revealedIndices);
+      expect(initialHinted).toHaveLength(4);
+
+      // r1がマッチ済みになる
       state.board[r1_indices[0]].isMatched = true;
       state.board[r1_indices[1]].isMatched = true;
-      state.board[r1_indices[2]].isMatched = true;
-      state.board[r1_indices[3]].isMatched = true;
 
-      const revealedIndices = [...r1_indices, ...r2_indices];
-      const hinted = calculateHintedIndices(state.board, revealedIndices);
+      const afterMatchHinted = calculateHintedIndices(state.board, revealedIndices);
 
-      // r1は除外され、r2のペア候補は1組だけなので、ヒントは表示される
-      expect(hinted).toHaveLength(4);
-      expect(hinted).toEqual(expect.arrayContaining(r2_indices));
+      // r1は除外され、r2のペア候補は1組だけなので、ヒントは表示されない
+      expect(afterMatchHinted).toHaveLength(0);
     });
   });
 });

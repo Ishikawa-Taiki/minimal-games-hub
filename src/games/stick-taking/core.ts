@@ -107,12 +107,25 @@ export function selectStick(
   }
 
   // Add new selection
-  newSelectedSticks.push({ row: rowIndex, stickId });
+  const prospectiveSelection = [...newSelectedSticks, { row: rowIndex, stickId }];
 
+  // Check for consecutiveness
+  if (prospectiveSelection.length > 1) {
+    const stickIds = prospectiveSelection.map(s => s.stickId).sort((a, b) => a - b);
+    const isConsecutive = stickIds.every((id, i) => i === 0 || id === stickIds[i - 1] + 1);
+
+    if (!isConsecutive) {
+      // If not consecutive, reset selection to only the currently clicked stick
+      return {
+        ...currentState,
+        selectedSticks: [{ row: rowIndex, stickId }],
+      };
+    }
+  }
 
   return {
     ...currentState,
-    selectedSticks: newSelectedSticks,
+    selectedSticks: prospectiveSelection,
   };
 }
 

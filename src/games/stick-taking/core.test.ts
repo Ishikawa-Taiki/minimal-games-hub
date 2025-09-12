@@ -79,21 +79,16 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.selectedSticks).toHaveLength(0);
     });
 
-    it('連続していない棒でも、同じ段であれば複数選択できること', () => {
+    it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][0];
-      const stick2 = state.rows[2][2];
+      const stick2 = state.rows[2][2]; // stick1と連続していない
 
       state = selectStick(state, 2, stick1.id);
       state = selectStick(state, 2, stick2.id);
 
-      expect(state.selectedSticks).toHaveLength(2);
-      expect(state.selectedSticks).toEqual(
-        expect.arrayContaining([
-          { row: 2, stickId: stick1.id },
-          { row: 2, stickId: stick2.id },
-        ])
-      );
+      expect(state.selectedSticks).toHaveLength(1);
+      expect(state.selectedSticks[0]).toEqual({ row: 2, stickId: stick2.id });
     });
   });
 

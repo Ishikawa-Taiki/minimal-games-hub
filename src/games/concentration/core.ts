@@ -44,7 +44,6 @@ function shuffle<T>(array: T[]): T[] {
   return newArray;
 }
 
-// This is now a pure function
 export function calculateHintedIndices(board: BoardCard[], revealedIndices: number[]): number[] {
   const revealedAndUnmatched = new Map<string, number[]>();
   revealedIndices.forEach(index => {
@@ -57,12 +56,14 @@ export function calculateHintedIndices(board: BoardCard[], revealedIndices: numb
     }
   });
 
-  // Find all groups of revealed, unmatched cards of the same rank.
-  // A "potential pair" exists if we've seen 2 or more cards of the same rank.
   const potentialPairs = [...revealedAndUnmatched.values()].filter(indices => indices.length >= 2);
 
-  // The spec implies any potential pair should be hinted.
-  return potentialPairs.flat();
+  // 候補となるペアが2組以上ある場合のみヒントを出す
+  if (potentialPairs.length >= 2) {
+    return potentialPairs.flat();
+  }
+
+  return [];
 }
 
 

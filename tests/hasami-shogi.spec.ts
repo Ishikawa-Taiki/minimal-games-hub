@@ -57,7 +57,6 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       await expect(piece2).toHaveAttribute('data-selected', 'true');
     });
 
-    // TODO: ターンが切り替わる根本的なロジックに問題があり、テストが不安定なためコメントアウト。要調査。
     test('駒を移動させると、ターンが相手に切り替わる', async ({ page }) => {
       await page.getByTestId('win-cond-standard').click();
       const piece = page.locator('[data-testid="cell-8-0"]');

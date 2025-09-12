@@ -235,16 +235,29 @@ export function useAnimalChess(): AnimalChessController {
         highlightedCells.push({ ...move, color });
       });
     }
-    // 駒未選択時のヒント
+    // 駒未選択時のヒント (取られる可能性がある駒)
     else {
+      const opponent = gameState.currentPlayer === SENTE ? GOTE : SENTE;
+      const threatenedCells = new Set<string>();
+
       for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
           const piece = gameState.board[r][c];
-          if (piece && piece.owner === gameState.currentPlayer) {
-            highlightedCells.push({ row: r, col: c, color: 'rgba(255, 255, 255, 0.7)' }); // White outline
+          if (piece && piece.owner === opponent) {
+            const moves = getValidMoves(coreState, r, c);
+            moves.forEach(move => {
+              const targetPiece = gameState.board[move.row][move.col];
+              if (targetPiece && targetPiece.owner === gameState.currentPlayer) {
+                threatenedCells.add(`${move.row},${move.col}`);
+              }
+            });
           }
         }
       }
+      threatenedCells.forEach(cell => {
+        const [row, col] = cell.split(',').map(Number);
+        highlightedCells.push({ row, col, color: 'rgba(59, 130, 246, 0.7)' }); // Blue for "can be captured"
+      });
     }
 
     return {
