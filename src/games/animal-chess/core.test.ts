@@ -5,8 +5,8 @@ import {
   handleCaptureClick,
   getValidMoves,
   getValidDrops,
-  SENTE,
-  GOTE,
+  OKASHI_TEAM,
+  OHANA_TEAM,
   LION,
   CHICK,
   ELEPHANT,
@@ -19,7 +19,7 @@ describe('Animal Chess Core Logic', () => {
     const state = createInitialState();
     expect(state.board.length).toBe(4);
     expect(state.board[0].length).toBe(3);
-    expect(state.currentPlayer).toBe(SENTE);
+    expect(state.currentPlayer).toBe(OKASHI_TEAM);
     expect(state.status).toBe('playing');
     expect(state.board[3][1]?.type).toBe(LION);
     expect(state.board[0][1]?.type).toBe(LION);
@@ -27,79 +27,79 @@ describe('Animal Chess Core Logic', () => {
 
   it('should allow a valid move', () => {
     let state = createInitialState();
-    // SENTE moves CHICK from (2,1) to (1,1)
+    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
     expect(state.board[2][1]).toBeNull();
     expect(state.board[1][1]?.type).toBe(CHICK);
-    expect(state.board[1][1]?.owner).toBe(SENTE);
-    expect(state.currentPlayer).toBe(GOTE);
+    expect(state.board[1][1]?.owner).toBe(OKASHI_TEAM);
+    expect(state.currentPlayer).toBe(OHANA_TEAM);
   });
 
   it('should capture an opponent piece', () => {
     let state = createInitialState();
-    // SENTE moves CHICK from (2,1) to (1,1)
+    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
-    // GOTE moves ELEPHANT from (0,0) to (1,1)
+    // OHANA_TEAM moves ELEPHANT from (0,0) to (1,1)
     state = handleCellClick(state, 0, 0);
     state = handleCellClick(state, 1, 1);
 
     expect(state.board[1][1]?.type).toBe(ELEPHANT);
-    expect(state.board[1][1]?.owner).toBe(GOTE);
-    expect(state.capturedPieces[GOTE]).toContain(CHICK);
-    expect(state.currentPlayer).toBe(SENTE);
+    expect(state.board[1][1]?.owner).toBe(OHANA_TEAM);
+    expect(state.capturedPieces[OHANA_TEAM]).toContain(CHICK);
+    expect(state.currentPlayer).toBe(OKASHI_TEAM);
   });
 
   it('should promote a CHICK to a ROOSTER', () => {
     let state = createInitialState();
     // Move pieces out of the way
     state.board[1][1] = null;
-    // SENTE moves CHICK from (2,1) to (1,1)
+    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
-    // GOTE does some move
+    // OHANA_TEAM does some move
     state = handleCellClick(state, 0, 1);
     state = handleCellClick(state, 1, 0);
-    // SENTE moves CHICK from (1,1) to (0,1) -> promotion
+    // OKASHI_TEAM moves CHICK from (1,1) to (0,1) -> promotion
     state = handleCellClick(state, 1, 1);
     state = handleCellClick(state, 0, 1);
 
     expect(state.board[0][1]?.type).toBe(ROOSTER);
-    expect(state.board[0][1]?.owner).toBe(SENTE);
+    expect(state.board[0][1]?.owner).toBe(OKASHI_TEAM);
   });
 
   it('should allow dropping a captured piece', () => {
     let state = createInitialState();
-    state.capturedPieces[SENTE] = [GIRAFFE];
+    state.capturedPieces[OKASHI_TEAM] = [GIRAFFE];
 
     // Select the captured GIRAFFE
-    state = handleCaptureClick(state, SENTE, 0);
-    expect(state.selectedCaptureIndex).toEqual({ player: SENTE, index: 0 });
+    state = handleCaptureClick(state, OKASHI_TEAM, 0);
+    expect(state.selectedCaptureIndex).toEqual({ player: OKASHI_TEAM, index: 0 });
 
     // Drop it on an empty cell (2,2)
     state = handleCellClick(state, 2, 2);
     expect(state.board[2][2]?.type).toBe(GIRAFFE);
-    expect(state.board[2][2]?.owner).toBe(SENTE);
-    expect(state.capturedPieces[SENTE].length).toBe(0);
-    expect(state.currentPlayer).toBe(GOTE);
+    expect(state.board[2][2]?.owner).toBe(OKASHI_TEAM);
+    expect(state.capturedPieces[OKASHI_TEAM].length).toBe(0);
+    expect(state.currentPlayer).toBe(OHANA_TEAM);
   });
 
   it('should declare a winner when LION is captured', () => {
     let state = createInitialState();
-    state.board[0][1] = null; // Remove GOTE's LION for testing
-    state.board[1][1] = { type: LION, owner: GOTE }; // Place it in a vulnerable spot
+    state.board[0][1] = null; // Remove OHANA_TEAM's LION for testing
+    state.board[1][1] = { type: LION, owner: OHANA_TEAM }; // Place it in a vulnerable spot
 
-    // SENTE moves CHICK to capture LION
+    // OKASHI_TEAM moves CHICK to capture LION
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
 
-    expect(state.status).toBe('sente_win');
+    expect(state.status).toBe('okashi_win');
   });
 
   it('should declare a winner on LION reaching final rank (Try)', () => {
     let state = createInitialState();
-    // Clear path for SENTE LION
+    // Clear path for OKASHI_TEAM LION
     state.board[2][1] = null;
     state.board[1][1] = null;
     state.board[0][1] = null;
@@ -116,31 +116,31 @@ describe('Animal Chess Core Logic', () => {
     state = handleCellClick(state, 1, 1); // select
     state = handleCellClick(state, 0, 1); // move & TRY
 
-    expect(state.status).toBe('sente_win');
+    expect(state.status).toBe('okashi_win');
   });
 
   it('should return valid moves for a piece', () => {
     const state = createInitialState();
-    const moves = getValidMoves(state, 3, 1); // SENTE LION
+    const moves = getValidMoves(state, 3, 1); // OKASHI_TEAM LION
     expect(moves.length).toBe(2); // Blocked by own pieces
   });
 
   it('should return valid drop locations', () => {
     const state = createInitialState();
-    state.capturedPieces[SENTE] = [CHICK];
-    const drops = getValidDrops(state, SENTE, CHICK);
+    state.capturedPieces[OKASHI_TEAM] = [CHICK];
+    const drops = getValidDrops(state, OKASHI_TEAM, CHICK);
     // Initial board has 12 total cells, 8 are occupied -> 4 empty cells
-    // The final rank for SENTE is row 0, which is occupied, so no restrictions apply initially.
+    // The final rank for OKASHI_TEAM is row 0, which is occupied, so no restrictions apply initially.
     expect(drops.length).toBe(4);
   });
 
   it('should not allow dropping a CHICK on the final rank', () => {
     const state = createInitialState();
-    state.capturedPieces[SENTE] = [CHICK];
+    state.capturedPieces[OKASHI_TEAM] = [CHICK];
     // Clear the final rank to test the drop restriction
     state.board[0] = [null, null, null];
 
-    const drops = getValidDrops(state, SENTE, CHICK);
+    const drops = getValidDrops(state, OKASHI_TEAM, CHICK);
 
     // The final rank (row 0) should not be included in valid drops
     const hasFinalRankDrop = drops.some(d => d.row === 0);
