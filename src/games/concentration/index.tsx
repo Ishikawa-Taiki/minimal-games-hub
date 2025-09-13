@@ -1,7 +1,7 @@
 "use client";
 
 import React, { CSSProperties, useState, useEffect } from 'react';
-import { BoardCard, Suit, Difficulty } from './core';
+import { BoardCard, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '@/core/hooks/useResponsive';

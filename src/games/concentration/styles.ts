@@ -127,8 +127,8 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     fontWeight: 'bold',
   },
   cardSuit: {
-    // This style is no longer used for sizing, but might be kept for other properties.
-    // For now, we remove the fontSize.
+    // このスタイルはサイジングには使用されませんが、将来他のプロパティで使用する可能性があるため残しています。
+    // fontSizeは不要になったため削除します。
   },
   resetButton: {
     padding: '10px 20px',
