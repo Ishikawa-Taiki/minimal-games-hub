@@ -76,52 +76,63 @@ graph TB
 
 ## コンポーネント設計
 
-### 1. useGameEngine フック
+### 1. useGameEngine フック（階層化対応）
 
-汎用的なタイムトラベル機能を提供する核となるフック。
+階層化されたアクション管理を提供する汎用タイムトラベルエンジン。
 
 ```typescript
-interface GameEngine<TState, TAction> {
+interface DualHistoryGameEngine<TGameState, TFullState, TGameAction, TInternalAction> {
   // 現在の状態
-  gameState: TState;
+  gameState: TGameState;
+  fullState: TFullState;
   
   // アクション実行
-  dispatch: (action: TAction) => void;
+  dispatchGameAction: (action: TGameAction) => void;
+  dispatchInternalAction: (action: TInternalAction) => void;
   
   // 基本操作
   reset: () => void;
-  reconstruct: (state: TState) => void;
+  reconstruct: (state: TGameState) => void;
   
-  // タイムトラベル操作
+  // ユーザー向けタイムトラベル操作（ゲーム進行粒度）
   undo: () => void;
   redo: () => void;
   goToIndex: (index: number) => void;
   goToStart: () => void;
   goToEnd: () => void;
   
-  // 履歴情報
-  history: readonly TAction[];
-  currentIndex: number;
+  // ユーザー履歴情報
+  gameHistory: readonly TGameAction[];
+  currentGameIndex: number;
   canUndo: boolean;
   canRedo: boolean;
   
+  // デバッグ向け履歴情報（内部アクション粒度）
+  debugHistory: readonly TInternalAction[];
+  currentDebugIndex: number;
+  
   // デバッグ情報
-  getDebugInfo: () => DebugInfo<TState, TAction>;
+  getDebugInfo: () => DualHistoryDebugInfo<TGameState, TFullState, TGameAction, TInternalAction>;
 }
 
-function useGameEngine<TState, TAction>(
-  reducer: (state: TState, action: TAction) => TState,
-  initialState: TState,
+function useGameEngine<TGameState, TFullState, TGameAction, TInternalAction>(
+  gameReducer: (state: TGameState, action: TGameAction) => TGameState,
+  internalReducer: (state: TFullState, action: TInternalAction) => TFullState,
+  initialGameState: TGameState,
+  initialFullState: TFullState,
   options?: GameEngineOptions
-): GameEngine<TState, TAction>
+): DualHistoryGameEngine<TGameState, TFullState, TGameAction, TInternalAction>
 ```
 
 #### 実装方針
 
-1. **アクションベース履歴**: `TAction[]`として履歴を保持
-2. **状態の動的計算**: `history.slice(0, currentIndex).reduce(reducer, initialState)`
-3. **分岐履歴管理**: 履歴途中からの新アクションで分岐を作成
-4. **メモ化最適化**: 状態計算結果のメモ化でパフォーマンス向上
+1. **二重履歴管理**: ゲーム進行履歴とデバッグ履歴を独立管理
+2. **階層的状態計算**: 
+   - ゲーム状態: `gameHistory.slice(0, currentGameIndex).reduce(gameReducer, initialGameState)`
+   - 完全状態: `debugHistory.slice(0, currentDebugIndex).reduce(internalReducer, initialFullState)`
+3. **アクション分類**: 型システムによるゲーム進行アクションと内部アクションの厳密な区別
+4. **分岐履歴管理**: 各履歴レベルで独立した分岐作成
+5. **メモ化最適化**: 各階層の状態計算結果を個別にメモ化
 
 ### 2. インターフェース拡張設計
 
@@ -226,44 +237,90 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 }
 ```
 
-### 4. GameDebugger統合設計
+### 4. GameDebugger統合設計（階層化対応）
 
-既存のGameDebuggerを拡張し、アクション履歴の監視機能を追加。
+既存のGameDebuggerを拡張し、階層化されたアクション履歴の監視機能を追加。
 
 ```typescript
-interface DebugInfo<TState, TAction> {
-  currentState: TState;
-  actionHistory: Array<{
-    action: TAction;
+interface DualHistoryDebugInfo<TGameState, TFullState, TGameAction, TInternalAction> {
+  // ゲーム状態情報
+  currentGameState: TGameState;
+  currentFullState: TFullState;
+  
+  // ゲーム進行履歴（ユーザー向け）
+  gameActionHistory: Array<{
+    action: TGameAction;
     timestamp: number;
-    resultingState: TState;
+    resultingGameState: TGameState;
   }>;
-  currentIndex: number;
+  currentGameIndex: number;
+  
+  // 内部アクション履歴（デバッグ向け）
+  internalActionHistory: Array<{
+    action: TInternalAction;
+    timestamp: number;
+    resultingFullState: TFullState;
+    isGameProgression: boolean; // ゲーム進行アクションかどうか
+  }>;
+  currentInternalIndex: number;
+  
+  // メモリ使用量情報
   memoryUsage: {
-    historySize: number;
-    stateSize: number;
-    efficiency: number; // vs snapshot approach
+    gameHistorySize: number;
+    internalHistorySize: number;
+    totalEfficiency: number;
   };
 }
 
 // GameDebuggerの拡張
 function GameDebugger({ isVisible, position }: GameDebuggerProps) {
-  // useGameEngineからデバッグ情報を取得
+  const [viewMode, setViewMode] = useState<'game' | 'internal'>('game');
   const debugInfo = useGameEngineDebugInfo();
   
-  const renderHistoryView = () => (
+  const renderGameHistoryView = () => (
     <div style={styles.historyView}>
-      <h5>アクション履歴</h5>
-      {debugInfo?.actionHistory.map((entry, index) => (
+      <h5>ゲーム進行履歴（ユーザー向け）</h5>
+      {debugInfo?.gameActionHistory.map((entry, index) => (
         <div 
           key={index}
           style={{
             ...styles.historyEntry,
-            backgroundColor: index === debugInfo.currentIndex ? '#333' : 'transparent'
+            backgroundColor: index === debugInfo.currentGameIndex ? '#4CAF50' : 'transparent'
           }}
         >
-          <span>{entry.timestamp}</span>
-          <span>{JSON.stringify(entry.action)}</span>
+          <span className={styles.timestamp}>
+            {new Date(entry.timestamp).toLocaleTimeString()}
+          </span>
+          <span className={styles.actionType}>{entry.action.type}</span>
+          <span className={styles.actionPayload}>
+            {JSON.stringify(entry.action).substring(0, 50)}...
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+  
+  const renderInternalHistoryView = () => (
+    <div style={styles.historyView}>
+      <h5>内部アクション履歴（デバッグ向け）</h5>
+      {debugInfo?.internalActionHistory.map((entry, index) => (
+        <div 
+          key={index}
+          style={{
+            ...styles.historyEntry,
+            backgroundColor: index === debugInfo.currentInternalIndex ? '#333' : 'transparent',
+            borderLeft: entry.isGameProgression ? '3px solid #4CAF50' : '3px solid #666'
+          }}
+        >
+          <span className={styles.timestamp}>
+            {new Date(entry.timestamp).toLocaleTimeString()}
+          </span>
+          <span className={styles.actionType}>
+            {entry.isGameProgression ? '🎮' : '⚙️'} {entry.action.type}
+          </span>
+          <span className={styles.actionPayload}>
+            {JSON.stringify(entry.action).substring(0, 50)}...
+          </span>
         </div>
       ))}
     </div>
@@ -272,8 +329,9 @@ function GameDebugger({ isVisible, position }: GameDebuggerProps) {
   const renderMemoryInfo = () => (
     <div style={styles.memoryInfo}>
       <h5>メモリ効率</h5>
-      <div>履歴サイズ: {debugInfo?.memoryUsage.historySize}B</div>
-      <div>効率性: {debugInfo?.memoryUsage.efficiency}%</div>
+      <div>ゲーム履歴: {debugInfo?.memoryUsage.gameHistorySize}B</div>
+      <div>内部履歴: {debugInfo?.memoryUsage.internalHistorySize}B</div>
+      <div>総合効率: {debugInfo?.memoryUsage.totalEfficiency}%</div>
     </div>
   );
   
@@ -282,8 +340,24 @@ function GameDebugger({ isVisible, position }: GameDebuggerProps) {
       {/* 既存のデバッグ情報 */}
       {renderExistingDebugInfo()}
       
-      {/* 新しい履歴デバッグ情報 */}
-      {renderHistoryView()}
+      {/* 履歴表示モード切り替え */}
+      <div style={styles.modeToggle}>
+        <button 
+          onClick={() => setViewMode('game')}
+          style={{ backgroundColor: viewMode === 'game' ? '#4CAF50' : '#333' }}
+        >
+          ゲーム履歴
+        </button>
+        <button 
+          onClick={() => setViewMode('internal')}
+          style={{ backgroundColor: viewMode === 'internal' ? '#4CAF50' : '#333' }}
+        >
+          内部履歴
+        </button>
+      </div>
+      
+      {/* 階層化された履歴表示 */}
+      {viewMode === 'game' ? renderGameHistoryView() : renderInternalHistoryView()}
       {renderMemoryInfo()}
     </div>
   );
@@ -292,32 +366,54 @@ function GameDebugger({ isVisible, position }: GameDebuggerProps) {
 
 ## データモデル
 
-### アクション設計
+### 階層化アクション設計
 
-各ゲームのアクションは、以下の原則に従って設計する：
+アクションを2つの階層に分離し、それぞれ異なる目的と粒度で管理する：
 
 ```typescript
-// 基本アクション構造
-interface BaseAction {
-  type: string;
-  timestamp?: number;
-  metadata?: Record<string, unknown>;
-}
-
-// ゲーム固有アクション例（リバーシ）
-type ReversiAction =
+// ゲーム進行アクション（ユーザー履歴用）
+// - ユーザーの意図的な操作
+// - ゲーム状態の本質的な変更
+// - タイムトラベル操作の対象
+type GameProgressionAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
-  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
-  | { type: 'RECONSTRUCT_STATE'; state: ReversiGameState };
+  | { type: 'RECONSTRUCT_STATE'; state: GameState };
 
-// アクションの純粋性保証
-function reversiReducer(
-  state: ReversiGameState, 
-  action: ReversiAction
-): ReversiGameState {
-  // 純粋関数として実装
-  // 副作用なし、同じ入力に対して同じ出力
+// 内部アクション（デバッグ履歴用）
+// - UI状態の変更
+// - 補助機能の操作
+// - 内部処理の状態変更
+type InternalAction =
+  | GameProgressionAction  // ゲーム進行アクションを包含
+  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
+  | { type: 'SELECT_HINT_CELL'; cell: [number, number] | null }
+  | { type: 'UPDATE_UI_STATE'; uiState: Partial<UIState> };
+
+// 型関係の明確化
+// GameProgressionAction ⊆ InternalAction
+// すべてのゲーム進行アクションは内部アクションでもある
+
+// 階層対応リデューサー
+function gameProgressionReducer(
+  state: GameState,
+  action: GameProgressionAction
+): GameState {
+  // ゲーム進行のみを処理
+}
+
+function internalReducer(
+  state: FullGameState, // UI状態等を含む完全な状態
+  action: InternalAction
+): FullGameState {
+  // 全ての内部アクションを処理
+  if (isGameProgressionAction(action)) {
+    return {
+      ...state,
+      gameState: gameProgressionReducer(state.gameState, action)
+    };
+  }
+  // その他の内部アクション処理
 }
 ```
 
