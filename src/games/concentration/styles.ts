@@ -125,10 +125,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   cardText: {
     fontWeight: 'bold',
-    fontSize: 'clamp(0.5rem, 5vmin, 1.5rem)',
   },
   cardSuit: {
-    fontSize: 'clamp(0.6rem, 6vmin, 2rem)',
+    // このスタイルはサイジングには使用されませんが、将来他のプロパティで使用する可能性があるため残しています。
+    // fontSizeは不要になったため削除します。
   },
   resetButton: {
     padding: '10px 20px',

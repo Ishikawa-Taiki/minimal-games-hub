@@ -1,12 +1,13 @@
 "use client";
 
 import React, { CSSProperties, useState, useEffect } from 'react';
-import { BoardCard, Suit, Difficulty } from './core';
+import { BoardCard, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '@/core/hooks/useResponsive';
 import { PositiveButton } from '@/app/components/ui';
 import { useDialog } from '@/app/components/ui/DialogProvider';
+import { CardFaceContent } from './CardFaceContent';
 
 interface ConcentrationProps {
   controller?: ReturnType<typeof useConcentration>;
@@ -84,14 +85,6 @@ const Concentration = ({ controller }: ConcentrationProps) => {
   const hintedIndices = getHintedIndices();
   const showHints = hintState.enabled;
 
-  const getSuitSymbol = (suit: Suit | 'Joker'): string => {
-    if (suit === 'S') return '♠';
-    if (suit === 'H') return '♥';
-    if (suit === 'D') return '♦';
-    if (suit === 'C') return '♣';
-    return 'J';
-  };
-
   const CardComponent = ({ card, index }: { card: BoardCard; index: number }) => (
     <button
       style={getCardStyle(card, index)}
@@ -99,16 +92,7 @@ const Concentration = ({ controller }: ConcentrationProps) => {
       disabled={card.isMatched || card.isFlipped}
       data-testid={`card-${index}`}
     >
-      {card.isFlipped && (
-        <div style={styles.cardContent}>
-          <span style={{ ...styles.cardSuit, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
-            {getSuitSymbol(card.suit)}
-          </span>
-          <span style={{ ...styles.cardText, color: (card.suit === 'H' || card.suit === 'D') ? 'red' : 'black' }}>
-            {card.rank}
-          </span>
-        </div>
-      )}
+      {card.isFlipped && <CardFaceContent suit={card.suit} rank={card.rank} />}
     </button>
   );
 
