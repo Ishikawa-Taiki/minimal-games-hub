@@ -8,21 +8,21 @@
 
 ### 1. 基盤実装（既存ゲームに影響なし）
 
-- [ ] 1.1 useGameEngine フックの新規作成
+- [x] 1.1 useGameEngine フックの新規作成
   - `src/core/hooks/useGameEngine.ts` として新規ファイル作成
   - 既存のゲームフックには一切影響を与えない独立実装
   - `gameState`, `dispatch`, `reset` の基本機能
   - `actions`, `initialState`, `reducer` の読み取り専用アクセス
   - _要件: 1.1, 2.1, 2.2_
 
-- [ ] 1.2 GameEngineDebugUtils クラスの新規作成
+- [x] 1.2 GameEngineDebugUtils クラスの新規作成
   - `src/core/debug/gameEngineDebugUtils.ts` として新規ファイル作成
   - 既存のデバッグ機能には影響を与えない独立実装
   - `computeStateFromActions`, `computeStateAtIndex` メソッド
   - `validateActionSequence`, `analyzeStateDiff` メソッド
   - _要件: 4.1, 4.2, 4.3_
 
-- [ ] 1.3 useGameEngine の単体テスト作成
+- [x] 1.3 useGameEngine の単体テスト作成
   - `src/core/hooks/__tests__/useGameEngine.test.ts` として新規作成
   - 既存テストには影響なし
   - 基本的な状態管理機能のテスト
@@ -30,7 +30,7 @@
   - 状態の一貫性検証テスト
   - _要件: 4.4_
 
-- [ ] 1.4 GameEngineDebugUtils の単体テスト作成
+- [x] 1.4 GameEngineDebugUtils の単体テスト作成
   - `src/core/debug/__tests__/gameEngineDebugUtils.test.ts` として新規作成
   - 既存テストには影響なし
   - デバッグユーティリティ機能のテスト
