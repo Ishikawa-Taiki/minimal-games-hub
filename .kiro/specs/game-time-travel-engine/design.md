@@ -62,18 +62,10 @@ interface GameEngine<TState, TAction> {
   // リセット
   reset: () => void;
   
-  // デバッグ・テスト用の状態監視・操作
-  actions: readonly TAction[];
-  initialState: TState;
-  
-  // デバッグ用: 任意のアクション列から状態を計算
-  computeStateFromActions: (actions: TAction[]) => TState;
-  
-  // デバッグ用: アクション列を直接設定
-  setActions: (actions: TAction[]) => void;
-  
-  // デバッグ用: 特定のインデックスまでのアクションで状態を計算
-  computeStateAtIndex: (index: number) => TState;
+  // 本質的な情報の読み取り専用アクセス
+  readonly actions: readonly TAction[];
+  readonly initialState: TState;
+  readonly reducer: (state: TState, action: TAction) => TState;
 }
 
 function useGameEngine<TState, TAction>(
@@ -90,7 +82,7 @@ function useGameEngine<TState, TAction>(
   initialState: TState
 ): GameEngine<TState, TAction> {
   
-  const [actions, setActionsState] = useState<TAction[]>([]);
+  const [actions, setActions] = useState<TAction[]>([]);
   
   // 状態の動的計算
   const gameState = useMemo(() => {
@@ -98,28 +90,12 @@ function useGameEngine<TState, TAction>(
   }, [actions, reducer, initialState]);
   
   const dispatch = useCallback((action: TAction) => {
-    setActionsState(prev => [...prev, action]);
+    setActions(prev => [...prev, action]);
   }, []);
   
   const reset = useCallback(() => {
-    setActionsState([]);
+    setActions([]);
   }, []);
-  
-  // デバッグ用: 任意のアクション列から状態を計算
-  const computeStateFromActions = useCallback((actionList: TAction[]) => {
-    return actionList.reduce(reducer, initialState);
-  }, [reducer, initialState]);
-  
-  // デバッグ用: アクション列を直接設定
-  const setActions = useCallback((newActions: TAction[]) => {
-    setActionsState(newActions);
-  }, []);
-  
-  // デバッグ用: 特定のインデックスまでの状態を計算
-  const computeStateAtIndex = useCallback((index: number) => {
-    const slicedActions = actions.slice(0, index);
-    return slicedActions.reduce(reducer, initialState);
-  }, [actions, reducer, initialState]);
   
   return {
     gameState,
@@ -127,9 +103,7 @@ function useGameEngine<TState, TAction>(
     reset,
     actions,
     initialState,
-    computeStateFromActions,
-    setActions,
-    computeStateAtIndex
+    reducer
   };
 }
 ```
@@ -344,11 +318,75 @@ function useGameEngine<TState, TAction>(
 
 Phase 1 では基本実装に集中し、パフォーマンス最適化は後続フェーズで対応する。
 
-## デバッグ・テスト支援機能
+## デバッグ・テスト支援の設計
 
-Phase 1 でも以下のデバッグ・テスト機能が利用可能：
+GameEngineの本質的な機能（`actions`, `initialState`, `reducer`の読み取り専用アクセス）を活用して、別レイヤーでデバッグ機能を実現する。
 
-### 1. テストコードからの状態操作
+### 1. デバッグユーティリティ関数
+
+```typescript
+// src/core/debug/gameEngineDebugUtils.ts
+export class GameEngineDebugUtils<TState, TAction> {
+  constructor(
+    private engine: GameEngine<TState, TAction>
+  ) {}
+  
+  // 任意のアクション列から状態を計算
+  computeStateFromActions(actions: TAction[]): TState {
+    return actions.reduce(this.engine.reducer, this.engine.initialState);
+  }
+  
+  // 特定のインデックスまでの状態を計算
+  computeStateAtIndex(index: number): TState {
+    const slicedActions = this.engine.actions.slice(0, index);
+    return this.computeStateFromActions(slicedActions);
+  }
+  
+  // アクション列の妥当性検証
+  validateActionSequence(actions: TAction[]): {
+    isValid: boolean;
+    errorIndex?: number;
+    error?: string;
+  } {
+    try {
+      let state = this.engine.initialState;
+      for (let i = 0; i < actions.length; i++) {
+        const newState = this.engine.reducer(state, actions[i]);
+        if (newState === state) {
+          // 状態が変化しない = 無効なアクション
+          return {
+            isValid: false,
+            errorIndex: i,
+            error: `Invalid action at index ${i}: ${JSON.stringify(actions[i])}`
+          };
+        }
+        state = newState;
+      }
+      return { isValid: true };
+    } catch (error) {
+      return {
+        isValid: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+  
+  // 状態の差分を分析
+  analyzeStateDiff(beforeActions: TAction[], afterActions: TAction[]): {
+    beforeState: TState;
+    afterState: TState;
+    actionDiff: TAction[];
+  } {
+    return {
+      beforeState: this.computeStateFromActions(beforeActions),
+      afterState: this.computeStateFromActions(afterActions),
+      actionDiff: afterActions.slice(beforeActions.length)
+    };
+  }
+}
+```
+
+### 2. テストでの活用
 
 ```typescript
 // テストでの使用例
@@ -358,6 +396,8 @@ describe('Game Logic Test', () => {
       useGameEngine(reversiReducer, initialState)
     );
     
+    const debugUtils = new GameEngineDebugUtils(result.current);
+    
     // 特定のアクション列をテスト
     const testActions = [
       { type: 'MAKE_MOVE', row: 2, col: 3 },
@@ -365,91 +405,143 @@ describe('Game Logic Test', () => {
       { type: 'MAKE_MOVE', row: 2, col: 4 }
     ];
     
-    // アクション列を直接設定
-    act(() => {
-      result.current.setActions(testActions);
+    // アクション列の妥当性を事前検証
+    const validation = debugUtils.validateActionSequence(testActions);
+    expect(validation.isValid).toBe(true);
+    
+    // 実際にアクションを実行
+    testActions.forEach(action => {
+      act(() => {
+        result.current.dispatch(action);
+      });
     });
     
     // 結果を検証
     expect(result.current.gameState.currentPlayer).toBe('WHITE');
     
     // 途中の状態も検証可能
-    const stateAfterTwoMoves = result.current.computeStateAtIndex(2);
+    const stateAfterTwoMoves = debugUtils.computeStateAtIndex(2);
     expect(stateAfterTwoMoves.scores.BLACK).toBe(4);
+  });
+  
+  it('should detect invalid action sequences', () => {
+    const { result } = renderHook(() => 
+      useGameEngine(reversiReducer, initialState)
+    );
+    
+    const debugUtils = new GameEngineDebugUtils(result.current);
+    
+    // 無効なアクション列
+    const invalidActions = [
+      { type: 'MAKE_MOVE', row: 0, col: 0 }, // 無効な手
+    ];
+    
+    const validation = debugUtils.validateActionSequence(invalidActions);
+    expect(validation.isValid).toBe(false);
+    expect(validation.errorIndex).toBe(0);
+    expect(validation.error).toContain('Invalid action');
   });
 });
 ```
 
-### 2. GameDebugger での状態監視
+### 3. GameDebugger での活用
 
 ```typescript
 // GameDebugger での使用例
-function GameDebugger() {
-  const gameEngine = useGameEngineDebugInfo(); // グローバルに取得
+function GameDebugger<TState, TAction>({ 
+  gameEngine 
+}: { 
+  gameEngine: GameEngine<TState, TAction> 
+}) {
+  const debugUtils = useMemo(() => 
+    new GameEngineDebugUtils(gameEngine), [gameEngine]
+  );
   
-  const handleReplayActions = () => {
-    // アクション列を再実行
-    gameEngine.setActions([...gameEngine.actions]);
-  };
+  const [selectedIndex, setSelectedIndex] = useState(gameEngine.actions.length);
   
-  const handleGoToStep = (index: number) => {
-    // 特定のステップの状態を表示
-    const stateAtStep = gameEngine.computeStateAtIndex(index);
-    console.log('State at step', index, stateAtStep);
-  };
+  const currentDisplayState = useMemo(() => {
+    return debugUtils.computeStateAtIndex(selectedIndex);
+  }, [debugUtils, selectedIndex]);
   
   return (
     <div>
-      <h3>アクション履歴</h3>
+      <h3>アクション履歴 ({gameEngine.actions.length}件)</h3>
+      
+      <div>
+        <input
+          type="range"
+          min={0}
+          max={gameEngine.actions.length}
+          value={selectedIndex}
+          onChange={(e) => setSelectedIndex(Number(e.target.value))}
+        />
+        <span>ステップ: {selectedIndex} / {gameEngine.actions.length}</span>
+      </div>
+      
       {gameEngine.actions.map((action, index) => (
-        <div key={index} onClick={() => handleGoToStep(index + 1)}>
+        <div 
+          key={index} 
+          onClick={() => setSelectedIndex(index + 1)}
+          style={{
+            backgroundColor: index < selectedIndex ? '#4CAF50' : '#666',
+            cursor: 'pointer',
+            padding: '4px',
+            margin: '2px'
+          }}
+        >
           {index + 1}: {JSON.stringify(action)}
         </div>
       ))}
       
-      <button onClick={handleReplayActions}>
-        アクション再実行
-      </button>
+      <div>
+        <h4>ステップ {selectedIndex} の状態</h4>
+        <pre>{JSON.stringify(currentDisplayState, null, 2)}</pre>
+      </div>
       
       <div>
-        <h4>現在の状態</h4>
-        <pre>{JSON.stringify(gameEngine.gameState, null, 2)}</pre>
+        <h4>アクション列の妥当性</h4>
+        {(() => {
+          const validation = debugUtils.validateActionSequence(gameEngine.actions);
+          return validation.isValid ? (
+            <span style={{ color: 'green' }}>✓ 有効</span>
+          ) : (
+            <span style={{ color: 'red' }}>✗ エラー: {validation.error}</span>
+          );
+        })()}
       </div>
     </div>
   );
 }
 ```
 
-### 3. 開発者ツールでの直接操作
-
-```typescript
-// ブラウザのコンソールから直接操作可能
-window.gameDebug = {
-  // 現在のゲーム状態を取得
-  getCurrentState: () => gameEngine.gameState,
-  
-  // アクション履歴を取得
-  getActions: () => gameEngine.actions,
-  
-  // 特定の状態を再現
-  replayToStep: (index: number) => {
-    const actions = gameEngine.actions.slice(0, index);
-    gameEngine.setActions(actions);
-  },
-  
-  // カスタムアクション列をテスト
-  testActionSequence: (actions: TAction[]) => {
-    return gameEngine.computeStateFromActions(actions);
-  }
-};
-```
-
 ## 期待される効果
 
-1. **状態の予測可能性**: 同じアクション列は常に同じ結果
-2. **テスト容易性**: reducer の純粋関数テスト + アクション列テスト
-3. **デバッグ支援**: アクション列による状態再現・監視・操作
-4. **タイムトラベルデバッグ**: 任意の時点の状態を確認・復元
-5. **将来の拡張性**: Phase 2, 3 の基盤構築
+### 1. 状態管理の改善
+- **予測可能性**: 同じアクション列は常に同じ結果
+- **再現性**: 任意の状態を確実に再現可能
+- **純粋性**: 副作用のない状態遷移
 
-この Phase 1 の完成により、開発者は任意のゲーム状態を簡単に再現・検証でき、後続の「任意盤面再現」「ユーザー履歴遷移」の実装も大幅に簡素化される。
+### 2. テスト容易性の向上
+- **Reducer テスト**: 純粋関数として独立テスト
+- **アクション列テスト**: 複雑なシナリオの組み合わせテスト
+- **妥当性検証**: 無効なアクション列の自動検出
+- **状態差分分析**: 変更前後の状態比較
+
+### 3. デバッグ支援の強化
+- **タイムトラベルデバッグ**: 任意の時点の状態を確認
+- **アクション履歴の可視化**: 操作の流れを追跡
+- **エラー原因の特定**: 無効なアクションの位置を特定
+- **状態遷移の検証**: 期待通りの状態変化かを確認
+
+### 4. AI テスト支援への貢献
+- **詳細なエラー情報**: どのアクションで何が起きたかを明確化
+- **状態の完全な可視性**: 内部状態の全てを確認可能
+- **再現可能なテストケース**: 失敗したケースを確実に再現
+- **段階的デバッグ**: ステップバイステップでの問題特定
+
+### 5. 将来の拡張性
+- **Phase 2 基盤**: 任意盤面再現の土台
+- **Phase 3 基盤**: ユーザー履歴遷移の土台
+- **新機能追加**: デバッグユーティリティの拡張が容易
+
+この Phase 1 の完成により、開発者とAIの両方が、ゲームの状態遷移を詳細に理解・検証でき、テストNG の原因特定が大幅に効率化される。
