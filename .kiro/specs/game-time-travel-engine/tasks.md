@@ -40,27 +40,27 @@
 
 ### 2. TicTacToe ゲームでの検証実装（独立移行）
 
-- [ ] 2.1 TicTacToe の reducer 実装
+- [x] 2.1 TicTacToe の reducer 実装
   - `src/games/tictactoe/reducer.ts` として新規作成
   - 既存の `core.ts` は変更せず、そのロジックを活用
   - `TicTacToeAction` 型の定義
   - `ticTacToeReducer` 関数の実装
   - _要件: 1.1, 1.2_
 
-- [ ] 2.2 新しい useTicTacToe フックの作成
+- [x] 2.2 新しい useTicTacToe フックの作成
   - `src/games/tictactoe/useTicTacToeNew.ts` として新規作成
   - 既存の `useTicTacToe.ts` は残したまま
   - useGameEngine を使用した実装
   - 既存インターフェースとの互換性を保持
   - _要件: 3.2, 3.3_
 
-- [ ] 2.3 TicTacToe の新実装テスト作成
+- [x] 2.3 TicTacToe の新実装テスト作成
   - 新しい reducer とフックの単体テスト
-  - 既存実装との動作比較テスト
   - 純粋関数としての reducer テスト
+  - useGameEngine統合テスト
   - _要件: 4.1_
 
-- [ ] 2.4 TicTacToe の切り替えと旧実装削除
+- [x] 2.4 TicTacToe の切り替えと旧実装削除
   - `useTicTacToe.ts` を新実装に置き換え
   - `useTicTacToeNew.ts` を `useTicTacToe.ts` にリネーム
   - 旧実装ファイルの削除

@@ -1,107 +1,53 @@
-import { useState, useCallback, useMemo } from 'react';
-import { HintableGameController, BaseGameState, HintState } from '@/core/types/game';
-import { GameState as CoreGameState, createInitialState, handleCellClick, Player, Board } from './core';
+import { useCallback, useMemo } from 'react';
+import { useGameEngine } from '@/core/hooks/useGameEngine';
+import { HintableGameController, HintState } from '@/core/types/game';
+import { 
+  TicTacToeGameState, 
+  TicTacToeAction, 
+  ticTacToeReducer, 
+  createInitialTicTacToeState 
+} from './reducer';
 
-// 1. 統一された新しいゲーム状態の定義
-export interface TicTacToeGameState extends BaseGameState {
-  board: Board;
-  currentPlayer: Player;
-  winner: Player;
-  isDraw: boolean;
-  winningLines: number[][] | null;
-  reachingLines: { player: Player; index: number }[];
-  hintLevel: number; // 0: none, 1: enabled
-}
-
-// 2. アクションの型定義
-export type TicTacToeAction =
-  | { type: 'MAKE_MOVE'; row: number; col: number }
-  | { type: 'RESET_GAME' }
-  | { type: 'SET_HINTS_ENABLED'; enabled: boolean };
-
-// 3. 初期状態を生成する関数
-function createInitialTicTacToeState(): TicTacToeGameState {
-  const coreState = createInitialState();
-  return {
-    ...coreState,
-    // BaseGameStateの必須フィールド
-    status: 'playing',
-    winner: null,
-  };
-}
-
-// 4. Reducer関数
-function ticTacToeReducer(state: TicTacToeGameState, action: TicTacToeAction): TicTacToeGameState {
-  switch (action.type) {
-    case 'MAKE_MOVE': {
-      const coreState: CoreGameState = {
-        board: state.board,
-        currentPlayer: state.currentPlayer,
-        winner: state.winner,
-        isDraw: state.isDraw,
-        winningLines: state.winningLines,
-        reachingLines: state.reachingLines,
-        hintLevel: state.hintLevel,
-      };
-      const newCoreState = handleCellClick(coreState, action.row, action.col);
-      if (!newCoreState) {
-        return state;
-      }
-      return {
-        ...state,
-        ...newCoreState,
-        status: newCoreState.winner || newCoreState.isDraw ? 'ended' : 'playing',
-        winner: newCoreState.winner,
-      };
-    }
-    case 'RESET_GAME':
-      return createInitialTicTacToeState();
-    case 'SET_HINTS_ENABLED':
-      return { ...state, hintLevel: action.enabled ? 1 : 0 };
-    default:
-      return state;
-  }
-}
-
-// 5. Controllerの型定義
+/**
+ * TicTacToeコントローラーの型定義
+ * 既存のインターフェースとの互換性を保持
+ */
 export type TicTacToeController = HintableGameController<TicTacToeGameState, TicTacToeAction> & {
   makeMove: (row: number, col: number) => void;
 };
 
-// 6. useTicTacToe フックの実装
+/**
+ * useGameEngineを使用したTicTacToeフック
+ * 
+ * 既存のuseTicTacToeと同じインターフェースを提供しつつ、
+ * 内部的にはuseGameEngineによる「初期状態 + アクション列の合成」を使用。
+ * 
+ * @returns TicTacToeController - ゲーム操作用のコントローラー
+ */
 export function useTicTacToe(): TicTacToeController {
-  const [history, setHistory] = useState<TicTacToeGameState[]>([createInitialTicTacToeState()]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-  const gameState = history[historyIndex];
+  // useGameEngineを使用して状態管理
+  const {
+    gameState,
+    dispatch,
+    reset,
+  } = useGameEngine(ticTacToeReducer, createInitialTicTacToeState());
 
+  // ゲームリセット機能
   const resetGame = useCallback(() => {
-    const initialState = createInitialTicTacToeState();
-    setHistory([initialState]);
-    setHistoryIndex(0);
-  }, []);
+    reset();
+  }, [reset]);
 
+  // セルクリック（移動）機能
   const makeMove = useCallback((row: number, col: number) => {
-    const newState = ticTacToeReducer(gameState, { type: 'MAKE_MOVE', row, col });
-    // 状態が変化しない場合は何もしない
-    if (newState === gameState) {
-      return;
-    }
-    const newHistory = [...history.slice(0, historyIndex + 1), newState];
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  }, [gameState, history, historyIndex]);
+    dispatch({ type: 'MAKE_MOVE', row, col });
+  }, [dispatch]);
 
+  // ヒント機能のON/OFF切り替え
   const setHints = useCallback((enabled: boolean) => {
-    const action = { type: 'SET_HINTS_ENABLED', enabled } as const;
-    setHistory(prevHistory => {
-        const currentGameState = prevHistory[historyIndex];
-        const newGameState = ticTacToeReducer(currentGameState, action);
-        const newHistory = [...prevHistory];
-        newHistory[historyIndex] = newGameState;
-        return newHistory;
-    });
-  }, [historyIndex]);
+    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
+  }, [dispatch]);
 
+  // 状態表示メッセージの生成
   const getDisplayStatus = useCallback(() => {
     if (gameState.winner) {
       const winnerMark = gameState.winner === 'O' ? '○' : '×';
@@ -117,13 +63,14 @@ export function useTicTacToe(): TicTacToeController {
     return 'ゲーム開始';
   }, [gameState]);
 
+  // ヒント状態の管理
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintLevel > 0,
   }), [gameState.hintLevel]);
 
   return {
     gameState,
-    dispatch: () => {}, // dispatchは直接使用しない
+    dispatch,
     resetGame,
     makeMove,
     setHints,
