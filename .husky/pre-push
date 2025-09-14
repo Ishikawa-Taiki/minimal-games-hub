@@ -1,2 +1,51 @@
-npm test
-npm run build
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Get a list of changed files compared to the main branch on origin.
+# This assumes a workflow where feature branches are created from main and pushed.
+changed_files=$(git diff --name-only origin/main...HEAD)
+
+# Function to check if a file is a document
+is_doc_file() {
+  case "$1" in
+    *.md|docs/*)
+      return 0 # It's a doc file
+      ;;
+    *)
+      return 1 # It's not a doc file
+      ;;
+  esac
+}
+
+# Assume all changes are documentation-only initially
+doc_only_change=true
+
+if [ -z "$changed_files" ]; then
+  echo "No changed files detected compared to origin/main. Skipping checks."
+  exit 0
+fi
+
+# Loop through all changed files. Set IFS to newline to handle filenames with spaces.
+OIFS="$IFS"
+IFS='
+'
+for file in $changed_files; do
+  if ! is_doc_file "$file"; then
+    doc_only_change=false
+    break
+  fi
+done
+IFS="$OIFS"
+
+if [ "$doc_only_change" = true ]; then
+  echo "Documentation-only changes detected. Skipping build and tests."
+  exit 0
+fi
+
+echo "Code changes detected. Running build and tests..."
+# Run checks similar to the CI pipeline.
+# We use && to ensure the script exits if a command fails.
+npm run test:lint && \
+npm run test:unit && \
+npm run build && \
+npm run test:e2e
