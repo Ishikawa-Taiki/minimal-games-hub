@@ -1,2 +1,47 @@
-npm test
-npm run build
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# origin/main との差分から変更があったファイルの一覧を取得します。
+# これは main ブランチからフィーチャーブランチを作成して push するワークフローを想定しています。
+changed_files=$(git diff --name-only origin/main...HEAD)
+
+# ファイルがドキュメントファイルかどうかを判定する関数
+is_doc_file() {
+  case "$1" in
+    *.md|docs/*)
+      return 0 # ドキュメントファイルです
+      ;;
+    *)
+      return 1 # ドキュメントファイルではありません
+      ;;
+  esac
+}
+
+# 最初はドキュメントのみの変更だと仮定します
+doc_only_change=true
+
+if [ -z "$changed_files" ]; then
+  echo "origin/main との差分は検出されませんでした。チェックをスキップします。"
+  exit 0
+fi
+
+# スペースを含むファイル名を正しく処理するために IFS を設定して、変更されたファイルをループ処理します
+OIFS="$IFS"
+IFS='
+'
+for file in $changed_files; do
+  if ! is_doc_file "$file"; then
+    doc_only_change=false
+    break
+  fi
+done
+IFS="$OIFS"
+
+if [ "$doc_only_change" = true ]; then
+  echo "ドキュメントのみの変更のため、ビルドとテストをスキップします。"
+  exit 0
+fi
+
+echo "コードの変更が検出されたため、ビルドとテストを実行します..."
+# 元の実行粒度に戻し、ライセンスチェックも含まれるようにします
+npm test && npm run build

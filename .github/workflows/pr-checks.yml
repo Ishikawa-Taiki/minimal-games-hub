@@ -11,37 +11,33 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.node-version'
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
-
-
+        run: npm ci
 
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*
+            !**/*.md
+            !docs/**/*
 
-      - name: Run license check
-        if: contains(steps.changed-files.outputs.all_changed_files, 'package-lock.json')
-        run: npm run test:license
-
-      - name: Run lint check
-        run: npm run test:lint
-
-      - name: Run unit tests
-        run: npm run test:unit
-
-      - name: Build project
-        run: npm run build
-
-      - name: Run Playwright tests
-        run: npm run test:e2e
+      - name: Run all checks
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          npm run test:license
+          npm run test:lint
+          npm run test:unit
+          npm run build
+          npm run test:e2e
