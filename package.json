@@ -13,9 +13,10 @@
     "test:e2e": "npx playwright test",
     "test:e2e-ui": "npx playwright test --ui",
     "gemini": "gemini",
+    "spec": ".venv/bin/specify",
     "update:license": "node scripts/license-update.js",
     "prepare": "husky",
-    "postinstall": "npx playwright install && npm run update:license"
+    "postinstall": "npx playwright install && python3 -m venv .venv && .venv/bin/pip install uv \"specify-cli@git+https://github.com/github/spec-kit.git\" && npm run update:license"
   },
   "dependencies": {
     "next": "^15.5.2",
