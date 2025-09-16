@@ -14,7 +14,7 @@ test.describe('棒消しゲーム', () => {
 
   test('難易度を選択するとゲームが開始されること', async ({ page }) => {
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
-    await expect(page.getByTestId('status')).toHaveText('プレイヤー1のばん');
+    await expect(page.getByTestId('game-state-display').locator('p')).toHaveText('プレイヤー1の番');
     await expect(page.locator('[data-testid^="stick-"]')).toHaveCount(6);
   });
 
@@ -24,7 +24,7 @@ test.describe('棒消しゲーム', () => {
     await page.locator('[data-testid="stick-0-0"]').click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    await expect(page.getByTestId('status')).toHaveText('プレイヤー2のばん');
+    await expect(page.getByTestId('game-state-display').locator('p')).toHaveText('プレイヤー2の番');
     const stick = page.locator('[data-testid="stick-0-0"]');
     await expect(stick).toHaveAttribute('data-taken', 'true');
   });

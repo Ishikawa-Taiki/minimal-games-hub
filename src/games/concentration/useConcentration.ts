@@ -157,8 +157,6 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     getHintedIndices: () => number[];
     getBoard: () => GameState['board'];
     getDifficulty: () => Difficulty;
-    // 状態表示
-    getDisplayStatus: () => string;
     // スコア情報
     getScoreInfo: () => ScoreInfo | null;
     // ゲーム状態チェック
@@ -273,31 +271,6 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
   const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
 
-  const getDisplayStatus = useCallback(() => {
-    if (gameState.winner) {
-      if (gameState.winner === 'DRAW') {
-        return '引き分け！';
-      } else if (gameState.winner === 'player1') {
-        return 'プレイヤー1の勝ち！';
-      } else if (gameState.winner === 'player2') {
-        return 'プレイヤー2の勝ち！';
-      }
-      return 'ゲーム終了';
-    } else if (gameState.gameStatus === 'evaluating') {
-      return '...';
-    } else if (gameState.gameStatus === 'player1_turn') {
-      return 'プレイヤー1の番';
-    } else if (gameState.gameStatus === 'player2_turn') {
-      return 'プレイヤー2の番';
-    } else if (gameState.status === 'ended') {
-      return 'ゲーム終了';
-    } else if (gameState.flippedIndices.length === 0 && gameState.revealedIndices.length === 0 && gameState.scores.player1 === 0 && gameState.scores.player2 === 0) {
-      return 'ゲーム開始';
-    } else {
-      return 'プレイヤー1の番';
-    }
-  }, [gameState]);
-
   const getScoreInfo = useCallback((): ScoreInfo | null => {
     return {
       title: 'スコア',
@@ -333,13 +306,39 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getHintedIndices,
     getBoard,
     getDifficulty,
-    getDisplayStatus,
     getScoreInfo,
     isGameStarted,
     isEvaluating,
     // HintableGameController
     hintState,
     setHints,
+    isTurnOnly: useMemo(() => {
+      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
+    }, [gameState.status, gameState.winner]),
+    displayInfo: useMemo(() => {
+      if (gameState.winner) {
+        if (gameState.winner === 'DRAW') {
+          return { statusText: '引き分け！' };
+        } else if (gameState.winner === 'player1') {
+          return { statusText: 'プレイヤー1の勝ち！' };
+        } else if (gameState.winner === 'player2') {
+          return { statusText: 'プレイヤー2の勝ち！' };
+        }
+        return { statusText: 'ゲーム終了' };
+      } else if (gameState.gameStatus === 'evaluating') {
+        return { statusText: '...' };
+      } else if (gameState.gameStatus === 'player1_turn') {
+        return { statusText: 'プレイヤー1の番' };
+      } else if (gameState.gameStatus === 'player2_turn') {
+        return { statusText: 'プレイヤー2の番' };
+      } else if (gameState.status === 'ended') {
+        return { statusText: 'ゲーム終了' };
+      } else if (gameState.flippedIndices.length === 0 && gameState.revealedIndices.length === 0 && gameState.scores.player1 === 0 && gameState.scores.player2 === 0) {
+        return { statusText: 'ゲーム開始' };
+      } else {
+        return { statusText: 'プレイヤー1の番' };
+      }
+    }, [gameState]),
   };
 }
 

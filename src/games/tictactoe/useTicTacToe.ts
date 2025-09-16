@@ -47,26 +47,29 @@ export function useTicTacToe(): TicTacToeController {
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   }, [dispatch]);
 
-  // 状態表示メッセージの生成
-  const getDisplayStatus = useCallback(() => {
-    if (gameState.winner) {
-      const winnerMark = gameState.winner === 'O' ? '○' : '×';
-      return `${winnerMark}のかち！`;
-    }
-    if (gameState.isDraw) {
-      return 'ひきわけ！';
-    }
-    if (gameState.status === 'playing' && gameState.currentPlayer) {
-      const playerMark = gameState.currentPlayer === 'O' ? '○' : '×';
-      return `${playerMark}のばん`;
-    }
-    return 'ゲーム開始';
-  }, [gameState]);
-
   // ヒント状態の管理
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintLevel > 0,
   }), [gameState.hintLevel]);
+
+  const isTurnOnly = useMemo(() => {
+    return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner && !gameState.isDraw;
+  }, [gameState.status, gameState.winner, gameState.isDraw]);
+
+  const displayInfo = useMemo(() => {
+    if (gameState.winner) {
+      const winnerMark = gameState.winner === 'O' ? '○' : '×';
+      return { statusText: `${winnerMark}のかち！` };
+    }
+    if (gameState.isDraw) {
+      return { statusText: 'ひきわけ！' };
+    }
+    if (gameState.status === 'playing' && gameState.currentPlayer) {
+      const playerMark = gameState.currentPlayer === 'O' ? '○' : '×';
+      return { statusText: `${playerMark}のばん` };
+    }
+    return { statusText: 'ゲーム開始' };
+  }, [gameState]);
 
   return {
     gameState,
@@ -74,7 +77,8 @@ export function useTicTacToe(): TicTacToeController {
     resetGame,
     makeMove,
     setHints,
-    getDisplayStatus,
     hintState,
+    isTurnOnly,
+    displayInfo,
   };
 }
