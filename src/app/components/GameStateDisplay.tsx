@@ -39,7 +39,7 @@ const styles = {
  */
 interface GameStateDisplayProps<TState extends BaseGameState, TAction> {
   gameController: BaseGameController<TState, TAction>;
-  isSlim?: boolean; // モバイルのスリムヘッダーとの重複を避けるためのフラグ
+  isSlim: boolean; // モバイルのスリムヘッダーとの重複を避けるためのフラグ
 }
 
 /**
@@ -47,48 +47,18 @@ interface GameStateDisplayProps<TState extends BaseGameState, TAction> {
  */
 export function GameStateDisplay<TState extends BaseGameState, TAction>({
   gameController,
-  isSlim = false,
+  isSlim,
 }: GameStateDisplayProps<TState, TAction>) {
-  const { gameState } = gameController;
+  const { isTurnOnly, displayInfo } = gameController;
 
-  // ゲーム状態の表示テキストを生成する内部関数
-  const getStatusText = (): string => {
-    // 各ゲームコントローラーが自身の状態表示ロジックを持つ場合、それを優先する
-    if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
-      return gameController.getDisplayStatus();
-    }
-
-    // フォールバックとしての汎用的な状態表示
-    if (gameState.winner) {
-      if (gameState.winner === 'DRAW') return '引き分け！';
-      return `勝者: ${gameState.winner}`;
-    }
-
-    if (gameState.status === 'ended') {
-      // isDrawプロパティを持つ可能性のある拡張されたStateとして型アサーション
-      const extendedState = gameState as TState & { isDraw?: boolean };
-      return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
-    }
-
-    if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-      return `${gameState.currentPlayer}の番`;
-    }
-
-    return 'ゲーム開始';
-  };
-
-  const statusText = getStatusText();
-
-  // isSlimがtrueで、かつ情報が手番表示のみの場合、コンポーネントを描画しない
-  const isTurnInfoOnly = (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner && !('isDraw' in gameState && gameState.isDraw);
-  if (isSlim && isTurnInfoOnly) {
+  if (isSlim && isTurnOnly) {
     return null;
   }
 
   return (
     <div style={styles.container} data-testid="game-state-display">
       <h4 style={styles.title}>ゲーム状態</h4>
-      <p style={styles.statusText}>{statusText}</p>
+      <p style={styles.statusText}>{displayInfo.statusText}</p>
     </div>
   );
 }

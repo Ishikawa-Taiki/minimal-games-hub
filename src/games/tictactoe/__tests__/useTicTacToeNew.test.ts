@@ -20,7 +20,6 @@ describe('useTicTacToe (新実装)', () => {
       expect(typeof result.current.makeMove).toBe('function');
       expect(typeof result.current.resetGame).toBe('function');
       expect(typeof result.current.setHints).toBe('function');
-      expect(typeof result.current.getDisplayStatus).toBe('function');
       expect(typeof result.current.dispatch).toBe('function');
     });
   });
@@ -112,57 +111,6 @@ describe('useTicTacToe (新実装)', () => {
 
       expect(result.current.hintState.enabled).toBe(false);
       expect(result.current.gameState.hintLevel).toBe(0);
-    });
-  });
-
-  describe('getDisplayStatus機能', () => {
-    it('正しい状態メッセージを返す', () => {
-      const { result } = renderHook(() => useTicTacToe());
-
-      // 初期状態
-      expect(result.current.getDisplayStatus()).toBe('○のばん');
-
-      // 移動後
-      act(() => {
-        result.current.makeMove(0, 0);
-      });
-
-      expect(result.current.getDisplayStatus()).toBe('×のばん');
-
-      // 勝利状態
-      act(() => {
-        result.current.makeMove(1, 0); // X
-        result.current.makeMove(0, 1); // O
-        result.current.makeMove(1, 1); // X
-        result.current.makeMove(0, 2); // O (勝利)
-      });
-
-      expect(result.current.getDisplayStatus()).toBe('○のかち！');
-    });
-
-    it('引き分け状態を正しく表示する', () => {
-      const { result } = renderHook(() => useTicTacToe());
-
-      act(() => {
-        // 引き分けパターンを作成
-        const moves = [
-          [0, 0], // O
-          [0, 1], // X
-          [0, 2], // O
-          [1, 0], // X
-          [1, 2], // O
-          [1, 1], // X
-          [2, 0], // O
-          [2, 2], // X
-          [2, 1], // O
-        ];
-
-        moves.forEach(([row, col]) => {
-          result.current.makeMove(row, col);
-        });
-      });
-
-      expect(result.current.getDisplayStatus()).toBe('ひきわけ！');
     });
   });
 

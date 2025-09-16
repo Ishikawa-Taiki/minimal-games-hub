@@ -238,11 +238,6 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
             <div style={gameLayoutStyles.mobileStatus} data-testid="status">
               {(() => {
-                // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
-                if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
-                  return gameController.getDisplayStatus();
-                }
-
                 // フォールバック: 汎用的な状態表示
                 if (gameController.gameState.winner) {
                   if (gameController.gameState.winner === 'DRAW') {
