@@ -3,6 +3,8 @@
 import { memo } from 'react';
 import { GameManifest } from '@/core/types/game';
 import GameLayout from '@/app/components/GameLayout';
+import { GameStateDisplay } from '@/app/components/GameStateDisplay';
+import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import TicTacToe, { useTicTacToe } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
 import Concentration, { useConcentration } from '@/games/concentration/index';
@@ -19,6 +21,7 @@ interface GameClientPageProps {
 // 三目並べ用の新しいレイアウト対応コンポーネント
 const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
   const controller = useTicTacToe();
+  const responsiveState = useResponsive();
   
   return (
     <GameLayout 
@@ -27,6 +30,7 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <TicTacToe controller={controller} />
     </GameLayout>
   );
@@ -35,6 +39,7 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
 // リバーシ用の新しいレイアウト対応コンポーネント
 const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
   const controller = useReversi();
+  const responsiveState = useResponsive();
   
   return (
     <GameLayout 
@@ -43,6 +48,7 @@ const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <Reversi controller={controller} />
     </GameLayout>
   );
@@ -51,6 +57,7 @@ const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug
 // 神経衰弱用の新しいレイアウト対応コンポーネント
 const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
   const controller = useConcentration();
+  const responsiveState = useResponsive();
   
   return (
     <GameLayout 
@@ -59,6 +66,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <Concentration controller={controller} slug={slug} />
     </GameLayout>
   );
@@ -67,6 +75,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
 // 棒消しゲーム用の新しいレイアウト対応コンポーネント
 const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPageProps) => {
   const controller = useStickTaking();
+  const responsiveState = useResponsive();
 
   return (
     <GameLayout
@@ -75,6 +84,7 @@ const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPa
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <StickTaking controller={controller} />
     </GameLayout>
   );
@@ -83,6 +93,7 @@ const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPa
 // アニマルチェス用の新しいレイアウト対応コンポーネント
 const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
   const controller = useAnimalChess();
+  const responsiveState = useResponsive();
 
   return (
     <GameLayout
@@ -91,6 +102,7 @@ const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manife
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <AnimalChess controller={controller} />
     </GameLayout>
   );
@@ -99,6 +111,7 @@ const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manife
 // はさみ将棋用の新しいレイアウト対応コンポーネント
 const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
   const controller = useHasamiShogi();
+  const responsiveState = useResponsive();
 
   return (
     <GameLayout
@@ -107,6 +120,7 @@ const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manife
       gameController={controller}
       rulesContent={rulesContent}
     >
+      <GameStateDisplay variant={isMobile(responsiveState) ? 'slim' : 'default'} gameController={controller} />
       <HasamiShogi controller={controller} />
     </GameLayout>
   );

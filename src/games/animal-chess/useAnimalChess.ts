@@ -146,8 +146,6 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
     getSelectedCell: () => GameState['selectedCell'];
     getSelectedCaptureIndex: () => GameState['selectedCaptureIndex'];
     getBoard: () => GameState['board'];
-    // 状態表示
-    getDisplayStatus: () => string;
     // スコア情報
     getScoreInfo: () => ScoreInfo | null;
   };
@@ -173,9 +171,11 @@ export function useAnimalChess(): AnimalChessController {
   });
 
   const resetGame = useCallback(() => {
+    // logger is not included in dependencies as it's for debugging and changes on every render.
     logger.log('RESET_GAME_CALLED', {});
     dispatch({ type: 'RESET_GAME' });
-  }, [logger]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   useEffect(() => {
     if (gameState.winner) {
@@ -309,18 +309,6 @@ export function useAnimalChess(): AnimalChessController {
   const getSelectedCaptureIndex = useCallback(() => gameState.selectedCaptureIndex, [gameState.selectedCaptureIndex]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
 
-  const getDisplayStatus = useCallback(() => {
-    if (gameState.winner) {
-      return `勝者: ${TEAM_NAMES[gameState.winner]}`;
-    } else if (gameState.status === 'ended') {
-      return 'ゲーム終了';
-    } else if (gameState.status === 'playing' && gameState.currentPlayer) {
-      return `いまのばん: ${TEAM_NAMES[gameState.currentPlayer]}`;
-    } else {
-      return 'ゲーム開始';
-    }
-  }, [gameState.winner, gameState.status, gameState.currentPlayer]);
-
   const getScoreInfo = useCallback((): ScoreInfo | null => {
     return {
       title: '捕獲駒数',
@@ -330,6 +318,18 @@ export function useAnimalChess(): AnimalChessController {
       ]
     };
   }, [gameState.capturedPieces]);
+
+  const displayInfo = useMemo(() => {
+    if (gameState.winner) {
+      return { statusText: `勝者: ${TEAM_NAMES[gameState.winner]}` };
+    } else if (gameState.status === 'ended') {
+      return { statusText: 'ゲーム終了' };
+    } else if (gameState.status === 'playing' && gameState.currentPlayer) {
+      return { statusText: `いまのばん: ${TEAM_NAMES[gameState.currentPlayer]}` };
+    } else {
+      return { statusText: 'ゲーム開始' };
+    }
+  }, [gameState.winner, gameState.status, gameState.currentPlayer]);
 
   return {
     gameState,
@@ -342,10 +342,13 @@ export function useAnimalChess(): AnimalChessController {
     getSelectedCell,
     getSelectedCaptureIndex,
     getBoard,
-    getDisplayStatus,
     getScoreInfo,
     // HintableGameController
     hintState,
     setHints,
+    isTurnOnly: useMemo(() => {
+      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
+    }, [gameState.status, gameState.winner]),
+    displayInfo,
   };
 }

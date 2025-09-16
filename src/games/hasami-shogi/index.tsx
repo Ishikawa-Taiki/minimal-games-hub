@@ -6,7 +6,6 @@ import {
   WinCondition,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
-import { useResponsive } from '@/core/hooks/useResponsive';
 import { PositiveButton } from '@/app/components/ui';
 import { styles } from './styles';
 import { useDialog } from '@/app/components/ui/DialogProvider';
@@ -62,7 +61,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   } = controller;
 
   const hintsEnabled = hintState.enabled;
-  useResponsive();
   const { alert } = useDialog();
 
   useEffect(() => {

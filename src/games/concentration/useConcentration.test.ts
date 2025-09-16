@@ -219,21 +219,6 @@ describe('useConcentration', () => {
     });
   });
 
-  describe('状態表示', () => {
-    it('正しい状態メッセージを返す', () => {
-      const { result } = renderHook(() => useConcentration());
-      
-      // 初期状態（神経衰弱では最初からプレイヤー1のターン）
-      expect(result.current.getDisplayStatus()).toBe('プレイヤー1の番');
-      
-      // カードをめくった後もプレイヤー1のターン
-      act(() => {
-        result.current.handleCardClick(0);
-      });
-      expect(result.current.getDisplayStatus()).toBe('プレイヤー1の番');
-    });
-  });
-
   describe('スコア情報', () => {
     it('正しいスコア情報を返す', () => {
       const { result } = renderHook(() => useConcentration());
@@ -290,7 +275,6 @@ describe('useConcentration', () => {
       expect(result.current.gameState).toBeDefined();
       expect(result.current.dispatch).toBeDefined();
       expect(typeof result.current.resetGame).toBe('function');
-      expect(typeof result.current.getDisplayStatus).toBe('function');
       expect(typeof result.current.getScoreInfo).toBe('function');
     });
   });

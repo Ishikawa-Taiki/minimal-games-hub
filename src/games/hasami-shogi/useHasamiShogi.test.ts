@@ -188,11 +188,11 @@ describe('useHasamiShogi', () => {
       expect(result.current.getValidMoves()).toBeInstanceOf(Map);
     });
 
-    it('getDisplayStatusが正しい状態表示を返す', () => {
+    it('getCurrentPlayerが正しいプレイヤーを返す', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
       // 初期状態
-      expect(result.current.getDisplayStatus()).toBe('「歩」の番');
+      expect(result.current.getCurrentPlayer()).toBe('PLAYER1');
       
       // 移動後の状態変化をテスト
       act(() => {
@@ -204,7 +204,7 @@ describe('useHasamiShogi', () => {
       });
       
       // 手番が変わったことを確認
-      expect(result.current.getDisplayStatus()).toBe('「と」の番');
+      expect(result.current.getCurrentPlayer()).toBe('PLAYER2');
     });
   });
 

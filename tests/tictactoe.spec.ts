@@ -15,8 +15,8 @@ test.describe('Tic-Tac-Toe Game', () => {
   test('should display the initial state correctly', async ({ page }) => {
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
-    const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('○のばん');
+    const status = await page.getByTestId('game-state-display').textContent();
+    expect(status).toBe('ゲーム状態○のばん');
   });
 
   test('should allow players to take turns', async ({ page }) => {
@@ -24,15 +24,15 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-0-0').click();
     const cell00 = await page.getByTestId('cell-0-0').textContent();
     expect(cell00).toBe('O');
-    const status1 = await page.getByTestId('status').textContent();
-    expect(status1).toBe('×のばん');
+    const status1 = await page.getByTestId('game-state-display').textContent();
+    expect(status1).toBe('ゲーム状態×のばん');
 
     await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click();
     const cell01 = await page.getByTestId('cell-0-1').textContent();
     expect(cell01).toBe('X');
-    const status2 = await page.getByTestId('status').textContent();
-    expect(status2).toBe('○のばん');
+    const status2 = await page.getByTestId('game-state-display').textContent();
+    expect(status2).toBe('ゲーム状態○のばん');
   });
 
   test('should declare a winner', async ({ page }) => {
@@ -46,8 +46,8 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-1-1').click(); // X
     await page.getByTestId('cell-0-2').waitFor();
     await page.getByTestId('cell-0-2').click(); // O
-    const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('○のかち！');
+    const status = await page.getByTestId('game-state-display').textContent();
+    expect(status).toBe('ゲーム状態○のかち！');
   });
 
   test('should declare a draw', async ({ page }) => {
@@ -69,8 +69,8 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-2-0').click(); // X
     await page.getByTestId('cell-2-2').waitFor();
     await page.getByTestId('cell-2-2').click(); // O
-    const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('ひきわけ！');
+    const status = await page.getByTestId('game-state-display').textContent();
+    expect(status).toBe('ゲーム状態ひきわけ！');
   });
 
   test('should reset the game', async ({ page }) => {
@@ -88,8 +88,8 @@ test.describe('Tic-Tac-Toe Game', () => {
 
     await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
     await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
-    const status = await page.getByTestId('status').textContent();
-    expect(status).toBe('○のばん');
+    const status = await page.getByTestId('game-state-display').textContent();
+    expect(status).toBe('ゲーム状態○のばん');
   });
 
   test.describe('Game Over Modal', () => {
@@ -137,7 +137,7 @@ test.describe('Tic-Tac-Toe Game', () => {
       await expect(dialog).not.toBeVisible();
       await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
       await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
-      const status = await page.getByTestId('status').textContent();
+      const status = await page.getByTestId('game-state-display').locator('p').textContent();
       expect(status).toBe('○のばん');
     });
   });
@@ -152,8 +152,8 @@ test.describe('Tic-Tac-Toe Game', () => {
       const fab = page.locator('button[aria-label="コントロールパネルを開く"]');
       await expect(fab).not.toBeVisible();
       
-      // ステータスが表示されることを確認
-      const status = page.getByTestId('status');
+      // ゲーム状態表示がされることを確認
+      const status = page.getByTestId('game-state-display');
       await expect(status).toBeVisible();
       
       // リセットボタンが直接表示されることを確認（サイドバー内）
@@ -178,9 +178,9 @@ test.describe('Tic-Tac-Toe Game', () => {
       const fab = page.locator('button[aria-label="コントロールパネルを開く"]');
       await expect(fab).toBeVisible();
       
-      // モバイルヘッダーにステータスが表示されることを確認
-      const mobileStatus = page.getByTestId('status');
-      await expect(mobileStatus).toBeVisible();
+      // ゲーム状態表示が非表示（モバイルヘッダーで代替）であることを確認
+      const gameStateDisplay = page.getByTestId('game-state-display');
+      await expect(gameStateDisplay).not.toBeVisible();
       
       // リセットボタンが直接表示されないことを確認（ボトムシート内にある）
       const resetButton = page.getByTestId('control-panel-reset-button');

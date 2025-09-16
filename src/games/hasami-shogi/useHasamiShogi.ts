@@ -115,8 +115,6 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
     isGameStarted: () => boolean;
-    // 状態表示
-    getDisplayStatus: () => string;
     // スコア情報
     getScoreInfo: () => ScoreInfo | null;
   };
@@ -186,27 +184,6 @@ export function useHasamiShogi(): HasamiShogiController {
            gameState.capturedPieces.PLAYER2 > 0;
   }, [gameState.board, gameState.capturedPieces]);
 
-  const getDisplayStatus = useCallback(() => {
-    if (gameState.winner) {
-      if (gameState.winner === 'PLAYER1') {
-        return '勝者: 「歩」';
-      } else if (gameState.winner === 'PLAYER2') {
-        return '勝者: 「と」';
-      }
-      return 'ゲーム終了'; // その他の勝者の場合
-    } else if (gameState.gameStatus === 'GAME_OVER') {
-      return 'ゲーム終了';
-    } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
-      return `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番`;
-    } else if (gameState.status === 'ended') {
-      return 'ゲーム終了';
-    } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-      return `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番`;
-    } else {
-      return 'ゲーム開始';
-    }
-  }, [gameState]);
-
   const getScoreInfo = useCallback((): ScoreInfo | null => {
     return {
       title: '捕獲数',
@@ -230,10 +207,32 @@ export function useHasamiShogi(): HasamiShogiController {
     getSelectedPiece,
     getPotentialCaptures,
     isGameStarted,
-    getDisplayStatus,
     getScoreInfo,
     // HintableGameController
     hintState,
     setHints,
+    isTurnOnly: useMemo(() => {
+      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
+    }, [gameState.status, gameState.winner]),
+    displayInfo: useMemo(() => {
+      if (gameState.winner) {
+        if (gameState.winner === 'PLAYER1') {
+          return { statusText: '勝者: 「歩」' };
+        } else if (gameState.winner === 'PLAYER2') {
+          return { statusText: '勝者: 「と」' };
+        }
+        return { statusText: 'ゲーム終了' }; // その他の勝者の場合
+      } else if (gameState.gameStatus === 'GAME_OVER') {
+        return { statusText: 'ゲーム終了' };
+      } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
+        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番` };
+      } else if (gameState.status === 'ended') {
+        return { statusText: 'ゲーム終了' };
+      } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
+        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番` };
+      } else {
+        return { statusText: 'ゲーム開始' };
+      }
+    }, [gameState]),
   };
 }
