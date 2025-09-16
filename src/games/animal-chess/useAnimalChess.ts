@@ -171,9 +171,11 @@ export function useAnimalChess(): AnimalChessController {
   });
 
   const resetGame = useCallback(() => {
+    // logger is not included in dependencies as it's for debugging and changes on every render.
     logger.log('RESET_GAME_CALLED', {});
     dispatch({ type: 'RESET_GAME' });
-  }, [logger]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   useEffect(() => {
     if (gameState.winner) {
