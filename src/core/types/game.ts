@@ -29,12 +29,17 @@ export interface ScoreInfo {
 }
 
 // ゲームコントローラーの共通インターフェース（厳密な型設計）
+// ゲームの状態表示用データ
+export interface DisplayInfo {
+  statusText: string;
+}
+
 export interface BaseGameController<TState extends BaseGameState, TAction> {
   gameState: TState;
   dispatch: React.Dispatch<TAction>;
   resetGame: () => void;
-  // ゲーム固有の状態表示ロジック
-  getDisplayStatus: () => string;
+  isTurnOnly: boolean;
+  displayInfo: DisplayInfo;
   // ゲーム固有のスコア/統計情報（オプショナル）
   getScoreInfo?: () => ScoreInfo | null;
 }

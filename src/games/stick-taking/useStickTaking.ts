@@ -138,14 +138,6 @@ export function useStickTaking(): StickTakingController {
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   }, [logger, gameState.status]);
 
-  const getDisplayStatus = useCallback(() => {
-    if (gameState.status === 'waiting') return '難易度を選択してください';
-    if (gameState.winner) {
-      return `${gameState.winner}のかち！`;
-    }
-    return `${gameState.currentPlayer}のばん`;
-  }, [gameState]);
-
   const getScoreInfo = useCallback((): ScoreInfo | null => {
     if (gameState.status !== 'playing' || !gameState.hintsEnabled || !gameState.currentPlayer || !gameState.difficulty) return null;
     const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintsEnabled ? 1 : 0 };
@@ -170,10 +162,19 @@ export function useStickTaking(): StickTakingController {
     selectStick,
     takeSticks,
     setHints,
-    getDisplayStatus,
     getScoreInfo,
     hintState,
     startGame,
     difficulty: gameState?.difficulty ?? null,
+    isTurnOnly: useMemo(() => {
+      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
+    }, [gameState.status, gameState.winner]),
+    displayInfo: useMemo(() => {
+      if (gameState.status === 'waiting') return { statusText: '難易度を選択してください' };
+      if (gameState.winner) {
+        return { statusText: `${gameState.winner}のかち！` };
+      }
+      return { statusText: `${gameState.currentPlayer}の番` };
+    }, [gameState]),
   };
 }

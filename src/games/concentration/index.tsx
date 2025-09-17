@@ -6,6 +6,7 @@ import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '@/core/hooks/useResponsive';
 import { PositiveButton } from '@/app/components/ui';
+import { GameStateDisplay } from '@/app/components/GameStateDisplay';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 import { CardFaceContent } from './CardFaceContent';
 
@@ -168,6 +169,7 @@ const Concentration = ({ controller }: ConcentrationProps) => {
 
   const gameContent = (
     <div style={styles.gameContent}>
+      <GameStateDisplay isSlim={false} gameController={gameController} />
       <div style={styles.boardContainer}>
         <div style={boardStyle}>
           {board.map((card, index) => (

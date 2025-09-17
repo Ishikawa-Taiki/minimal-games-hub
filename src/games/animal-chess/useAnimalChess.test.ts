@@ -202,12 +202,12 @@ describe('useAnimalChess', () => {
   describe('状態表示', () => {
     it('現在のプレイヤーを正しく表示する', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
-      expect(result.current.getDisplayStatus()).toBe('いまのばん: おかしチーム');
+      expect(result.current.gameState.currentPlayer).toBe('OKASHI');
       act(() => {
         result.current.handleCellClick(2, 1);
         result.current.handleCellClick(1, 1);
       });
-      expect(result.current.getDisplayStatus()).toBe('いまのばん: おはなチーム');
+      expect(result.current.gameState.currentPlayer).toBe('OHANA');
     });
   });
 
@@ -217,7 +217,6 @@ describe('useAnimalChess', () => {
       expect(result.current.gameState).toBeDefined();
       expect(result.current.dispatch).toBeDefined();
       expect(result.current.resetGame).toBeDefined();
-      expect(result.current.getDisplayStatus).toBeDefined();
       expect(result.current.hintState).toBeDefined();
       expect(result.current.setHints).toBeDefined();
     });

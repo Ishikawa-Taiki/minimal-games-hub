@@ -62,31 +62,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     }
   };
 
-  // ゲーム状態の表示テキストを生成（ポリモーフィック設計）
-  const getStatusText = () => {
-    // 各ゲームコントローラーが自身の状態表示ロジックを持つ
-    if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
-      return gameController.getDisplayStatus();
-    }
-    
-    // フォールバック: 汎用的な状態表示
-    if (gameState.winner) {
-      if (gameState.winner === 'DRAW') {
-        return '引き分け！';
-      }
-      return `勝者: ${gameState.winner}`;
-    } else if (gameState.status === 'ended') {
-      const extendedState = gameState as TState & { isDraw?: boolean };
-      if (extendedState.isDraw) {
-        return '引き分け！';
-      }
-      return 'ゲーム終了';
-    } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-      return `${gameState.currentPlayer}の番`;
-    } else {
-      return 'ゲーム開始';
-    }
-  };
 
   // ゲーム固有のスコア表示（ポリモーフィック設計）
   const renderScoreInfo = () => {
@@ -146,11 +121,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 
   return (
     <div style={gameLayoutStyles.controlPanel}>
-      <div style={gameLayoutStyles.statusSection}>
-        <h4 style={gameLayoutStyles.sectionTitle}>ゲーム状態</h4>
-        <p style={gameLayoutStyles.statusText} data-testid="status">{getStatusText()}</p>
-      </div>
-
       {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
@@ -268,11 +238,6 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
             <div style={gameLayoutStyles.mobileStatus} data-testid="status">
               {(() => {
-                // ポリモーフィック設計: 各ゲームコントローラーが自身の状態表示ロジックを持つ
-                if ('getDisplayStatus' in gameController && typeof gameController.getDisplayStatus === 'function') {
-                  return gameController.getDisplayStatus();
-                }
-
                 // フォールバック: 汎用的な状態表示
                 if (gameController.gameState.winner) {
                   if (gameController.gameState.winner === 'DRAW') {
