@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, CSSProperties } from 'react';
 import {
-  Player,
   Board, // Import Board type
 } from './core';
 import { useReversi, ReversiController } from './useReversi';

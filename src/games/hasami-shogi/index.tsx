@@ -6,7 +6,6 @@ import {
   WinCondition,
 } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
-import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import { PositiveButton } from '@/app/components/ui';
 import { styles } from './styles';
 import { useDialog } from '@/app/components/ui/DialogProvider';
