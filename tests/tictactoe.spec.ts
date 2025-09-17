@@ -178,9 +178,9 @@ test.describe('Tic-Tac-Toe Game', () => {
       const fab = page.locator('button[aria-label="コントロールパネルを開く"]');
       await expect(fab).toBeVisible();
       
-      // ゲーム状態表示が非表示（モバイルヘッダーで代替）であることを確認
-      const gameStateDisplay = page.getByTestId('game-state-display');
-      await expect(gameStateDisplay).not.toBeVisible();
+      // ゲーム状態はスリムヘッダーに表示される
+      const headerStatus = page.locator('header [data-testid="game-state-display"]');
+      await expect(headerStatus).toBeVisible();
       
       // リセットボタンが直接表示されないことを確認（ボトムシート内にある）
       const resetButton = page.getByTestId('control-panel-reset-button');

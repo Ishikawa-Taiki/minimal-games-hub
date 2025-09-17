@@ -10,7 +10,6 @@ import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import { PositiveButton } from '@/app/components/ui';
 import { styles } from './styles';
 import { useDialog } from '@/app/components/ui/DialogProvider';
-import { GameStateDisplay } from '@/app/components/GameStateDisplay';
 
 // Piece component for the game board
 const Piece: React.FC<{ player: Player }> = ({ player }) => {
@@ -63,7 +62,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   } = controller;
 
   const hintsEnabled = hintState.enabled;
-  const responsiveState = useResponsive();
   const { alert } = useDialog();
 
   useEffect(() => {
@@ -119,7 +117,6 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
 
   const gameContent = (
     <>
-      <GameStateDisplay gameController={controller} isSlim={isMobile(responsiveState)} />
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {

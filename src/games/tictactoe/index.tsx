@@ -5,8 +5,6 @@ import { Player } from './core';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 import { styles } from './styles';
 import { useTicTacToe, TicTacToeController } from './useTicTacToe';
-import { GameStateDisplay } from '@/app/components/GameStateDisplay';
-import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 
 // プロップスでコントローラーを受け取るバージョン
 interface TicTacToeProps {
@@ -18,7 +16,6 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
   const internalController = useTicTacToe();
   const controller = externalController || internalController;
   const { gameState, makeMove, resetGame, hintState } = controller;
-  const responsiveState = useResponsive();
   const { alert } = useDialog();
 
   useEffect(() => {
@@ -72,7 +69,6 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
 
   return (
     <>
-      <GameStateDisplay gameController={controller} isSlim={isMobile(responsiveState)} />
       <div style={styles.board}>
         {gameState.board.flat().map((cell, index) => {
           const row = Math.floor(index / 3);

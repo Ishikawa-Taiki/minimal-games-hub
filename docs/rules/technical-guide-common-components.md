@@ -137,7 +137,46 @@ interface BaseGameController<TState extends BaseGameState, TAction> {
 
 GameLayoutは、ポリモーフィック設計により各ゲーム固有の情報を自動的に表示します。**新しいゲームを追加する際、GameLayoutの修正は不要**です。
 
-#### 2.6.2. getScoreInfo()メソッドの実装
+#### 2.6.2. ゲーム状態表示: `displayInfo` と `GameStateDisplay`
+
+手番、勝敗、その他のステータスといったゲーム状態の表示は、`GameStateDisplay`コンポーネントによって一元管理されます。
+
+**データフロー:**
+1.  各ゲームの`useGameController`フックは、`displayInfo`というプロパティを返します。これには表示用の整形済みテキストが含まれます。
+2.  `GameLayout`は、受け取った`gameController`から`displayInfo`を`GameStateDisplay`コンポーネントに渡します。
+3.  `GameStateDisplay`は、そのテキストを画面に表示します。
+
+**実装例 (`useReversi.ts`):**
+```typescript
+const displayInfo = useMemo(() => {
+  const playerText = gameState.currentPlayer === 'BLACK' ? 'くろ' : 'しろ';
+  if (gameState.winner) {
+    if (gameState.winner === 'DRAW') return { statusText: 'ひきわけ' };
+    const winnerText = gameState.winner === 'BLACK' ? 'くろ' : 'しろ';
+    return { statusText: `${winnerText}のかち` };
+  }
+  if (gameState.status === 'playing') {
+    return { statusText: `${playerText}のばん` };
+  }
+  return { statusText: 'ゲーム開始' };
+}, [gameState.status, gameState.winner, gameState.currentPlayer]);
+
+// ... controllerの戻り値に含める
+return {
+  // ...
+  displayInfo,
+};
+```
+
+**`GameLayout`での利用:**
+`GameLayout`コンポーネントが、レスポンシブデザインに応じて適切な場所に`GameStateDisplay`を自動的に配置します。
+
+-   **PCレイアウト:** サイドバーのコントロールパネル上部に表示されます。
+-   **モバイルレイアウト:** 画面上部のスリムヘッダー内に表示されます。
+
+**重要:** この仕組みにより、各ゲームコンポーネント (`/games/*/index.tsx`) は、**状態表示に関するUIを一切実装する必要がありません。**
+
+#### 2.6.3. スコア表示: `getScoreInfo()`メソッドの実装
 
 スコア表示が必要なゲームは、GameControllerに`getScoreInfo()`メソッドを実装してください：
 
@@ -268,7 +307,22 @@ GameLayoutは、以下のロジックで各ゲームのスコア情報を自動�
 </BottomSheet>
 ```
 
-### 3.3. GameStateDebugger
+### 3.3. GameStateDisplay
+
+**配置場所**: `app/components/GameStateDisplay.tsx`
+
+ゲームの状態（手番や勝敗など）を表示するための共通コンポーネントです。
+`GameLayout`によって自動的に配置されるため、各ゲームで直接使用する必要はありません。
+
+#### 3.3.1. 使用方法
+このコンポーネントは`GameLayout`内部で使用されます。`gameController`から`displayInfo`プロパティを受け取り、その内容を表示します。
+
+```typescript
+// GameLayout内での利用イメージ
+<GameStateDisplay gameController={gameController} />
+```
+
+### 3.4. GameStateDebugger
 
 **配置場所**: `app/components/GameStateDebugger.tsx`
 

@@ -22,12 +22,13 @@ test.describe('Reversi GameLayout Debug', () => {
     console.log('Game board is visible');
     
     // スコア表示をチェック
-    const scoreBlack = page.locator('[data-testid="score-black"]');
-    const scoreWhite = page.locator('[data-testid="score-white"]');
+    const scoreInfoContainer = sidebar.locator('div:has(> h4:text("スコア"))');
+    await expect(scoreInfoContainer).toBeVisible();
+    const scoreBlack = scoreInfoContainer.locator('span', { hasText: 'くろ' });
+    const scoreWhite = scoreInfoContainer.locator('span', { hasText: 'しろ' });
     await expect(scoreBlack).toBeVisible();
     await expect(scoreWhite).toBeVisible();
     console.log('Scores are visible');
-    
     
     // 有効な移動をクリックしてゲームが動作するかテスト
     const validMoveCell = page.locator('[data-testid="cell-2-3"]');
@@ -35,8 +36,8 @@ test.describe('Reversi GameLayout Debug', () => {
     
     // 移動後のスコアが変更されたかチェック
     await page.waitForTimeout(500); // アニメーション待機
-    const newScoreBlack = await scoreBlack.textContent();
-    console.log('Score after move:', newScoreBlack);
+    await expect(scoreBlack).toContainText('4');
+    console.log('Score after move has been updated');
     
     // ブラウザのコンソールログを取得
     const logs: string[] = [];

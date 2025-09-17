@@ -39,7 +39,6 @@ const styles = {
  */
 interface GameStateDisplayProps<TState extends BaseGameState, TAction> {
   gameController: BaseGameController<TState, TAction>;
-  isSlim: boolean; // モバイルのスリムヘッダーとの重複を避けるためのフラグ
 }
 
 /**
@@ -47,17 +46,16 @@ interface GameStateDisplayProps<TState extends BaseGameState, TAction> {
  */
 export function GameStateDisplay<TState extends BaseGameState, TAction>({
   gameController,
-  isSlim,
 }: GameStateDisplayProps<TState, TAction>) {
-  const { isTurnOnly, displayInfo } = gameController;
+  const { displayInfo } = gameController;
 
-  if (isSlim && isTurnOnly) {
+  // displayInfoがない、またはstatusTextが空の場合は何も表示しない
+  if (!displayInfo || !displayInfo.statusText) {
     return null;
   }
 
   return (
     <div style={styles.container} data-testid="game-state-display">
-      <h4 style={styles.title}>ゲーム状態</h4>
       <p style={styles.statusText}>{displayInfo.statusText}</p>
     </div>
   );

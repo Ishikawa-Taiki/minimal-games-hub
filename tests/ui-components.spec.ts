@@ -113,7 +113,7 @@ test.describe('UIコンポーネントのデバッグページ', () => {
 
       // 1手進める
       await page.locator('[data-testid="cell-2-3"]').click();
-      await expect(page.getByText('黒: 4')).toBeVisible();
+      await expect(page.getByText('くろ: 4')).toBeVisible();
 
       // リセットボタンを押す
       await page.getByTestId('control-panel-reset-button').click();
@@ -126,7 +126,7 @@ test.describe('UIコンポーネントのデバッグページ', () => {
       // キャンセルを押してダイアログが閉じ、ゲームがリセットされていないことを確認
       await dialog.getByRole('button', { name: 'キャンセル' }).click();
       await expect(dialog).not.toBeVisible();
-      await expect(page.getByText('黒: 4')).toBeVisible();
+      await expect(page.getByText('くろ: 4')).toBeVisible();
 
       // 再度リセットし、OKを押す
       await page.getByTestId('control-panel-reset-button').click();
@@ -135,7 +135,7 @@ test.describe('UIコンポーネントのデバッグページ', () => {
 
       // ダイアログが閉じ、ゲームがリセットされたことを確認
       await expect(dialog).not.toBeVisible();
-      await expect(page.getByText('黒: 2')).toBeVisible();
+      await expect(page.getByText('くろ: 2')).toBeVisible();
     });
   });
 });
