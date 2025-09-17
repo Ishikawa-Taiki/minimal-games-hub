@@ -21,23 +21,9 @@ test.describe('Reversi GameLayout Debug', () => {
     await expect(gameBoard).toBeVisible();
     console.log('Game board is visible');
     
-    // スコア表示をチェック
-    const scoreInfoContainer = sidebar.locator('div:has(> h4:text("スコア"))');
-    await expect(scoreInfoContainer).toBeVisible();
-    const scoreBlack = scoreInfoContainer.locator('span', { hasText: 'くろ' });
-    const scoreWhite = scoreInfoContainer.locator('span', { hasText: 'しろ' });
-    await expect(scoreBlack).toBeVisible();
-    await expect(scoreWhite).toBeVisible();
-    console.log('Scores are visible');
-    
     // 有効な移動をクリックしてゲームが動作するかテスト
     const validMoveCell = page.locator('[data-testid="cell-2-3"]');
     await validMoveCell.click();
-    
-    // 移動後のスコアが変更されたかチェック
-    await page.waitForTimeout(500); // アニメーション待機
-    await expect(scoreBlack).toContainText('4');
-    console.log('Score after move has been updated');
     
     // ブラウザのコンソールログを取得
     const logs: string[] = [];

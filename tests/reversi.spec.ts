@@ -26,11 +26,13 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     await expect(page.locator('[data-testid="cell-4-4"] > div').first()).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 
     // スコアの初期状態を検証
-    await expect(page.locator('span', { hasText: 'くろ: 2' })).toBeVisible();
-    await expect(page.locator('span', { hasText: 'しろ: 2' })).toBeVisible();
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('2');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('2');
 
     // 手番表示を検証
-    await expect(page.getByTestId('game-state-display')).toHaveText('くろのばん');
+    await expect(page.getByTestId('game-state-display')).toHaveText('「くろ」のばん');
   });
 
   test('駒を置いて相手の駒が正しく裏返る', async ({ page }) => {
@@ -49,11 +51,13 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
 
     // スコアが更新されているか
-    await expect(page.locator('span', { hasText: 'くろ: 4' })).toBeVisible();
-    await expect(page.locator('span', { hasText: 'しろ: 1' })).toBeVisible();
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('4');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('1');
 
     // 手番が白に変わっているか
-    await expect(page.getByTestId('game-state-display')).toHaveText('しろのばん');
+    await expect(page.getByTestId('game-state-display')).toHaveText('「しろ」のばん');
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {
@@ -108,8 +112,10 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     expect(historyCounter4).toBe('1 / 3');
 
     // 初期状態のスコアに戻っている
-    await expect(page.locator('span', { hasText: 'くろ: 2' })).toBeVisible();
-    await expect(page.locator('span', { hasText: 'しろ: 2' })).toBeVisible();
+    const blackScore = await page.locator('[data-testid="score-black"]').textContent();
+    expect(blackScore).toBe('2');
+    const whiteScore = await page.locator('[data-testid="score-white"]').textContent();
+    expect(whiteScore).toBe('2');
 
     // 最後に進む
     await page.locator('[data-testid="history-last-button"]').click();

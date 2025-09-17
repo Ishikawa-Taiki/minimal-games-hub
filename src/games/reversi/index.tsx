@@ -2,12 +2,24 @@
 
 import React, { useState, useEffect, CSSProperties } from 'react';
 import {
+  Player,
   Board, // Import Board type
 } from './core';
 import { useReversi, ReversiController } from './useReversi';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { styles } from './styles';
 import { useDialog } from '@/app/components/ui/DialogProvider';
+
+// 駒のアイコンコンポーネント
+const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (
+  <div
+    style={{
+      ...styles.discIcon,
+      backgroundColor: player === 'BLACK' ? 'black' : 'white',
+      ...style,
+    }}
+  />
+);
 
 interface ReversiProps {
   controller?: ReversiController;
@@ -169,8 +181,25 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     return style;
   };
 
+  const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
+  const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
+
   return (
     <div style={styles.container}>
+      <div style={styles.scoreBoard}>
+        <div style={styles.score}>
+          <DiscIcon player="BLACK" />
+          <span data-testid="score-black" style={isBlackWinning ? styles.winningScore : {}}>
+            {controller.gameState.scores.BLACK}
+          </span>
+        </div>
+        <div style={styles.score}>
+          <DiscIcon player="WHITE" />
+          <span data-testid="score-white" style={isWhiteWinning ? styles.winningScore : {}}>
+            {controller.gameState.scores.WHITE}
+          </span>
+        </div>
+      </div>
       <div style={styles.board}>
         {visualBoard.map((row, r) =>
           row.map((cell, c) => {
@@ -252,6 +281,13 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
           さいご
         </button>
       </div>
+
+      {controller.gameState.gameStatus === 'SKIPPED' && (
+        <div style={styles.skippedMessage}>
+          <DiscIcon player={controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
+          <span>がパスしました</span>
+        </div>
+      )}
     </div>
   );
 };

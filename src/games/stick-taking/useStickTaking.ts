@@ -172,9 +172,12 @@ export function useStickTaking(): StickTakingController {
     displayInfo: useMemo(() => {
       if (gameState.status === 'waiting') return { statusText: '難易度を選択してください' };
       if (gameState.winner) {
-        return { statusText: `${gameState.winner}のかち！` };
+        return { statusText: `${gameState.winner}のかち` };
       }
-      return { statusText: `${gameState.currentPlayer}の番` };
-    }, [gameState]),
+      if (gameState.currentPlayer) {
+        return { statusText: `「${gameState.currentPlayer}」のばん` };
+      }
+      return { statusText: 'ゲーム開始' };
+    }, [gameState.status, gameState.winner, gameState.currentPlayer]),
   };
 }

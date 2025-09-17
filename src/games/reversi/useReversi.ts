@@ -97,8 +97,6 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
   }
 }
 
-import { ScoreInfo } from '@/core/types/game';
-
 export type ReversiController = BaseGameController<ReversiGameState, ReversiAction> & 
   HintableGameController<ReversiGameState, ReversiAction> & 
   HistoryGameController<ReversiGameState, ReversiAction> & {
@@ -109,7 +107,6 @@ export type ReversiController = BaseGameController<ReversiGameState, ReversiActi
     getValidMoves: () => Map<string, [number, number][]>;
     getCurrentPlayer: () => Player;
     getScores: () => { BLACK: number; WHITE: number };
-    getScoreInfo: () => ScoreInfo | null; // ★ 追加
     // 履歴関連
     goToHistoryIndex: (index: number) => void;
     gameHistory: ReversiGameState[];
@@ -231,18 +228,6 @@ export function useReversi(): ReversiController {
   const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
   const getScores = useCallback(() => gameState.scores, [gameState.scores]);
 
-  // スコア情報を返すメソッド
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    if (!gameState.scores) return null;
-    return {
-      title: 'スコア',
-      items: [
-        { label: 'くろ', value: gameState.scores.BLACK },
-        { label: 'しろ', value: gameState.scores.WHITE },
-      ],
-    };
-  }, [gameState.scores]);
-
   const displayInfo = useMemo(() => {
     const playerText = gameState.currentPlayer === 'BLACK' ? 'くろ' : 'しろ';
     if (gameState.winner) {
@@ -254,8 +239,8 @@ export function useReversi(): ReversiController {
       const skippedPlayerText = gameState.currentPlayer === 'BLACK' ? 'しろ' : 'くろ';
       return { statusText: `${skippedPlayerText}がパスしました` };
     }
-    if (gameState.status === 'playing') {
-      return { statusText: `${playerText}のばん` };
+    if (gameState.status === 'playing' && gameState.currentPlayer) {
+      return { statusText: `「${playerText}」のばん` };
     }
     return { statusText: 'ゲーム開始' };
   }, [gameState.status, gameState.winner, gameState.currentPlayer, gameState.gameStatus]);
@@ -269,7 +254,6 @@ export function useReversi(): ReversiController {
     getValidMoves,
     getCurrentPlayer,
     getScores,
-    getScoreInfo, // ★ 追加
     // HintableGameController
     hintState,
     setHints,
