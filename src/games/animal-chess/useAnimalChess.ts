@@ -321,11 +321,11 @@ export function useAnimalChess(): AnimalChessController {
 
   const displayInfo = useMemo(() => {
     if (gameState.winner) {
-      return { statusText: `勝者: ${TEAM_NAMES[gameState.winner]}` };
+      return { statusText: `${TEAM_NAMES[gameState.winner]}のかち` };
     } else if (gameState.status === 'ended') {
       return { statusText: 'ゲーム終了' };
     } else if (gameState.status === 'playing' && gameState.currentPlayer) {
-      return { statusText: `いまのばん: ${TEAM_NAMES[gameState.currentPlayer]}` };
+      return { statusText: `「${TEAM_NAMES[gameState.currentPlayer]}」のばん` };
     } else {
       return { statusText: 'ゲーム開始' };
     }

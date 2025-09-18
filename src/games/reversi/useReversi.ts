@@ -228,6 +228,23 @@ export function useReversi(): ReversiController {
   const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
   const getScores = useCallback(() => gameState.scores, [gameState.scores]);
 
+  const displayInfo = useMemo(() => {
+    const playerText = gameState.currentPlayer === 'BLACK' ? 'くろ' : 'しろ';
+    if (gameState.winner) {
+      if (gameState.winner === 'DRAW') return { statusText: 'ひきわけ' };
+      const winnerText = gameState.winner === 'BLACK' ? 'くろ' : 'しろ';
+      return { statusText: `${winnerText}のかち` };
+    }
+    if (gameState.gameStatus === 'SKIPPED') {
+      const skippedPlayerText = gameState.currentPlayer === 'BLACK' ? 'しろ' : 'くろ';
+      return { statusText: `${skippedPlayerText}がパスしました` };
+    }
+    if (gameState.status === 'playing' && gameState.currentPlayer) {
+      return { statusText: `「${playerText}」のばん` };
+    }
+    return { statusText: 'ゲーム開始' };
+  }, [gameState.status, gameState.winner, gameState.currentPlayer, gameState.gameStatus]);
+
   return {
     gameState,
     dispatch: () => {}, // dispatchは直接使用しない
@@ -252,34 +269,6 @@ export function useReversi(): ReversiController {
     isTurnOnly: useMemo(() => {
       return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
     }, [gameState.status, gameState.winner]),
-    displayInfo: useMemo(() => {
-      if (gameState.winner) {
-        if (gameState.winner === 'DRAW') {
-          return { statusText: '引き分け！' };
-        } else if (gameState.winner === 'BLACK') {
-          return { statusText: '勝者: 黒' };
-        } else if (gameState.winner === 'WHITE') {
-          return { statusText: '勝者: 白' };
-        }
-        return { statusText: `勝者: ${gameState.winner}` };
-      } else if (gameState.gameStatus === 'GAME_OVER') {
-        return { statusText: 'ゲーム終了' };
-      } else if (gameState.gameStatus === 'SKIPPED') {
-        const skippedPlayer = gameState.currentPlayer === 'BLACK' ? '白' : '黒';
-        return { statusText: `${skippedPlayer}はパス - ${gameState.currentPlayer === 'BLACK' ? '黒' : '白'}の番` };
-      } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
-        return { statusText: `${gameState.currentPlayer === 'BLACK' ? '黒' : '白'}の番` };
-      } else if (gameState.status === 'ended') {
-        const extendedState = gameState as ReversiGameState & { isDraw?: boolean };
-        if (extendedState.isDraw) {
-          return { statusText: '引き分け！' };
-        }
-        return { statusText: 'ゲーム終了' };
-      } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-        return { statusText: `${gameState.currentPlayer === 'BLACK' ? '黒' : '白'}の番` };
-      } else {
-        return { statusText: 'ゲーム開始' };
-      }
-    }, [gameState]),
+    displayInfo,
   };
 }

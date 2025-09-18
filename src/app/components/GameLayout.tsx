@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '@/core/types/game';
 import { FloatingActionButton, BottomSheet } from './ui';
+import { GameStateDisplay } from './GameStateDisplay'; // ★ インポート
 import GameDebugger from './GameDebugger';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
@@ -38,7 +39,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
   isVisible = true,
   onShowRules,
 }: ControlPanelProps<TState, TAction>) {
-  const { gameState, resetGame } = gameController;
+  const { resetGame } = gameController;
   const { confirm } = useDialog();
   const router = useRouter();
 
@@ -62,7 +63,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     }
   };
 
-
   // ゲーム固有のスコア表示（ポリモーフィック設計）
   const renderScoreInfo = () => {
     // 新しい設計: 各ゲームコントローラーが自身のスコア情報を提供
@@ -81,21 +81,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         );
       }
     }
-
-    // レガシー対応: リバーシ（まだ新しい設計に対応していない）
-    const reversiState = gameState as TState & { scores?: { BLACK: number; WHITE: number } };
-    if (reversiState.scores) {
-      return (
-        <div style={gameLayoutStyles.scoreInfo}>
-          <h4 style={gameLayoutStyles.sectionTitle}>スコア</h4>
-          <div style={gameLayoutStyles.scoreDisplay}>
-            <span>黒: {reversiState.scores.BLACK}</span>
-            <span>白: {reversiState.scores.WHITE}</span>
-          </div>
-        </div>
-      );
-    }
-
     return null;
   };
 
@@ -121,6 +106,9 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 
   return (
     <div style={gameLayoutStyles.controlPanel}>
+      {/* ゲーム状態表示をコントロールパネルに統合 */}
+      <GameStateDisplay gameController={gameController} />
+
       {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
@@ -237,22 +225,8 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
           <header style={gameLayoutStyles.mobileHeader}>
             <h1 style={gameLayoutStyles.mobileHeaderTitle}>{gameName}</h1>
             <div style={gameLayoutStyles.mobileStatus} data-testid="status">
-              {(() => {
-                // フォールバック: 汎用的な状態表示
-                if (gameController.gameState.winner) {
-                  if (gameController.gameState.winner === 'DRAW') {
-                    return '引き分け！';
-                  }
-                  return `勝者: ${gameController.gameState.winner}`;
-                } else if (gameController.gameState.status === 'ended') {
-                  const extendedState = gameController.gameState as TState & { isDraw?: boolean };
-                  return extendedState.isDraw ? '引き分け！' : 'ゲーム終了';
-                } else if ((gameController.gameState.status === 'playing' || gameController.gameState.status === 'waiting') && gameController.gameState.currentPlayer) {
-                  return `${gameController.gameState.currentPlayer}の番`;
-                } else {
-                  return 'ゲーム開始';
-                }
-              })()}
+              {/* 共通コンポーネントでゲーム状態を表示 */}
+              <GameStateDisplay gameController={gameController} />
             </div>
           </header>
 

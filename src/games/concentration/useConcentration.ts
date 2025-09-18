@@ -318,27 +318,20 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     displayInfo: useMemo(() => {
       if (gameState.winner) {
         if (gameState.winner === 'DRAW') {
-          return { statusText: '引き分け！' };
-        } else if (gameState.winner === 'player1') {
-          return { statusText: 'プレイヤー1の勝ち！' };
-        } else if (gameState.winner === 'player2') {
-          return { statusText: 'プレイヤー2の勝ち！' };
+          return { statusText: 'ひきわけ' };
         }
-        return { statusText: 'ゲーム終了' };
-      } else if (gameState.gameStatus === 'evaluating') {
-        return { statusText: '...' };
-      } else if (gameState.gameStatus === 'player1_turn') {
-        return { statusText: 'プレイヤー1の番' };
-      } else if (gameState.gameStatus === 'player2_turn') {
-        return { statusText: 'プレイヤー2の番' };
-      } else if (gameState.status === 'ended') {
-        return { statusText: 'ゲーム終了' };
-      } else if (gameState.flippedIndices.length === 0 && gameState.revealedIndices.length === 0 && gameState.scores.player1 === 0 && gameState.scores.player2 === 0) {
-        return { statusText: 'ゲーム開始' };
-      } else {
-        return { statusText: 'プレイヤー1の番' };
+        const winnerText = gameState.winner === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
+        return { statusText: `${winnerText}のかち` };
       }
-    }, [gameState]),
+      if (gameState.gameStatus === 'evaluating') {
+        return { statusText: '...' };
+      }
+      if (gameState.status === 'playing' && gameState.currentPlayer) {
+        const playerText = gameState.currentPlayer === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
+        return { statusText: `「${playerText}」のばん` };
+      }
+      return { statusText: 'ゲーム開始' };
+    }, [gameState.winner, gameState.status, gameState.currentPlayer, gameState.gameStatus]),
   };
 }
 

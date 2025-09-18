@@ -22,7 +22,7 @@ const expectEmpty = async (page: Page, cellTestId: string) => {
 
 const expectCurrentPlayer = async (page: Page, player: 'おかしチーム' | 'おはなチーム') => {
   const locator = page.getByTestId('game-state-display').locator('p');
-  await expect(locator).toHaveText(`いまのばん: ${player}`);
+  await expect(locator).toHaveText(`「${player}」のばん`);
 };
 
 test('初期盤面と駒が正しく表示される', async ({ page }) => {

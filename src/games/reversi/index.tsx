@@ -153,9 +153,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     }
   };
 
-  const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
-  const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
-
   const getCellStyle = (r: number, c: number): CSSProperties => {
     const style: CSSProperties = { ...styles.cellContainer };
     const cellContent = controller.gameState.board[r][c];
@@ -184,19 +181,17 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
     return style;
   };
 
+  const isBlackWinning = controller.gameState.scores.BLACK > controller.gameState.scores.WHITE;
+  const isWhiteWinning = controller.gameState.scores.WHITE > controller.gameState.scores.BLACK;
+
   return (
     <div style={styles.container}>
-      
       <div style={styles.scoreBoard}>
         <div style={styles.score}>
           <DiscIcon player="BLACK" />
           <span data-testid="score-black" style={isBlackWinning ? styles.winningScore : {}}>
             {controller.gameState.scores.BLACK}
           </span>
-        </div>
-        <div data-testid="turn-indicator" style={styles.turnIndicator}>
-          <DiscIcon player={controller.gameState.currentPlayer} style={styles.turnIndicatorDisc} />
-          <span>のばん</span>
         </div>
         <div style={styles.score}>
           <DiscIcon player="WHITE" />
@@ -205,7 +200,6 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
           </span>
         </div>
       </div>
-      
       <div style={styles.board}>
         {visualBoard.map((row, r) =>
           row.map((cell, c) => {
@@ -291,10 +285,9 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       {controller.gameState.gameStatus === 'SKIPPED' && (
         <div style={styles.skippedMessage}>
           <DiscIcon player={controller.gameState.currentPlayer === 'BLACK' ? 'WHITE' : 'BLACK'} />
-          <span>はパスしました。</span>
+          <span>がパスしました</span>
         </div>
       )}
-
     </div>
   );
 };

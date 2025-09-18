@@ -12,8 +12,6 @@ import {
 import Image from 'next/image';
 import { styles } from './styles';
 import { AnimalChessController, useAnimalChess } from './useAnimalChess';
-import { GameStateDisplay } from '@/app/components/GameStateDisplay';
-import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -76,7 +74,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   const internalController = useAnimalChess();
   const gameController = externalController || internalController;
   const { gameState, handleCellClick, handleCaptureClick, hintState } = gameController;
-  const responsiveState = useResponsive();
 
   const isGameInProgress = gameState.status === 'playing';
 
@@ -108,7 +105,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
   return (
     <>
-      <GameStateDisplay gameController={gameController} isSlim={isMobile(responsiveState)} />
       <div style={styles.gameArea}>
         {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>

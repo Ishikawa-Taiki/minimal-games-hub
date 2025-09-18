@@ -32,8 +32,7 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     expect(whiteScore).toBe('2');
 
     // 手番表示を検証
-    const turnIndicator = await page.locator('[data-testid="turn-indicator"]').textContent();
-    expect(turnIndicator).toContain('のばん');
+    await expect(page.getByTestId('game-state-display')).toHaveText('「くろ」のばん');
   });
 
   test('駒を置いて相手の駒が正しく裏返る', async ({ page }) => {
@@ -58,7 +57,7 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     expect(whiteScore).toBe('1');
 
     // 手番が白に変わっているか
-    await expect(page.locator('[data-testid="turn-indicator"] div')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(page.getByTestId('game-state-display')).toHaveText('「しろ」のばん');
   });
 
   test('履歴機能が正しく動作する', async ({ page }) => {

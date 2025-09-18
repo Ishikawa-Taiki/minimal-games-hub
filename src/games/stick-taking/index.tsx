@@ -5,8 +5,6 @@ import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 import { PositiveButton } from '@/app/components/ui';
-import { GameStateDisplay } from '@/app/components/GameStateDisplay';
-import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -15,7 +13,6 @@ interface StickTakingGameProps {
 const StickTakingGame = ({ controller: externalController }: StickTakingGameProps) => {
   const internalController = useStickTaking();
   const controller = externalController || internalController;
-  const responsiveState = useResponsive();
 
   const { gameState, selectStick, takeSticks, startGame } = controller;
 
@@ -117,7 +114,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
-        <GameStateDisplay gameController={controller} isSlim={isMobile(responsiveState)} />
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
