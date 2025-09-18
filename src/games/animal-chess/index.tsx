@@ -43,6 +43,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectab
     transform: piece.owner === OHANA_TEAM ? 'rotate(180deg)' : 'none',
     objectFit: 'contain',
     ...(isSelectable ? styles.selectablePiece : {}),
+    zIndex: 2,
   };
 
   const baseMoves = MOVES[piece.type];
@@ -133,6 +134,10 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
           {gameState.board.map((row, rowIndex) => (
             row.map((cell, colIndex) => {
               const isSelectable = !!(cell && cell.owner === gameState.currentPlayer && isGameInProgress);
+              const isSelected = gameState.selectedCell?.row === rowIndex && gameState.selectedCell?.col === colIndex;
+              const isHighlighted = hintState.highlightedCells?.some(h => h.row === rowIndex && h.col === colIndex);
+              const showOverlay = gameState.selectedCell && !isSelected && !isHighlighted;
+
               return (
                 <button
                   key={`${rowIndex}-${colIndex}`}
@@ -145,6 +150,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                   onClick={() => onCellClick(rowIndex, colIndex)}
                   disabled={!isGameInProgress}
                 >
+                  {showOverlay && <div style={styles.cellOverlay} />}
                   {cell && <PieceDisplay piece={cell} showIndicators={true} isSelectable={isSelectable} />}
                 </button>
               );

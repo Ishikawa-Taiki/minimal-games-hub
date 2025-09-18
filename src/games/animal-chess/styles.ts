@@ -38,6 +38,17 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '1px solid #9ca3af',
     position: 'relative',
   },
+  cellOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    zIndex: 1,
+    pointerEvents: 'none',
+    borderRadius: '0.375rem',
+  },
   selectedCell: {
     backgroundColor: '#bfdbfe',
   },
