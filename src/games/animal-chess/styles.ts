@@ -38,11 +38,22 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '1px solid #9ca3af',
     position: 'relative',
   },
+  cellOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    zIndex: 1,
+    pointerEvents: 'none',
+    borderRadius: '0.375rem',
+  },
   selectedCell: {
     backgroundColor: '#bfdbfe',
   },
   validMoveCell: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: '#f9fafb',
   },
   validDropCell: {
     backgroundColor: '#fef9c3',
@@ -53,8 +64,12 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   threatenedCell: {
     boxShadow: 'inset 0 0 0 4px #fca5a5',
   },
-  selectablePiece: {
-    filter: 'drop-shadow(0 0 4px gold) drop-shadow(0 0 2px gold)',
+  grayedOutPiece: {
+    filter: 'grayscale(100%)',
+    opacity: 0.5,
+  },
+  selectableCell: {
+    backgroundColor: '#f9fafb',
   },
   capturedPiecesBox: {
     width: '100%',

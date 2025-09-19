@@ -215,10 +215,6 @@ export function useAnimalChess(): AnimalChessController {
   // ヒント関連
   const hintState: HintState = useMemo(() => {
     const highlightedCells: HintState['highlightedCells'] = [];
-    if (!gameState.hintsEnabled) {
-      return { enabled: false, highlightedCells, selectedCell: gameState.selectedCell };
-    }
-
     const coreState: GameState = {
       board: gameState.board,
       currentPlayer: gameState.currentPlayer,
@@ -229,9 +225,9 @@ export function useAnimalChess(): AnimalChessController {
       winReason: gameState.winReason,
     };
 
+    const validMoveColor = '#f9fafb'; // Same as selectableCell
     const dangerColor = 'rgba(239, 68, 68, 0.7)'; // Red for danger
     const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
-    const safeMoveColor = 'rgba(34, 197, 94, 0.7)'; // Green for safe move
     const canBeCapturedColor = 'rgba(59, 130, 246, 0.7)'; // Blue for "can be captured"
 
     // 持ち駒選択時のヒント
@@ -239,10 +235,15 @@ export function useAnimalChess(): AnimalChessController {
       const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
       const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
       drops.forEach(drop => {
-        const tempBoard = coreState.board.map(r => [...r]);
-        tempBoard[drop.row][drop.col] = { type: pieceType, owner: gameState.currentPlayer };
-        const isThreatened = isSquareThreatened(tempBoard, drop.row, drop.col, gameState.currentPlayer);
-        const color = isThreatened ? dangerColor : safeMoveColor;
+        let color = validMoveColor;
+        if (gameState.hintsEnabled) {
+          const tempBoard = coreState.board.map(r => [...r]);
+          tempBoard[drop.row][drop.col] = { type: pieceType, owner: gameState.currentPlayer };
+          const isThreatened = isSquareThreatened(tempBoard, drop.row, drop.col, gameState.currentPlayer);
+          if (isThreatened) {
+            color = dangerColor;
+          }
+        }
         highlightedCells.push({ ...drop, color });
       });
     }
@@ -250,23 +251,25 @@ export function useAnimalChess(): AnimalChessController {
     else if (gameState.selectedCell) {
       const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
       moves.forEach(move => {
-        const tempBoard = coreState.board.map(r => [...r]);
-        tempBoard[move.row][move.col] = tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col];
-        tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col] = null;
-
-        const isThreatened = isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
-
-        if (isThreatened) {
-          highlightedCells.push({ ...move, color: dangerColor });
-        } else {
+        let color = validMoveColor;
+        if (gameState.hintsEnabled) {
+          const tempBoard = coreState.board.map(r => [...r]);
+          tempBoard[move.row][move.col] = tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col];
+          tempBoard[gameState.selectedCell!.row][gameState.selectedCell!.col] = null;
+          const isThreatened = isSquareThreatened(tempBoard, move.row, move.col, gameState.currentPlayer);
           const isCapture = !!gameState.board[move.row][move.col];
-          const color = isCapture ? captureColor : safeMoveColor;
-          highlightedCells.push({ ...move, color });
+
+          if (isThreatened) {
+            color = dangerColor;
+          } else if (isCapture) {
+            color = captureColor;
+          }
         }
+        highlightedCells.push({ ...move, color });
       });
     }
     // 駒未選択時のヒント (取られる可能性がある駒)
-    else {
+    else if (gameState.hintsEnabled) {
       const opponent = gameState.currentPlayer === OKASHI_TEAM ? OHANA_TEAM : OKASHI_TEAM;
       const threatenedCells = new Set<string>();
 

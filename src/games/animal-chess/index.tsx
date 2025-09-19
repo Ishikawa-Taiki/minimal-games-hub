@@ -34,7 +34,7 @@ const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
   '[-1,-1]': styles.indicatorNW,
 };
 
-const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectable?: boolean }> = ({ piece, showIndicators, isSelectable }) => {
+const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isGrayedOut?: boolean }> = ({ piece, showIndicators, isGrayedOut }) => {
   const playerPrefix = piece.owner === OKASHI_TEAM ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
   const imagePath = `${basePath}/games/animal-chess/img/${playerPrefix}${imageName}`;
@@ -42,7 +42,8 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isSelectab
   const imageStyle: CSSProperties = {
     transform: piece.owner === OHANA_TEAM ? 'rotate(180deg)' : 'none',
     objectFit: 'contain',
-    ...(isSelectable ? styles.selectablePiece : {}),
+    ...(isGrayedOut ? styles.grayedOutPiece : {}),
+    zIndex: 2,
   };
 
   const baseMoves = MOVES[piece.type];
@@ -88,7 +89,14 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   };
 
   const getCellStyle = (row: number, col: number): CSSProperties => {
+    const cell = gameState.board[row][col];
+    const isSelectable = !!(cell && cell.owner === gameState.currentPlayer && isGameInProgress);
     const cellStyle: CSSProperties = {};
+
+    // Apply selectable cell style if the piece can be moved and no piece is currently selected.
+    if (isSelectable && !gameState.selectedCell) {
+      cellStyle.backgroundColor = styles.selectableCell.backgroundColor;
+    }
 
     const highlightedCell = hintState.highlightedCells?.find(h => h.row === row && h.col === col);
     if (highlightedCell && highlightedCell.color) {
@@ -132,7 +140,10 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         <div style={styles.board} data-testid="animal-chess-board">
           {gameState.board.map((row, rowIndex) => (
             row.map((cell, colIndex) => {
-              const isSelectable = !!(cell && cell.owner === gameState.currentPlayer && isGameInProgress);
+              const isSelected = gameState.selectedCell?.row === rowIndex && gameState.selectedCell?.col === colIndex;
+              const isHighlighted = hintState.highlightedCells?.some(h => h.row === rowIndex && h.col === colIndex);
+              const showOverlay = !!(gameState.selectedCell && !isSelected && !isHighlighted);
+
               return (
                 <button
                   key={`${rowIndex}-${colIndex}`}
@@ -145,7 +156,8 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                   onClick={() => onCellClick(rowIndex, colIndex)}
                   disabled={!isGameInProgress}
                 >
-                  {cell && <PieceDisplay piece={cell} showIndicators={true} isSelectable={isSelectable} />}
+                  {showOverlay && <div style={styles.cellOverlay} />}
+                  {cell && <PieceDisplay piece={cell} showIndicators={true} isGrayedOut={showOverlay} />}
                 </button>
               );
             })
