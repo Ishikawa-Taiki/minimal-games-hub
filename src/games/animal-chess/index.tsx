@@ -142,7 +142,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
             row.map((cell, colIndex) => {
               const isSelected = gameState.selectedCell?.row === rowIndex && gameState.selectedCell?.col === colIndex;
               const isHighlighted = hintState.highlightedCells?.some(h => h.row === rowIndex && h.col === colIndex);
-              const showOverlay = gameState.selectedCell && !isSelected && !isHighlighted;
+              const showOverlay = !!(gameState.selectedCell && !isSelected && !isHighlighted);
 
               return (
                 <button

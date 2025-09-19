@@ -53,7 +53,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     backgroundColor: '#bfdbfe',
   },
   validMoveCell: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: '#f9fafb',
   },
   validDropCell: {
     backgroundColor: '#fef9c3',
