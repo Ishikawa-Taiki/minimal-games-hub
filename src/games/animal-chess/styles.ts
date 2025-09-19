@@ -64,8 +64,12 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   threatenedCell: {
     boxShadow: 'inset 0 0 0 4px #fca5a5',
   },
-  selectablePiece: {
-    filter: 'drop-shadow(0 0 4px gold) drop-shadow(0 0 2px gold)',
+  grayedOutPiece: {
+    filter: 'grayscale(100%)',
+    opacity: 0.5,
+  },
+  selectableCell: {
+    backgroundColor: '#f9fafb',
   },
   capturedPiecesBox: {
     width: '100%',
