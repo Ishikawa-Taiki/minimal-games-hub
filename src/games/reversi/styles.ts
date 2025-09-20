@@ -82,7 +82,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   moveHint: {
     position: 'absolute',
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: '0.75rem',
     fontWeight: 'bold'
   },
