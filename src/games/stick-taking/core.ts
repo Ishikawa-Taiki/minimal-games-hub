@@ -42,35 +42,32 @@ export function createInitialState(difficulty: Difficulty): GameState {
   };
 }
 
-export function getHintData(state: GameState) {
-  const remainingSticksCount = state.rows.flat().filter(stick => !stick.isTaken).length;
-
-  if (remainingSticksCount === 0) {
-    return {
-      remainingSticksCount: 0,
-      totalChunkCount: 0,
-    };
-  }
-
-  const totalChunkCount = state.rows
-    .map(row => {
-      let chunkCountInRow = 0;
-      let inChunk = false;
-      row.forEach(stick => {
-        if (!stick.isTaken && !inChunk) {
-          inChunk = true;
-          chunkCountInRow++;
-        } else if (stick.isTaken) {
-          inChunk = false;
+export function calculateNimData(state: GameState): { chunkLists: number[][]; nimSum: number } {
+  const chunkLists = state.rows.map(row => {
+    const chunksInRow: number[] = [];
+    let currentChunkSize = 0;
+    row.forEach(stick => {
+      if (!stick.isTaken) {
+        currentChunkSize++;
+      } else {
+        if (currentChunkSize > 0) {
+          chunksInRow.push(currentChunkSize);
         }
-      });
-      return chunkCountInRow;
-    })
-    .reduce((total, count) => total + count, 0);
+        currentChunkSize = 0;
+      }
+    });
+    if (currentChunkSize > 0) {
+      chunksInRow.push(currentChunkSize);
+    }
+    return chunksInRow;
+  });
+
+  const allChunks = chunkLists.flat();
+  const nimSum = allChunks.reduce((acc, val) => acc ^ val, 0);
 
   return {
-    remainingSticksCount,
-    totalChunkCount,
+    chunkLists,
+    nimSum,
   };
 }
 

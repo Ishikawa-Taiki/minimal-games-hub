@@ -53,6 +53,21 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     justifyContent: 'center',
     gap: '12px',
   },
+  rowWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    gap: '1rem',
+  },
+  hintChunk: {
+    minWidth: '80px',
+    textAlign: 'left',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    color: '#666',
+    flexShrink: 0,
+  },
   stick: {
     height: '60px',
     backgroundColor: '#8B4513',
@@ -120,11 +135,30 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     gap: '1rem',
     marginBottom: '1rem',
+    minHeight: '44px', // ボタンの高さに合わせる
+  },
+  hintNimSum: {
+    minWidth: '200px',
+    textAlign: 'left',
+    paddingLeft: '20px',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    color: '#0074d9',
   },
   hintButton: {
     backgroundColor: '#6b7280',
     padding: '0.5rem 1rem',
     fontSize: '1rem',
+  },
+  hintNimSum: {
+    minWidth: '200px',
+    textAlign: 'left',
+    paddingLeft: '20px',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    color: '#0074d9',
   },
   hintButtonContainer: {
     position: 'absolute',
