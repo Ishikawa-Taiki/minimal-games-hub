@@ -87,6 +87,10 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
+    nimData: {
+      chunkLists: number[][];
+      nimSum: number;
+    };
   };
 
 // The hook

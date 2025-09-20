@@ -174,15 +174,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     padding: '0.5rem 1rem',
     fontSize: '1rem',
   },
-  hintNimSum: {
-    minWidth: '200px',
-    textAlign: 'left',
-    paddingLeft: '20px',
-    fontFamily: 'monospace',
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    color: '#0074d9',
-  },
   hintButtonContainer: {
     position: 'absolute',
     bottom: '1rem',
