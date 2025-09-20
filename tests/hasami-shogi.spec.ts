@@ -67,7 +67,7 @@ test.describe('はさみ将棋ゲームのE2Eテスト', () => {
       await destination.click();
 
       // ターン表示が「と」の番に切り替わるのを待つ
-      await expect(page.getByTestId('game-state-display').locator('p')).toHaveText('「と」の番');
+      await expect(page.getByTestId('game-state-display').locator('p')).toHaveText('「と」のばん');
 
       // ターンが切り替わったので、相手（後手）の駒を選択できる
       const opponentPiece = page.locator('[data-testid="cell-0-0"]');

@@ -225,11 +225,11 @@ export function useHasamiShogi(): HasamiShogiController {
       } else if (gameState.gameStatus === 'GAME_OVER') {
         return { statusText: 'ゲーム終了' };
       } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番` };
+        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
       } else if (gameState.status === 'ended') {
         return { statusText: 'ゲーム終了' };
       } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」の番` };
+        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
       } else {
         return { statusText: 'ゲーム開始' };
       }
