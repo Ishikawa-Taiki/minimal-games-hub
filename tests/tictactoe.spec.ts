@@ -13,8 +13,8 @@ test.describe('Tic-Tac-Toe Game', () => {
   });
 
   test('should display the initial state correctly', async ({ page }) => {
-    await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
-    await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
+    await expect(page.locator('[data-testid^=cell-]:has-text("○")')).toHaveCount(0);
+    await expect(page.locator('[data-testid^=cell-]:has-text("×")')).toHaveCount(0);
     const status = await page.getByTestId('game-state-display').locator('p').textContent();
     expect(status).toBe('○のばん');
   });
@@ -23,14 +23,14 @@ test.describe('Tic-Tac-Toe Game', () => {
     await page.getByTestId('cell-0-0').waitFor();
     await page.getByTestId('cell-0-0').click();
     const cell00 = await page.getByTestId('cell-0-0').textContent();
-    expect(cell00).toBe('O');
+    expect(cell00).toBe('○');
     const status1 = await page.getByTestId('game-state-display').locator('p').textContent();
     expect(status1).toBe('×のばん');
 
     await page.getByTestId('cell-0-1').waitFor();
     await page.getByTestId('cell-0-1').click();
     const cell01 = await page.getByTestId('cell-0-1').textContent();
-    expect(cell01).toBe('X');
+    expect(cell01).toBe('×');
     const status2 = await page.getByTestId('game-state-display').locator('p').textContent();
     expect(status2).toBe('○のばん');
   });
@@ -86,8 +86,8 @@ test.describe('Tic-Tac-Toe Game', () => {
     await expect(dialog).toBeVisible();
     await dialog.getByTestId('confirmation-dialog-confirm-button').click();
 
-    await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
-    await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
+    await expect(page.locator('[data-testid^=cell-]:has-text("○")')).toHaveCount(0);
+    await expect(page.locator('[data-testid^=cell-]:has-text("×")')).toHaveCount(0);
     const status = await page.getByTestId('game-state-display').locator('p').textContent();
     expect(status).toBe('○のばん');
   });
@@ -135,8 +135,8 @@ test.describe('Tic-Tac-Toe Game', () => {
 
 
       await expect(dialog).not.toBeVisible();
-      await expect(page.locator('[data-testid^=cell-]:has-text("O")')).toHaveCount(0);
-      await expect(page.locator('[data-testid^=cell-]:has-text("X")')).toHaveCount(0);
+      await expect(page.locator('[data-testid^=cell-]:has-text("○")')).toHaveCount(0);
+      await expect(page.locator('[data-testid^=cell-]:has-text("×")')).toHaveCount(0);
       const status = await page.getByTestId('game-state-display').locator('p').textContent();
       expect(status).toBe('○のばん');
     });

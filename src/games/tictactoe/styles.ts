@@ -30,25 +30,36 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '2.5rem',
+    fontSize: '3.5rem',
     fontWeight: 'bold',
     backgroundColor: '#ffffff',
     cursor: 'pointer',
     position: 'relative',
     color: '#000000',
   },
+  playerO: {
+    color: '#ef4444', // red-500
+    fontWeight: 'normal',
+  },
+  playerX: {
+    color: '#3b82f6', // blue-500
+  },
   winningCell: {
-    backgroundColor: '#dcfce7', // light green
+    backgroundColor: '#dcfce7', // green-100
+  },
+  OReachingCell: {
+    backgroundColor: '#fee2e2', // red-100
+  },
+  XReachingCell: {
+    backgroundColor: '#dbeafe', // blue-100
   },
   bothReachingCell: {
-    backgroundColor: '#fecaca', // light red
+    backgroundColor: '#fef9c3', // yellow-100
   },
-  reachingCell: {
-    backgroundColor: '#fef9c3', // light yellow
-  },
-  faintMark: {
+  potentialLineCount: {
     position: 'absolute',
-    color: 'rgba(0, 0, 0, 0.1)',
+    fontSize: '1rem',
+    color: '#a1a1aa', // zinc-400
   },
   status: {
     marginTop: '1rem',

@@ -11,7 +11,7 @@ export interface GameState {
   hintLevel: number;
 }
 
-const LINES_TO_CHECK = [
+export const LINES_TO_CHECK = [
   // Rows
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
   // Columns
@@ -105,4 +105,29 @@ export function handleCellClick(currentState: GameState, row: number, col: numbe
     winningLines,
     reachingLines,
   };
+}
+
+export function calculatePotentialLines(board: Board, currentPlayer: Player): (number | null)[] {
+  const flatBoard = board.flat();
+  const potentialLines: (number | null)[] = Array(9).fill(null);
+  if (!currentPlayer) return potentialLines;
+
+  const opponent: Player = currentPlayer === 'O' ? 'X' : 'O';
+
+  for (let i = 0; i < 9; i++) {
+    if (flatBoard[i] === null) {
+      let count = 0;
+      for (const line of LINES_TO_CHECK) {
+        if (line.includes(i)) {
+          const lineContainsOpponent = line.some(index => flatBoard[index] === opponent);
+          if (!lineContainsOpponent) {
+            count++;
+          }
+        }
+      }
+      potentialLines[i] = count;
+    }
+  }
+
+  return potentialLines;
 }

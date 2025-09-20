@@ -42,6 +42,11 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
     makeMove(row, col);
   };
 
+  const getReachingPlayer = (index: number): Player => {
+    const reaching = gameState.reachingLines.find(rl => rl.index === index);
+    return reaching ? reaching.player : null;
+  };
+
   const isBothPlayersReaching = (index: number): boolean => {
     const xReaching = gameState.reachingLines.some(rl => rl.index === index && rl.player === 'X');
     const oReaching = gameState.reachingLines.some(rl => rl.index === index && rl.player === 'O');
@@ -55,16 +60,22 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
     if (hintState.enabled) {
       if (isBothPlayersReaching(index)) {
         return styles.bothReachingCell.backgroundColor as string;
-      } else if (gameState.reachingLines.some(rl => rl.index === index)) {
-        return styles.reachingCell.backgroundColor as string;
+      }
+      const reachingPlayer = getReachingPlayer(index);
+      if (reachingPlayer === 'O') {
+        return styles.OReachingCell.backgroundColor as string;
+      }
+      if (reachingPlayer === 'X') {
+        return styles.XReachingCell.backgroundColor as string;
       }
     }
     return styles.cell.backgroundColor as string;
   };
 
-  const getReachingPlayerMark = (index: number): Player => {
-    const reaching = gameState.reachingLines.find(rl => rl.index === index);
-    return reaching ? reaching.player : null;
+  const getPlayerMarkStyle = (player: Player) => {
+    if (player === 'O') return styles.playerO;
+    if (player === 'X') return styles.playerX;
+    return {};
   };
 
   return (
@@ -73,7 +84,8 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
         {gameState.board.flat().map((cell, index) => {
           const row = Math.floor(index / 3);
           const col = index % 3;
-          const reachingPlayerMark = getReachingPlayerMark(index);
+
+          const potentialLines = gameState.potentialLines[index];
 
           return (
             <button
@@ -82,14 +94,15 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
               style={{
                 ...styles.cell,
                 backgroundColor: getCellBackgroundColor(index),
+                ...getPlayerMarkStyle(cell),
               }}
               onClick={() => handleClick(row, col)}
               disabled={!!cell || !!gameState.winner || gameState.isDraw}
             >
-              {cell ? cell : (
-                hintState.enabled && reachingPlayerMark && !isBothPlayersReaching(index) && (
-                  <span style={styles.faintMark}>
-                    {reachingPlayerMark}
+              {cell ? (cell === 'O' ? '○' : '×') : (
+                hintState.enabled && potentialLines !== null && (
+                  <span style={styles.potentialLineCount}>
+                    {potentialLines}
                   </span>
                 )
               )}
