@@ -54,9 +54,14 @@ export function GameStateDisplay<TState extends BaseGameState, TAction>({
     return null;
   }
 
+  const statusStyle = {
+    ...styles.statusText,
+    color: displayInfo.color || styles.statusText.color,
+  };
+
   return (
     <div style={styles.container} data-testid="game-state-display">
-      <p style={styles.statusText}>{displayInfo.statusText}</p>
+      <p style={statusStyle}>{displayInfo.statusText}</p>
     </div>
   );
 }

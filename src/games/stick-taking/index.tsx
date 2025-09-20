@@ -14,7 +14,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame } = controller;
+  const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -112,23 +112,47 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const renderGameScreen = () => {
     if (!gameState || !gameState.rows) return null;
 
+    const nimSumStatus = nimData.nimSum === 0
+      ? `ピンチ！ (ニム和 = 0)`
+      : `チャンス (ニム和 = ${nimData.nimSum})`;
+
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
-        <div style={styles.board}>
-          {gameState.rows.map((row, rowIndex) => (
-            <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
-              {row.map((stick) => renderStick(stick, rowIndex))}
+        <div style={styles.gameContainer}>
+          <div style={styles.leftPanel}>
+            <div style={styles.board}>
+              {gameState.rows.map((row, rowIndex) => (
+                <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
+                  {row.map((stick) => renderStick(stick, rowIndex))}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div style={styles.controls}>
-          <PositiveButton
-            size="large"
-            onClick={takeSticks}
-            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
-          >
-            えらんだぼうをとる
-          </PositiveButton>
+            <div style={styles.controls}>
+              <PositiveButton
+                size="large"
+                onClick={takeSticks}
+                disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
+              >
+                えらんだぼうをとる
+              </PositiveButton>
+            </div>
+          </div>
+          <div style={styles.rightPanel}>
+            {hintState.enabled && (
+              <>
+                <div style={styles.hintSection}>
+                  {gameState.rows.map((row, rowIndex) => (
+                    <div key={rowIndex} style={styles.hintRow} data-testid={`hint-chunk-${rowIndex}`}>
+                      {nimData.chunkLists[rowIndex]?.length > 0 ? `[${nimData.chunkLists[rowIndex].join(', ')}]` : '[-]' }
+                    </div>
+                  ))}
+                </div>
+                <div style={styles.hintNimSum} data-testid="hint-nim-sum">
+                  {nimSumStatus}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );

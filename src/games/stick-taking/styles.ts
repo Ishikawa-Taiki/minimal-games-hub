@@ -53,6 +53,44 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     justifyContent: 'center',
     gap: '12px',
   },
+  gameContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: '2rem',
+    width: '100%',
+    padding: '0 2rem',
+  },
+  leftPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '2rem',
+  },
+  rightPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    minWidth: '150px',
+    paddingTop: '10px', // To align with the first row of sticks
+  },
+  hintSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px', // Matches board gap
+    marginBottom: '1rem',
+    width: '100%',
+    alignItems: 'flex-start',
+  },
+  hintRow: {
+    minHeight: '60px', // Matches stick height
+    display: 'flex',
+    alignItems: 'center',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    color: '#666',
+  },
   stick: {
     height: '60px',
     backgroundColor: '#8B4513',
@@ -120,11 +158,30 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     gap: '1rem',
     marginBottom: '1rem',
+    minHeight: '44px', // ボタンの高さに合わせる
+  },
+  hintNimSum: {
+    minWidth: '200px',
+    textAlign: 'left',
+    paddingLeft: '20px',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    color: '#0074d9',
   },
   hintButton: {
     backgroundColor: '#6b7280',
     padding: '0.5rem 1rem',
     fontSize: '1rem',
+  },
+  hintNimSum: {
+    minWidth: '200px',
+    textAlign: 'left',
+    paddingLeft: '20px',
+    fontFamily: 'monospace',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    color: '#0074d9',
   },
   hintButtonContainer: {
     position: 'absolute',
