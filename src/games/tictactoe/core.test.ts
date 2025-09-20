@@ -1,5 +1,42 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createInitialState, handleCellClick, checkWinner, checkDraw, GameState, Board } from './core';
+import { createInitialState, handleCellClick, checkWinner, checkDraw, GameState, Board, calculatePotentialLines } from './core';
+
+describe('calculatePotentialLines', () => {
+  it('初期盤面の潜在ライン数を正しく計算すること', () => {
+    const board: Board = [
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ];
+    const potentialLines = calculatePotentialLines(board);
+    // コーナー: 3, エッジ: 2, センター: 4
+    expect(potentialLines).toEqual([3, 2, 3, 2, 4, 2, 3, 2, 3]);
+  });
+
+  it('石が置かれた後の盤面の潜在ライン数を正しく計算すること', () => {
+    const board: Board = [
+      ['O', null, null],
+      [null, 'X', null],
+      [null, null, null],
+    ];
+    const potentialLines = calculatePotentialLines(board);
+    expect(potentialLines).toEqual([
+      null, 2, 3,
+      2, null, 2,
+      3, 2, 3
+    ]);
+  });
+
+  it('完全に埋まった盤面では全ての潜在ライン数がnullであること', () => {
+    const board: Board = [
+      ['O', 'X', 'O'],
+      ['X', 'O', 'X'],
+      ['X', 'O', 'X'],
+    ];
+    const potentialLines = calculatePotentialLines(board);
+    expect(potentialLines).toEqual(Array(9).fill(null));
+  });
+});
 
 describe('Tic-Tac-Toe Core Logic', () => {
   let gameState: GameState;

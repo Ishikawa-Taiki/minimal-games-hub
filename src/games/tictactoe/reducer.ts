@@ -1,5 +1,5 @@
 import { BaseGameState } from '@/core/types/game';
-import { GameState as CoreGameState, createInitialState, handleCellClick, Player, Board } from './core';
+import { GameState as CoreGameState, createInitialState, handleCellClick, Player, Board, calculatePotentialLines } from './core';
 
 /**
  * TicTacToe用のゲーム状態定義
@@ -13,6 +13,7 @@ export interface TicTacToeGameState extends BaseGameState {
   winningLines: number[][] | null;
   reachingLines: { player: Player; index: number }[];
   hintLevel: number; // 0: none, 1: enabled
+  potentialLines: (number | null)[];
 }
 
 /**
@@ -31,11 +32,13 @@ export type TicTacToeAction =
  */
 export function createInitialTicTacToeState(): TicTacToeGameState {
   const coreState = createInitialState();
+  const potentialLines = calculatePotentialLines(coreState.board);
   return {
     ...coreState,
     // BaseGameStateの必須フィールド
     status: 'playing',
     winner: null,
+    potentialLines,
   };
 }
 
@@ -71,10 +74,13 @@ export function ticTacToeReducer(state: TicTacToeGameState, action: TicTacToeAct
         return state;
       }
       
+      const potentialLines = calculatePotentialLines(newCoreState.board);
+
       // 新しい状態を構築
       return {
         ...state,
         ...newCoreState,
+        potentialLines,
         // BaseGameStateのstatusフィールドを適切に設定
         status: newCoreState.winner || newCoreState.isDraw ? 'ended' : 'playing',
         winner: newCoreState.winner,
