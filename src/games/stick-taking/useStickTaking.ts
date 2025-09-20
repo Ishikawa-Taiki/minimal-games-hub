@@ -87,6 +87,10 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
+    nimData: {
+      chunkLists: number[][];
+      nimSum: number;
+    };
   };
 
 // The hook
@@ -164,7 +168,8 @@ export function useStickTaking(): StickTakingController {
         return { statusText: `${gameState.winner}のかち` };
       }
       if (gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer}」のばん` };
+        const color = gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9';
+        return { statusText: `「${gameState.currentPlayer}」のばん`, color };
       }
       return { statusText: 'ゲーム開始' };
     })(),

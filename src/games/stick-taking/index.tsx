@@ -118,33 +118,41 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
-        <div style={styles.board}>
-          {gameState.rows.map((row, rowIndex) => (
-            <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.rowWrapper}>
-              <div style={styles.row}>
-                {row.map((stick) => renderStick(stick, rowIndex))}
-              </div>
-              {hintState.enabled && nimData.chunkLists[rowIndex]?.length > 0 && (
-                <div style={styles.hintChunk} data-testid={`hint-chunk-${rowIndex}`}>
-                  {`[${nimData.chunkLists[rowIndex].join(', ')}]`}
+        <div style={styles.gameContainer}>
+          <div style={styles.leftPanel}>
+            <div style={styles.board}>
+              {gameState.rows.map((row, rowIndex) => (
+                <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
+                  {row.map((stick) => renderStick(stick, rowIndex))}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-        <div style={styles.controls}>
-          <PositiveButton
-            size="large"
-            onClick={takeSticks}
-            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
-          >
-            えらんだぼうをとる
-          </PositiveButton>
-          {hintState.enabled && (
-            <div style={styles.hintNimSum} data-testid="hint-nim-sum">
-              {nimSumStatus}
+            <div style={styles.controls}>
+              <PositiveButton
+                size="large"
+                onClick={takeSticks}
+                disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
+              >
+                えらんだぼうをとる
+              </PositiveButton>
             </div>
-          )}
+          </div>
+          <div style={styles.rightPanel}>
+            {hintState.enabled && (
+              <>
+                <div style={styles.hintSection}>
+                  {gameState.rows.map((row, rowIndex) => (
+                    <div key={rowIndex} style={styles.hintRow} data-testid={`hint-chunk-${rowIndex}`}>
+                      {nimData.chunkLists[rowIndex]?.length > 0 ? `[${nimData.chunkLists[rowIndex].join(', ')}]` : '[-]' }
+                    </div>
+                  ))}
+                </div>
+                <div style={styles.hintNimSum} data-testid="hint-nim-sum">
+                  {nimSumStatus}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
