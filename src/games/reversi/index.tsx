@@ -231,7 +231,13 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
                       }}
                     />
                     {controller.hintState.enabled &&
-                      <span className="moveHint" style={styles.moveHint}>
+                      <span
+                        className="moveHint"
+                        style={{
+                          ...styles.moveHint,
+                          color: controller.gameState.currentPlayer === 'BLACK' ? 'white' : 'black',
+                        }}
+                      >
                         {moveInfo.length}
                       </span>
                     }
