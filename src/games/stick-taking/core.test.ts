@@ -3,7 +3,7 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
-  getHintData,
+  calculateNimData,
 } from './core';
 
 describe('棒消しゲームのコアロジック', () => {
@@ -133,47 +133,54 @@ describe('棒消しゲームのコアロジック', () => {
     });
   });
 
-  describe('ヒント機能', () => {
-    it('getHintDataが初期状態で正しい値を返すこと', () => {
-      const state = createInitialState('easy');
-      const hintData = getHintData(state);
-      expect(hintData.remainingSticksCount).toBe(6); // 1 + 2 + 3
-      expect(hintData.totalChunkCount).toBe(3); // 3段なので3つの塊
+  describe('新しいヒント機能 (ニム和)', () => {
+    it('初期状態（easy）で正しい塊リストとニム和を計算すること', () => {
+      const state = createInitialState('easy'); // 盤面: [1, 2, 3]
+      const nimData = calculateNimData(state);
+      expect(nimData.chunkLists).toEqual([[1], [2], [3]]);
+      expect(nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
     });
 
-    it('getHintDataが棒を取った後に正しい値を返すこと', () => {
-      let state = createInitialState('easy');
-      // 1段目の1本を取る
-      state = selectStick(state, 0, state.rows[0][0].id);
-      state = handleTakeSticks(state);
+    it('棒が取られて塊が分割された場合に正しく計算すること', () => {
+      const state = createInitialState('normal'); // 盤面: [1, 2, 3, 4, 5]
+      // 4段目(4本)の左から2本目を取る
+      state.rows[3][1].isTaken = true; // [1, 2, 3, [1, 2], 5] -> 4段目が [1, 2] に
 
-      const hintData = getHintData(state);
-      expect(hintData.remainingSticksCount).toBe(5); // 2 + 3
-      expect(hintData.totalChunkCount).toBe(2); // 2段目と3段目の2つ
+      const nimData = calculateNimData(state);
+      expect(nimData.chunkLists).toEqual([[1], [2], [3], [1, 2], [5]]);
+      expect(nimData.nimSum).toBe(1 ^ 2 ^ 3 ^ 1 ^ 2 ^ 5); // 6
     });
 
-    it('getHintDataが1つの段が複数の塊に分かれた場合に正しく数えること', () => {
-      let state = createInitialState('hard'); // 1,2,3,4,5,6,7
+    it('負け局面（ニム和が0）を正しく判定すること', () => {
+      const state = createInitialState('easy'); // 盤面: [1, 2, 3], ニム和: 0
+      let nimData = calculateNimData(state);
+      expect(nimData.nimSum).toBe(0);
 
-      // 3段目(3本)の真ん中を取る -> 1, 2, (1,1), 4, 5, 6, 7
-      state = selectStick(state, 2, state.rows[2][1].id);
-      state = handleTakeSticks(state);
-
-      const hintData = getHintData(state);
-      expect(hintData.remainingSticksCount).toBe(27); // 28 - 1
-      // 1, 2, (1,1), 4, 5, 6, 7 -> 1+1+2+1+1+1+1 = 8 chunks
-      expect(hintData.totalChunkCount).toBe(8);
+      // 盤面を [1, 2, 3] から [1, 1, 1] に変更 (プレイヤーが3段目から2本取ったと仮定)
+      state.rows[2][0].isTaken = true;
+      state.rows[2][2].isTaken = true; // 3 -> 1
+      nimData = calculateNimData(state);
+      expect(nimData.chunkLists).toEqual([[1], [2], [1]]);
+      expect(nimData.nimSum).toBe(2); // 1 ^ 2 ^ 1 = 2
     });
 
-    it('getHintDataがすべての棒がなくなったときに0を返すこと', () => {
+    it('勝ち局面（ニム和が0以外）を正しく判定すること', () => {
+      const state = createInitialState('easy'); // 盤面: [1, 2, 3]
+      // 3段目から1本取る -> [1, 2, 2]
+      state.rows[2][0].isTaken = true;
+      const nimData = calculateNimData(state);
+      expect(nimData.chunkLists).toEqual([[1], [2], [2]]);
+      expect(nimData.nimSum).toBe(1); // 1 ^ 2 ^ 2 = 1
+    });
+
+    it('すべての棒がなくなった場合に空のリストとニム和0を返すこと', () => {
       const state = createInitialState('easy');
       state.rows = state.rows.map(row =>
         row.map(stick => ({...stick, isTaken: true}))
       );
-
-      const hintData = getHintData(state);
-      expect(hintData.remainingSticksCount).toBe(0);
-      expect(hintData.totalChunkCount).toBe(0);
+      const nimData = calculateNimData(state);
+      expect(nimData.chunkLists).toEqual([[], [], []]);
+      expect(nimData.nimSum).toBe(0);
     });
   });
 });
