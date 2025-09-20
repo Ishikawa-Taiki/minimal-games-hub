@@ -63,6 +63,27 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     }
   };
 
+  // ゲーム固有のスコア表示（ポリモーフィック設計）
+  const renderScoreInfo = () => {
+    // 新しい設計: 各ゲームコントローラーが自身のスコア情報を提供
+    if ('getScoreInfo' in gameController && typeof gameController.getScoreInfo === 'function') {
+      const scoreInfo = gameController.getScoreInfo();
+      if (scoreInfo) {
+        return (
+          <div style={gameLayoutStyles.scoreInfo}>
+            <h4 style={gameLayoutStyles.sectionTitle}>{scoreInfo.title}</h4>
+            <div style={gameLayoutStyles.scoreDisplay}>
+              {scoreInfo.items.map((item, index) => (
+                <span key={index}>{item.label}: {item.value}</span>
+              ))}
+            </div>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
   // ヒント機能のボタン
   const renderHintButton = () => {
     const hintController = gameController as HintableGameController<TState, TAction>;
@@ -87,6 +108,8 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     <div style={gameLayoutStyles.controlPanel}>
       {/* ゲーム状態表示をコントロールパネルに統合 */}
       <GameStateDisplay gameController={gameController} />
+
+      {renderScoreInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
         <Button variant="ghost" onClick={onShowRules}>

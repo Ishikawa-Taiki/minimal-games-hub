@@ -60,10 +60,15 @@ test.describe('棒消しゲーム', () => {
   test('ヒント機能が正しく表示・非表示されること', async ({ page }) => {
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
 
+    // 初期状態ではヒントが非表示であることを確認
+    await expect(page.getByTestId('hint-chunk-0')).not.toBeVisible();
+    await expect(page.getByTestId('hint-nim-sum')).not.toBeVisible();
+
     // ヒントをオンにする
     await page.getByTestId('control-panel-hint-button').click();
 
-    // ヒントが表示されていることを確認
+    // ヒントが表示され、内容が正しいことを確認
+    await expect(page.getByTestId('hint-chunk-0')).toBeVisible();
     await expect(page.getByTestId('hint-chunk-0')).toHaveText('[1]');
     await expect(page.getByTestId('hint-chunk-1')).toHaveText('[2]');
     await expect(page.getByTestId('hint-chunk-2')).toHaveText('[3]');

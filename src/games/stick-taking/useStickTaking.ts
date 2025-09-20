@@ -120,22 +120,19 @@ export function useStickTaking(): StickTakingController {
   }, [logger, gameState.difficulty]);
 
   const selectStick = useCallback((rowIndex: number, stickId: number) => {
-    if (gameState.status !== 'playing') return;
     logger.log('SELECT_STICK_CALLED', { rowIndex, stickId });
     dispatch({ type: 'SELECT_STICK', rowIndex, stickId });
-  }, [logger, gameState.status]);
+  }, [logger]);
 
   const takeSticks = useCallback(() => {
-    if (gameState.status !== 'playing') return;
     logger.log('TAKE_STICKS_CALLED', {});
     dispatch({ type: 'TAKE_STICKS' });
-  }, [logger, gameState.status]);
+  }, [logger]);
 
   const setHints = useCallback((enabled: boolean) => {
-    if (gameState.status !== 'playing') return;
     logger.log('SET_HINTS_CALLED', { enabled });
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
-  }, [logger, gameState.status]);
+  }, [logger]);
 
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintsEnabled,
