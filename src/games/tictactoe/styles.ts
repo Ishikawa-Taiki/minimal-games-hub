@@ -30,7 +30,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '2.5rem',
+    fontSize: '3.5rem',
     fontWeight: 'bold',
     backgroundColor: '#ffffff',
     cursor: 'pointer',
@@ -39,6 +39,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   playerO: {
     color: '#ef4444', // red-500
+    fontWeight: 'normal',
   },
   playerX: {
     color: '#3b82f6', // blue-500

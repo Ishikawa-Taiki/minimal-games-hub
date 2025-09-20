@@ -32,7 +32,7 @@ export type TicTacToeAction =
  */
 export function createInitialTicTacToeState(): TicTacToeGameState {
   const coreState = createInitialState();
-  const potentialLines = calculatePotentialLines(coreState.board);
+  const potentialLines = calculatePotentialLines(coreState.board, coreState.currentPlayer);
   return {
     ...coreState,
     // BaseGameStateの必須フィールド
@@ -74,7 +74,7 @@ export function ticTacToeReducer(state: TicTacToeGameState, action: TicTacToeAct
         return state;
       }
       
-      const potentialLines = calculatePotentialLines(newCoreState.board);
+      const potentialLines = calculatePotentialLines(newCoreState.board, newCoreState.currentPlayer);
 
       // 新しい状態を構築
       return {

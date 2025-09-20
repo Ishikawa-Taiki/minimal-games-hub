@@ -2,29 +2,41 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createInitialState, handleCellClick, checkWinner, checkDraw, GameState, Board, calculatePotentialLines } from './core';
 
 describe('calculatePotentialLines', () => {
-  it('初期盤面の潜在ライン数を正しく計算すること', () => {
+  it('初期盤面では、両プレイヤーに対して静的なライン数を返す', () => {
     const board: Board = [
       [null, null, null],
       [null, null, null],
       [null, null, null],
     ];
-    const potentialLines = calculatePotentialLines(board);
     // コーナー: 3, エッジ: 2, センター: 4
-    expect(potentialLines).toEqual([3, 2, 3, 2, 4, 2, 3, 2, 3]);
+    const expected = [3, 2, 3, 2, 4, 2, 3, 2, 3];
+    expect(calculatePotentialLines(board, 'O')).toEqual(expected);
+    expect(calculatePotentialLines(board, 'X')).toEqual(expected);
   });
 
-  it('石が置かれた後の盤面の潜在ライン数を正しく計算すること', () => {
+  it('相手の石でブロックされているラインはカウントしない', () => {
     const board: Board = [
       ['O', null, null],
-      [null, 'X', null],
+      [null, null, null],
       [null, null, null],
     ];
-    const potentialLines = calculatePotentialLines(board);
-    expect(potentialLines).toEqual([
-      null, 2, 3,
-      2, null, 2,
-      3, 2, 3
-    ]);
+    // Player 'O'の番：相手(X)の石はないので、全てのラインが有効
+    expect(calculatePotentialLines(board, 'O')).toEqual([null, 2, 3, 2, 4, 2, 3, 2, 3]);
+
+    // Player 'X'の番：'O'が置かれている[0]を通るラインはブロックされる
+    expect(calculatePotentialLines(board, 'X')).toEqual([null, 1, 2, 1, 3, 2, 2, 2, 2]);
+  });
+
+  it('中央に石が置かれた場合、相手プレイヤーの潜在ライン数が正しく減少すること', () => {
+    const board: Board = [
+      [null, null, null],
+      [null, 'O', null],
+      [null, null, null],
+    ];
+    // Player 'X'の番: 'O'が中央にあるため、中央を通る4本のラインがすべてブロックされる
+    // 各マスのポテンシャルから、中央と共有するラインの分だけ引かれる
+    // コーナー(3-1=2), エッジ(2-1=1)
+    expect(calculatePotentialLines(board, 'X')).toEqual([2, 1, 2, 1, null, 1, 2, 1, 2]);
   });
 
   it('完全に埋まった盤面では全ての潜在ライン数がnullであること', () => {
@@ -33,8 +45,8 @@ describe('calculatePotentialLines', () => {
       ['X', 'O', 'X'],
       ['X', 'O', 'X'],
     ];
-    const potentialLines = calculatePotentialLines(board);
-    expect(potentialLines).toEqual(Array(9).fill(null));
+    expect(calculatePotentialLines(board, 'O')).toEqual(Array(9).fill(null));
+    expect(calculatePotentialLines(board, 'X')).toEqual(Array(9).fill(null));
   });
 });
 
