@@ -138,7 +138,7 @@ export function useStickTaking(): StickTakingController {
   }, [logger, gameState.status]);
 
   const hintState: HintState = useMemo(() => ({
-    hintsEnabled: gameState.hintsEnabled,
+    enabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
 
   const nimData = useMemo(() => {
@@ -149,7 +149,7 @@ export function useStickTaking(): StickTakingController {
     return calculateNimData(coreState);
   }, [gameState]);
 
-  return {
+  return useMemo(() => ({
     gameState,
     dispatch,
     resetGame,
@@ -160,10 +160,8 @@ export function useStickTaking(): StickTakingController {
     nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
-    isTurnOnly: useMemo(() => {
-      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
-    }, [gameState.status, gameState.winner]),
-    displayInfo: useMemo(() => {
+    isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
+    displayInfo: (() => {
       if (gameState.status === 'waiting') return { statusText: '難易度を選択してください' };
       if (gameState.winner) {
         return { statusText: `${gameState.winner}のかち` };
@@ -172,6 +170,6 @@ export function useStickTaking(): StickTakingController {
         return { statusText: `「${gameState.currentPlayer}」のばん` };
       }
       return { statusText: 'ゲーム開始' };
-    }, [gameState.status, gameState.winner, gameState.currentPlayer]),
-  };
+    })(),
+  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
 }
