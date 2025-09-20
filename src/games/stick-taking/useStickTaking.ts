@@ -5,14 +5,13 @@ import {
   HintableGameController,
   BaseGameState,
   HintState,
-  ScoreInfo,
 } from '@/core/types/game';
 import {
   GameState as CoreGameState,
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
-  getHintData,
+  calculateNimData,
   Difficulty,
   Player,
 } from './core';
@@ -138,22 +137,17 @@ export function useStickTaking(): StickTakingController {
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   }, [logger, gameState.status]);
 
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    if (gameState.status !== 'playing' || !gameState.hintsEnabled || !gameState.currentPlayer || !gameState.difficulty) return null;
-    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintsEnabled ? 1 : 0 };
-    const hintData = getHintData(coreState);
-    return {
-      title: 'おしえて！',
-      items: [
-        { label: 'のこりのぼう', value: `${hintData.remainingSticksCount}本` },
-        { label: 'かたまりの数', value: `${hintData.totalChunkCount}個` },
-      ],
-    };
-  }, [gameState]);
-
   const hintState: HintState = useMemo(() => ({
-    enabled: gameState.hintsEnabled,
+    hintsEnabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
+
+  const nimData = useMemo(() => {
+    if (gameState.status !== 'playing' || !gameState.currentPlayer || !gameState.difficulty) {
+      return { chunkLists: [], nimSum: 0 };
+    }
+    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintsEnabled ? 1 : 0 };
+    return calculateNimData(coreState);
+  }, [gameState]);
 
   return {
     gameState,
@@ -162,8 +156,8 @@ export function useStickTaking(): StickTakingController {
     selectStick,
     takeSticks,
     setHints,
-    getScoreInfo,
     hintState,
+    nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
     isTurnOnly: useMemo(() => {

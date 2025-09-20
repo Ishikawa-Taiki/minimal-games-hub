@@ -14,7 +14,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame } = controller;
+  const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -112,12 +112,23 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const renderGameScreen = () => {
     if (!gameState || !gameState.rows) return null;
 
+    const nimSumStatus = nimData.nimSum === 0
+      ? `ピンチ！ (ニム和 = 0)`
+      : `チャンス (ニム和 = ${nimData.nimSum})`;
+
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => (
-            <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
-              {row.map((stick) => renderStick(stick, rowIndex))}
+            <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.rowWrapper}>
+              <div style={styles.row}>
+                {row.map((stick) => renderStick(stick, rowIndex))}
+              </div>
+              {hintState.enabled && nimData.chunkLists[rowIndex]?.length > 0 && (
+                <div style={styles.hintChunk} data-testid={`hint-chunk-${rowIndex}`}>
+                  {`[${nimData.chunkLists[rowIndex].join(', ')}]`}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -129,6 +140,11 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
+          {hintState.enabled && (
+            <div style={styles.hintNimSum} data-testid="hint-nim-sum">
+              {nimSumStatus}
+            </div>
+          )}
         </div>
       </div>
     );

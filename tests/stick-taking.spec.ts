@@ -57,4 +57,29 @@ test.describe('棒消しゲーム', () => {
     await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
   });
 
+  test('ヒント機能が正しく表示・非表示されること', async ({ page }) => {
+    await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
+
+    // ヒントをオンにする
+    await page.getByTestId('control-panel-hint-button').click();
+
+    // ヒントが表示されていることを確認
+    await expect(page.getByTestId('hint-chunk-0')).toHaveText('[1]');
+    await expect(page.getByTestId('hint-chunk-1')).toHaveText('[2]');
+    await expect(page.getByTestId('hint-chunk-2')).toHaveText('[3]');
+    await expect(page.getByTestId('hint-nim-sum')).toHaveText('ピンチ！ (ニム和 = 0)');
+
+    // 棒を1本取る
+    await page.locator('[data-testid="stick-2-5"]').click();
+    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
+
+    // ヒントが更新されていることを確認
+    await expect(page.getByTestId('hint-chunk-2')).toHaveText('[2]');
+    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 1)');
+
+    // ヒントをオフにする
+    await page.getByTestId('control-panel-hint-button').click();
+    await expect(page.getByTestId('hint-chunk-0')).not.toBeVisible();
+    await expect(page.getByTestId('hint-nim-sum')).not.toBeVisible();
+  });
 });

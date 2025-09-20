@@ -105,20 +105,17 @@ describe('useStickTaking', () => {
       expect(result.current.gameState.hintsEnabled).toBe(true);
     });
 
-    it('getScoreInfoが正しい「おしえて！」情報を返す', () => {
+    it('nimDataが正しいニム和と塊リストを返す', () => {
       const { result } = renderHook(() => useStickTaking(), { wrapper });
       act(() => {
-        result.current.startGame('easy');
+        result.current.startGame('easy'); // rows: [1, 2, 3]
       });
       act(() => {
         result.current.setHints(true);
       });
-      const scoreInfo = result.current.getScoreInfo();
-      expect(scoreInfo?.title).toBe('おしえて！');
-      expect(scoreInfo?.items).toEqual([
-        { label: 'のこりのぼう', value: '6本' },
-        { label: 'かたまりの数', value: '3個' },
-      ]);
+
+      expect(result.current.nimData.chunkLists).toEqual([[1], [2], [3]]);
+      expect(result.current.nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
     });
   });
 });
