@@ -43,7 +43,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
+    gap: '0',
     padding: '0 6px', // Horizontal padding to not cut off border
   },
   stickGroupSticks: {
@@ -92,11 +92,5 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     gap: '0',
     marginBottom: '1rem',
-  },
-  nimSumStatus: {
-    minHeight: '24px',
-    fontSize: '1.1rem',
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
   },
 });

@@ -103,8 +103,9 @@ export function selectStick(
   stickId: number
 ): GameState {
   const { rows, selectedSticks } = currentState;
-  const stick = rows[rowIndex].find(s => s.id === stickId);
+  const stick = rows[rowIndex]?.find(s => s.id === stickId);
 
+  // 選択されたスティックが存在しない、または既に取られている場合は何もしない
   if (!stick || stick.isTaken) {
     return currentState;
   }
@@ -113,32 +114,33 @@ export function selectStick(
     s => s.row === rowIndex && s.stickId === stickId
   );
 
-  // If the selection is in a new row, clear previous selections
-  const newSelectedSticks =
-    selectedSticks.length > 0 && selectedSticks[0].row !== rowIndex
-      ? []
-      : [...selectedSticks];
-
-  if (isAlreadySelected) {
-    // Deselect stick
+  // 選択中のスティックが別の行にある場合、選択をリセットして新しいスティックを選択する
+  if (selectedSticks.length > 0 && selectedSticks[0].row !== rowIndex) {
     return {
       ...currentState,
-      selectedSticks: newSelectedSticks.filter(
-        s => !(s.row === rowIndex && s.stickId === stickId)
-      ),
+      selectedSticks: [{ row: rowIndex, stickId }],
     };
   }
 
-  // Add new selection
-  const prospectiveSelection = [...newSelectedSticks, { row: rowIndex, stickId }];
+  if (isAlreadySelected) {
+    // === 選択解除のロジック ===
+    // 選択されているスティックが1つだけの場合、その選択を解除する
+    if (selectedSticks.length === 1) {
+      return { ...currentState, selectedSticks: [] };
+    }
 
-  // Check for consecutiveness
-  if (prospectiveSelection.length > 1) {
-    const stickIds = prospectiveSelection.map(s => s.stickId).sort((a, b) => a - b);
-    const isConsecutive = stickIds.every((id, i) => i === 0 || id === stickIds[i - 1] + 1);
+    const stickIds = selectedSticks.map(s => s.stickId).sort((a, b) => a - b);
+    const minId = stickIds[0];
+    const maxId = stickIds[stickIds.length - 1];
 
-    if (!isConsecutive) {
-      // If not consecutive, reset selection to only the currently clicked stick
+    // 選択範囲の端のスティックのみ選択解除を許可する
+    if (stickId === minId || stickId === maxId) {
+      return {
+        ...currentState,
+        selectedSticks: selectedSticks.filter(s => s.stickId !== stickId),
+      };
+    } else {
+      // 選択範囲の中間のスティックがクリックされた場合、選択をリセットして現在のスティックのみを選択する
       return {
         ...currentState,
         selectedSticks: [{ row: rowIndex, stickId }],
@@ -146,9 +148,32 @@ export function selectStick(
     }
   }
 
+  // === 新規選択のロジック ===
+  if (selectedSticks.length > 0) {
+    const stickIds = selectedSticks.map(s => s.stickId).sort((a, b) => a - b);
+    const minId = stickIds[0];
+    const maxId = stickIds[stickIds.length - 1];
+
+    // 新しく選択されたスティックが、既存の選択範囲に隣接しているかチェック
+    if (stickId === minId - 1 || stickId === maxId + 1) {
+      // 隣接している場合、選択範囲に追加
+      return {
+        ...currentState,
+        selectedSticks: [...selectedSticks, { row: rowIndex, stickId }],
+      };
+    } else {
+      // 隣接していない場合、選択をリセットして現在のスティックのみを選択
+      return {
+        ...currentState,
+        selectedSticks: [{ row: rowIndex, stickId }],
+      };
+    }
+  }
+
+  // 選択されているスティックがなかった場合、新しく選択を開始
   return {
     ...currentState,
-    selectedSticks: prospectiveSelection,
+    selectedSticks: [{ row: rowIndex, stickId }],
   };
 }
 

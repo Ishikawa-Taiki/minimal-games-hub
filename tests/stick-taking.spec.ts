@@ -33,10 +33,9 @@ test.describe('棒消しゲーム', () => {
     // ヒントをオンにする
     await page.getByTestId('control-panel-hint-button').click();
 
-    // 初期状態のヒントが表示されることを確認
+    // 初期状態のヒント（塊の長さ）が表示されることを確認
     const row4 = page.getByTestId('row-4');
     await expect(row4.getByText('5')).toBeVisible();
-    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 1)');
 
     // 5段目の真ん中の1本を取る -> [1,2,3,4,5] -> [1,2,3,4,[2,2]]
     await page.getByTestId('stick-4-2').click();
@@ -47,17 +46,14 @@ test.describe('棒消しゲーム', () => {
     const groups = row4Updated.locator('[data-testid^="group-4-"]');
     await expect(groups).toHaveCount(3);
 
-    // 各グループの内容を確認
+    // 各グループの内容（塊の長さ）を確認
     await expect(groups.nth(0).getByText('2')).toBeVisible();
     await expect(groups.nth(1).getByText('-')).toBeVisible();
     await expect(groups.nth(2).getByText('2')).toBeVisible();
 
-    // Nim sum: 1^2^3^4^2^2 = 4
-    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 4)');
-
     // ヒントをオフにする
     await page.getByTestId('control-panel-hint-button').click();
     await expect(row4.getByText('5')).not.toBeVisible();
-    await expect(page.getByTestId('hint-nim-sum')).not.toBeVisible();
+    await expect(groups.nth(0).getByText('2')).not.toBeVisible();
   });
 });

@@ -14,6 +14,7 @@ import {
   calculateNimData,
   Difficulty,
   Player,
+  NimData,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 

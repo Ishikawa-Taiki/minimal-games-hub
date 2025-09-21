@@ -128,7 +128,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
       row.forEach((stick, index) => {
         const type = stick.isTaken ? 'taken' : 'available';
-        const chunk = chunks.find(c => index >= c.startIndex && index <= c.endIndex);
+        const chunk = chunks.find((c: Chunk) => index >= c.startIndex && index <= c.endIndex);
 
         if (!currentGroup || currentGroup.type !== type) {
           if (currentGroup) groups.push(currentGroup);
@@ -149,17 +149,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     if (!gameState || !processedRows) return null;
 
     const isHintEnabled = hintState.enabled;
-    const nimSumValue = nimData.nimSum;
-
-    const nimSumStatus = nimSumValue === 0
-      ? `ピンチ！ (ニム和 = 0)`
-      : `チャンス (ニム和 = ${nimSumValue})`;
-
-    const nimSumStyle = {
-      ...styles.nimSumStatus,
-      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
-      visibility: isHintEnabled ? 'visible' : 'hidden',
-    };
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
@@ -196,9 +185,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
-          <div data-testid="hint-nim-sum" style={nimSumStyle}>
-            {nimSumStatus}
-          </div>
         </div>
       </div>
     );
