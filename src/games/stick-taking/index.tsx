@@ -1,10 +1,18 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Stick, Difficulty } from './core';
+import React, { useState, useMemo } from 'react';
+import { Stick, Difficulty, Chunk } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 import { PositiveButton } from '@/app/components/ui';
+
+// Define the structure for a visual group of sticks
+type StickGroupInfo = {
+  type: 'available' | 'taken';
+  sticks: Stick[];
+  originalIndices: number[];
+  chunk?: Chunk;
+};
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -109,8 +117,36 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     );
   };
 
+  const processedRows = useMemo(() => {
+    if (!gameState.rows) return [];
+    return gameState.rows.map((row, rowIndex) => {
+      const groups: StickGroupInfo[] = [];
+      if (row.length === 0) return groups;
+
+      const chunks = nimData.chunkLists[rowIndex] || [];
+      let currentGroup: StickGroupInfo | null = null;
+
+      row.forEach((stick, index) => {
+        const type = stick.isTaken ? 'taken' : 'available';
+        const chunk = chunks.find(c => index >= c.startIndex && index <= c.endIndex);
+
+        if (!currentGroup || currentGroup.type !== type) {
+          if (currentGroup) groups.push(currentGroup);
+          currentGroup = { type, sticks: [], originalIndices: [], chunk };
+        }
+
+        currentGroup.sticks.push(stick);
+        currentGroup.originalIndices.push(index);
+      });
+
+      if (currentGroup) groups.push(currentGroup);
+      return groups;
+    });
+  }, [gameState.rows, nimData.chunkLists]);
+
+
   const renderGameScreen = () => {
-    if (!gameState || !gameState.rows) return null;
+    if (!gameState || !processedRows) return null;
 
     const isHintEnabled = hintState.enabled;
     const nimSumValue = nimData.nimSum;
@@ -125,44 +161,32 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
       visibility: isHintEnabled ? 'visible' : 'hidden',
     };
 
-    const STICK_WIDTH = 44;
-    const STICK_GAP = 12;
-
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
         <div style={styles.board}>
-          {gameState.rows.map((row, rowIndex) => {
-            const chunkList = nimData.chunkLists[rowIndex] || [];
-
-            return (
-              <div key={rowIndex} style={styles.rowContainer}>
-                <div data-testid={`row-${rowIndex}`} style={styles.row}>
-                  {row.map((stick, stickIndex) => renderStick(stick, rowIndex, stickIndex))}
-                  {isHintEnabled && chunkList.map((chunk, chunkIndex) => {
-                    const width = chunk.length * STICK_WIDTH + (chunk.length - 1) * STICK_GAP;
-                    const left = chunk.startIndex * (STICK_WIDTH + STICK_GAP);
-                    const visualizationStyle = { ...styles.hintChunkVisualization, left: `${left}px`, width: `${width}px` };
-                    return <div key={chunkIndex} style={visualizationStyle} />;
-                  })}
+          {processedRows.map((groups, rowIndex) => (
+            <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
+              {groups.map((group, groupIndex) => (
+                <div
+                  key={groupIndex}
+                  data-testid={`group-${rowIndex}-${groupIndex}`}
+                  style={{
+                    ...styles.stickGroup,
+                    ...(isHintEnabled && group.type === 'available' ? styles.hintBorder : {})
+                  }}
+                >
+                  <div style={styles.stickGroupSticks}>
+                    {group.sticks.map((stick, stickIndex) =>
+                      renderStick(stick, rowIndex, group.originalIndices[stickIndex])
+                    )}
+                  </div>
+                  <div style={{...styles.hintText, visibility: isHintEnabled ? 'visible' : 'hidden'}}>
+                    {group.type === 'available' ? group.sticks.length : '-'}
+                  </div>
                 </div>
-                <div style={{ ...styles.hintTextRow, visibility: isHintEnabled ? 'visible' : 'hidden' }}>
-                  {row.map((_stick, stickIndex) => {
-                    const belongingChunk = chunkList.find(c => stickIndex >= c.startIndex && stickIndex <= c.endIndex);
-                    let hintContent: React.ReactNode = <span>&nbsp;</span>;
-                    if (belongingChunk) {
-                      const middleIndex = belongingChunk.startIndex + Math.floor((belongingChunk.length - 1) / 2);
-                      if (stickIndex === middleIndex) {
-                        hintContent = belongingChunk.length;
-                      }
-                    } else {
-                      hintContent = '-';
-                    }
-                    return <div key={stickIndex} style={styles.hintTextItem} data-testid={`hint-item-${rowIndex}-${stickIndex}`}>{hintContent}</div>;
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          ))}
         </div>
         <div style={styles.controls}>
           <PositiveButton

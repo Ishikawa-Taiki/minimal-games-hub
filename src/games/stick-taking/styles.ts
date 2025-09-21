@@ -36,36 +36,31 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   row: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '12px',
-    position: 'relative',
+    gap: '0', // Let the groups handle spacing
+    minHeight: '78px', // stick height + hint height
   },
-  rowContainer: {
+  stickGroup: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '0',
-    marginBottom: '0',
+    gap: '4px',
+    padding: '0 6px', // Horizontal padding to not cut off border
   },
-  hintTextRow: {
+  stickGroupSticks: {
     display: 'flex',
-    justifyContent: 'center',
     gap: '12px',
-    height: '1.2rem',
   },
-  hintTextItem: {
-    width: '44px',
-    textAlign: 'center',
+  hintBorder: {
+    border: '2px solid rgba(0, 116, 217, 0.5)',
+    borderRadius: '6px',
+    padding: '4px',
+  },
+  hintText: {
+    minHeight: '1.2rem',
     color: '#666',
     fontFamily: 'monospace',
     fontSize: '0.9rem',
-  },
-  hintChunkVisualization: {
-    position: 'absolute',
-    top: '0px',
-    bottom: '0px',
-    border: '2px solid rgba(0, 116, 217, 0.5)',
-    borderRadius: '6px',
-    pointerEvents: 'none',
+    fontWeight: 'bold',
   },
   stick: {
     height: '60px',
