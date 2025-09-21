@@ -44,7 +44,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: '4px',
-    marginBottom: '12px',
+    marginBottom: '0',
   },
   hintTextRow: {
     display: 'flex',
