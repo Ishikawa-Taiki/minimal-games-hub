@@ -66,7 +66,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     </div>
   );
 
-  const renderStick = (stick: Stick, rowIndex: number) => {
+  const renderStick = (stick: Stick, rowIndex: number, stickIndex: number) => {
     const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stick.id);
     const stickStyle = {
       ...styles.stick,
@@ -82,7 +82,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     return (
       <div
         key={stick.id}
-        data-testid={`stick-${rowIndex}-${stick.id}`}
+        data-testid={`stick-${rowIndex}-${stickIndex}`}
         data-taken={stick.isTaken.toString()}
         style={stickStyle}
         onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
@@ -133,25 +133,32 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
         <div style={styles.board}>
           {gameState.rows.map((row, rowIndex) => {
             const chunkList = nimData.chunkLists[rowIndex] || [];
-            const hintText = chunkList.length > 0 ? `[${chunkList.map(c => c.length).join(', ')}]` : '[-]';
 
             return (
               <div key={rowIndex} style={styles.rowContainer}>
                 <div data-testid={`row-${rowIndex}`} style={styles.row}>
-                  {row.map((stick) => renderStick(stick, rowIndex))}
+                  {row.map((stick, stickIndex) => renderStick(stick, rowIndex, stickIndex))}
                   {isHintEnabled && chunkList.map((chunk, chunkIndex) => {
                     const width = chunk.length * STICK_WIDTH + (chunk.length - 1) * STICK_GAP;
                     const left = chunk.startIndex * (STICK_WIDTH + STICK_GAP);
-                    const visualizationStyle = {
-                      ...styles.hintChunkVisualization,
-                      left: `${left}px`,
-                      width: `${width}px`,
-                    };
+                    const visualizationStyle = { ...styles.hintChunkVisualization, left: `${left}px`, width: `${width}px` };
                     return <div key={chunkIndex} style={visualizationStyle} />;
                   })}
                 </div>
-                <div data-testid={`hint-chunk-${rowIndex}`} style={{ ...styles.hintChunkText, visibility: isHintEnabled ? 'visible' : 'hidden' }}>
-                  {hintText}
+                <div style={{ ...styles.hintTextRow, visibility: isHintEnabled ? 'visible' : 'hidden' }}>
+                  {row.map((_stick, stickIndex) => {
+                    const belongingChunk = chunkList.find(c => stickIndex >= c.startIndex && stickIndex <= c.endIndex);
+                    let hintContent: React.ReactNode = <span>&nbsp;</span>;
+                    if (belongingChunk) {
+                      const middleIndex = belongingChunk.startIndex + Math.floor((belongingChunk.length - 1) / 2);
+                      if (stickIndex === middleIndex) {
+                        hintContent = belongingChunk.length;
+                      }
+                    } else {
+                      hintContent = '-';
+                    }
+                    return <div key={stickIndex} style={styles.hintTextItem} data-testid={`hint-item-${rowIndex}-${stickIndex}`}>{hintContent}</div>;
+                  })}
                 </div>
               </div>
             );

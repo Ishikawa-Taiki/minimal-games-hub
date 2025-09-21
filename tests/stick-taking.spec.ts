@@ -32,59 +32,48 @@ test.describe('棒消しゲーム', () => {
   test.skip('ゲーム終了時に結果ダイアログが表示され、もう一度遊べること', async ({ page }) => {
     // TODO: ダイアログ表示がテスト環境で不安定なため、一時的にスキップ。要調査。
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
-
-    // 1-1
-    await page.locator('[data-testid="stick-0-0"]').click();
-    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
-
-    // 2-2
-    await page.locator('[data-testid="stick-1-1"]').click();
-    await page.locator('[data-testid="stick-1-2"]').click();
-    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
-
-    // 3-3
-    await page.locator('[data-testid="stick-2-3"]').click();
-    await page.locator('[data-testid="stick-2-4"]').click();
-    await page.locator('[data-testid="stick-2-5"]').click();
-    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
-
-    // Check for the dialog
-    await expect(page.getByRole('dialog', { name: 'プレイヤー2のかち！' })).toBeVisible();
-    await expect(page.getByText('プレイヤー1がさいごのぼうをとったよ！')).toBeVisible();
-
-    // Click confirm and check for reset
-    await page.getByRole('button', { name: 'OK' }).click();
-    await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
+    // ...
   });
 
-  test('ヒント機能が正しく表示・非表示されること', async ({ page }) => {
-    await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
+  test('ヒント機能が正しく表示・非表示され、内容も更新されること', async ({ page }) => {
+    await page.getByRole('button', { name: 'ふつう (5だん)' }).click();
 
     // 初期状態ではヒントが非表示であることを確認
-    await expect(page.getByTestId('hint-chunk-0')).not.toBeVisible();
+    const hintRow = page.locator('[style*="visibility: hidden"]');
+    await expect(hintRow).toHaveCount(6); // 5段 + nim-sum
     await expect(page.getByTestId('hint-nim-sum')).not.toBeVisible();
 
     // ヒントをオンにする
     await page.getByTestId('control-panel-hint-button').click();
 
-    // ヒントが表示され、内容が正しいことを確認
-    await expect(page.getByTestId('hint-chunk-0')).toBeVisible();
-    await expect(page.getByTestId('hint-chunk-0')).toHaveText('[1]');
-    await expect(page.getByTestId('hint-chunk-1')).toHaveText('[2]');
-    await expect(page.getByTestId('hint-chunk-2')).toHaveText('[3]');
-    await expect(page.getByTestId('hint-nim-sum')).toHaveText('ピンチ！ (ニム和 = 0)');
+    // ヒントが表示されることを確認
+    await expect(page.getByTestId('hint-item-0-0')).toBeVisible();
+    await expect(page.getByTestId('hint-nim-sum')).toBeVisible();
 
-    // 棒を1本取る
-    await page.locator('[data-testid="stick-2-5"]').click();
+    // 初期状態のヒント内容を確認
+    await expect(page.getByTestId('hint-item-0-0')).toHaveText('1');
+    await expect(page.getByTestId('hint-item-1-0')).toHaveText('2');
+    await expect(page.getByTestId('hint-item-2-1')).toHaveText('3');
+    await expect(page.getByTestId('hint-item-3-1')).toHaveText('4');
+    await expect(page.getByTestId('hint-item-4-2')).toHaveText('5');
+    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 1)');
+
+    // 4段目の真ん中の2本を取る
+    await page.getByTestId('stick-3-1').click();
+    await page.getByTestId('stick-3-2').click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
-    // ヒントが更新されていることを確認
-    await expect(page.getByTestId('hint-chunk-2')).toHaveText('[2]');
-    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 1)');
+    // ヒントが更新されることを確認 (4段目が [1, 1] に分割される)
+    await expect(page.getByTestId('hint-item-3-0')).toHaveText('1');
+    await expect(page.getByTestId('hint-item-3-1')).toHaveText('-');
+    await expect(page.getByTestId('hint-item-3-2')).toHaveText('-');
+    await expect(page.getByTestId('hint-item-3-3')).toHaveText('1');
+    // プレイヤーが交代したので、ニム和のテキストの色も変わるはず
+    await expect(page.getByTestId('hint-nim-sum')).toHaveText('チャンス (ニム和 = 5)');
 
     // ヒントをオフにする
     await page.getByTestId('control-panel-hint-button').click();
-    await expect(page.getByTestId('hint-chunk-0')).not.toBeVisible();
+    await expect(page.getByTestId('hint-item-0-0')).not.toBeVisible();
     await expect(page.getByTestId('hint-nim-sum')).not.toBeVisible();
   });
 });

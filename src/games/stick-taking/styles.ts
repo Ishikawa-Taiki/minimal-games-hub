@@ -24,21 +24,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     flexDirection: 'column',
     gap: '1rem',
   },
-  button: {
-    padding: '1rem 2rem',
-    fontSize: '1.2rem',
-    cursor: 'pointer',
-    border: 'none',
-    borderRadius: '8px',
-    backgroundColor: '#4a90e2',
-    color: 'white',
-  },
-  turnIndicator: {
-    fontSize: '1.8rem',
-    marginBottom: '1rem',
-    fontWeight: 'bold',
-    transition: 'color 0.3s',
-  },
   board: {
     display: 'flex',
     flexDirection: 'column',
@@ -59,19 +44,27 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: '4px',
+    marginBottom: '12px',
   },
-  hintChunkText: {
-    fontSize: '0.9rem',
+  hintTextRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '12px',
+    height: '1.2rem',
+  },
+  hintTextItem: {
+    width: '44px',
+    textAlign: 'center',
     color: '#666',
     fontFamily: 'monospace',
-    minHeight: '1.2rem', // 常に高さを確保
+    fontSize: '0.9rem',
   },
   hintChunkVisualization: {
     position: 'absolute',
-    top: '2px',
-    bottom: '2px',
-    backgroundColor: 'rgba(0, 116, 217, 0.2)',
-    borderRadius: '4px',
+    top: '0px',
+    bottom: '0px',
+    border: '2px solid rgba(0, 116, 217, 0.5)',
+    borderRadius: '6px',
     pointerEvents: 'none',
   },
   stick: {
@@ -96,45 +89,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
       left: '-5px',
       right: '-5px',
       height: '4px',
-      // backgroundColor is now set dynamically
       transform: 'translateY(-50%)',
-  },
-  gameOverOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  gameOverModal: {
-    backgroundColor: 'white',
-    padding: '2rem 3rem',
-    borderRadius: '12px',
-    textAlign: 'center',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-  },
-  gameOverTitle: {
-    fontSize: '2rem',
-    marginBottom: '1rem',
-  },
-  winnerText: {
-    fontSize: '1.5rem',
-    margin: '0.5rem 0',
-    fontWeight: 'bold',
-  },
-  reasonText: {
-      fontSize: '1rem',
-      color: '#666',
-      marginBottom: '1.5rem',
-  },
-  modalButtons: {
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '1rem',
   },
   controls: {
     display: 'flex',
@@ -144,7 +99,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     marginBottom: '1rem',
   },
   nimSumStatus: {
-    minHeight: '24px', // 常に高さを確保
+    minHeight: '24px',
     fontSize: '1.1rem',
     fontWeight: 'bold',
     fontFamily: 'monospace',
