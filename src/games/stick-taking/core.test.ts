@@ -3,6 +3,7 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
+  calculateNimData,
 } from './core';
 
 describe('棒消しゲームのコアロジック', () => {
@@ -184,4 +185,23 @@ describe('棒消しゲームのコアロジック', () => {
     });
   });
 
+  describe('calculateNimData', () => {
+    it('ニム和が正しく計算されること', () => {
+      const state = createInitialState('easy'); // rows: [1, 2, 3] -> nim-sum: 1^2^3 = 0
+      const nimData = calculateNimData(state.rows);
+      expect(nimData.nimSum).toBe(0);
+      expect(nimData.chunkLists.flat().map(c => c.length)).toEqual([1, 2, 3]);
+    });
+
+    it('棒が取られた後にニム和が正しく再計算されること', () => {
+      let state = createInitialState('easy');
+      // 1段目(1本)を取る
+      state = selectStick(state, 0, state.rows[0][0].id);
+      state = handleTakeSticks(state); // rows: [0, 2, 3] -> nim-sum: 2^3 = 1
+
+      const nimData = calculateNimData(state.rows);
+      expect(nimData.nimSum).toBe(1);
+      expect(nimData.chunkLists.flat().map(c => c.length)).toEqual([2, 3]);
+    });
+  });
 });

@@ -11,8 +11,10 @@ import {
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
+  calculateNimData,
   Difficulty,
   Player,
+  NimData,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -86,6 +88,7 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
+    nimData: NimData;
   };
 
 // The hook
@@ -137,6 +140,13 @@ export function useStickTaking(): StickTakingController {
     enabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
 
+  const nimData = useMemo(() => {
+    if (gameState.status !== 'playing' || !gameState.rows || gameState.rows.length === 0) {
+      return { chunkLists: [], nimSum: 0 };
+    }
+    return calculateNimData(gameState.rows);
+  }, [gameState.rows, gameState.status]);
+
   return useMemo(() => ({
     gameState,
     dispatch,
@@ -145,6 +155,7 @@ export function useStickTaking(): StickTakingController {
     takeSticks,
     setHints,
     hintState,
+    nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
     isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
@@ -159,5 +170,5 @@ export function useStickTaking(): StickTakingController {
       }
       return { statusText: 'ゲーム開始' };
     })(),
-  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, startGame]);
+  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
 }

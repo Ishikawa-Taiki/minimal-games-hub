@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Stick, Difficulty, Chunk, calculateNimData } from './core';
+import { Stick, Difficulty, Chunk } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 import { PositiveButton } from '@/app/components/ui';
@@ -22,7 +22,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame, hintState } = controller;
+  const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -119,18 +119,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
   const processedRows = useMemo(() => {
     if (!gameState.rows) return [];
-
-    if (!hintState.enabled) {
-      return gameState.rows.map(row => ([
-        {
-          type: 'available', // When hints are off, all sticks are in one group
-          sticks: row,
-          originalIndices: row.map((_, i) => i)
-        }
-      ]));
-    }
-
-    const nimData = calculateNimData(gameState.rows);
     return gameState.rows.map((row, rowIndex) => {
       const groups: StickGroupInfo[] = [];
       if (row.length === 0) return groups;
@@ -154,7 +142,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
       if (currentGroup) groups.push(currentGroup);
       return groups;
     });
-  }, [gameState.rows, hintState.enabled]);
+  }, [gameState.rows, nimData.chunkLists]);
 
 
   const renderGameScreen = () => {
@@ -180,6 +168,9 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
                     {group.sticks.map((stick, stickIndex) =>
                       renderStick(stick, rowIndex, group.originalIndices[stickIndex])
                     )}
+                  </div>
+                  <div style={{...styles.hintText, visibility: isHintEnabled ? 'visible' : 'hidden'}}>
+                    {group.type === 'available' ? group.sticks.length : '-'}
                   </div>
                 </div>
               ))}

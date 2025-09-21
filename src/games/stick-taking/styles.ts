@@ -43,7 +43,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
+    gap: '0',
     padding: '0 6px', // Horizontal padding to not cut off border
   },
   stickGroupSticks: {
@@ -54,6 +54,13 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '2px solid rgba(0, 116, 217, 0.5)',
     borderRadius: '6px',
     padding: '4px',
+  },
+  hintText: {
+    minHeight: '1.2rem',
+    color: '#666',
+    fontFamily: 'monospace',
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
   },
   stick: {
     height: '60px',

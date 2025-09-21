@@ -105,5 +105,21 @@ describe('useStickTaking', () => {
       expect(result.current.gameState.hintsEnabled).toBe(true);
     });
 
+    it('nimDataが正しいニム和と塊リストを返す', () => {
+      const { result } = renderHook(() => useStickTaking(), { wrapper });
+      act(() => {
+        result.current.startGame('easy'); // rows: [1, 2, 3]
+      });
+      act(() => {
+        result.current.setHints(true);
+      });
+
+      expect(result.current.nimData.chunkLists).toEqual([
+        [{ length: 1, startIndex: 0, endIndex: 0 }],
+        [{ length: 2, startIndex: 0, endIndex: 1 }],
+        [{ length: 3, startIndex: 0, endIndex: 2 }],
+      ]);
+      expect(result.current.nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
+    });
   });
 });
