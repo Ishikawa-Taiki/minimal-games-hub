@@ -28,7 +28,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '16px',
+    gap: '0',
     marginBottom: '2rem',
     width: '100%',
     maxWidth: '500px',
@@ -43,7 +43,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
+    gap: '0',
     marginBottom: '0',
   },
   hintTextRow: {
@@ -95,7 +95,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '8px',
+    gap: '0',
     marginBottom: '1rem',
   },
   nimSumStatus: {
