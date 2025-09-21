@@ -1,18 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { Stick, Difficulty, Chunk } from './core';
+import React, { useState } from 'react';
+import { Stick, Difficulty } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
 import { PositiveButton } from '@/app/components/ui';
-
-// Define the structure for a visual group of sticks
-type StickGroupInfo = {
-  type: 'available' | 'taken';
-  sticks: Stick[];
-  originalIndices: number[];
-  chunk?: Chunk;
-};
 
 interface StickTakingGameProps {
   controller?: StickTakingController;
@@ -22,7 +14,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
+  const { gameState, selectStick, takeSticks, startGame } = controller;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
@@ -117,74 +109,17 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     );
   };
 
-  const processedRows = useMemo(() => {
-    if (!gameState.rows) return [];
-    return gameState.rows.map((row, rowIndex) => {
-      const groups: StickGroupInfo[] = [];
-      if (row.length === 0) return groups;
-
-      const chunks = nimData.chunkLists[rowIndex] || [];
-      let currentGroup: StickGroupInfo | null = null;
-
-      row.forEach((stick, index) => {
-        const type = stick.isTaken ? 'taken' : 'available';
-        const chunk = chunks.find(c => index >= c.startIndex && index <= c.endIndex);
-
-        if (!currentGroup || currentGroup.type !== type) {
-          if (currentGroup) groups.push(currentGroup);
-          currentGroup = { type, sticks: [], originalIndices: [], chunk };
-        }
-
-        currentGroup.sticks.push(stick);
-        currentGroup.originalIndices.push(index);
-      });
-
-      if (currentGroup) groups.push(currentGroup);
-      return groups;
-    });
-  }, [gameState.rows, nimData.chunkLists]);
-
-
   const renderGameScreen = () => {
-    if (!gameState || !processedRows) return null;
-
-    const isHintEnabled = hintState.enabled;
-    const nimSumValue = nimData.nimSum;
-
-    const nimSumStatus = nimSumValue === 0
-      ? `ピンチ！ (ニム和 = 0)`
-      : `チャンス (ニム和 = ${nimSumValue})`;
-
-    const nimSumStyle = {
-      ...styles.nimSumStatus,
-      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
-      visibility: isHintEnabled ? 'visible' : 'hidden',
-    };
+    if (!gameState || !gameState.rows) return null;
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
         <div style={styles.board}>
-          {processedRows.map((groups, rowIndex) => (
+          {gameState.rows.map((row, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
-              {groups.map((group, groupIndex) => (
-                <div
-                  key={groupIndex}
-                  data-testid={`group-${rowIndex}-${groupIndex}`}
-                  style={{
-                    ...styles.stickGroup,
-                    ...(isHintEnabled && group.type === 'available' ? styles.hintBorder : {})
-                  }}
-                >
-                  <div style={styles.stickGroupSticks}>
-                    {group.sticks.map((stick, stickIndex) =>
-                      renderStick(stick, rowIndex, group.originalIndices[stickIndex])
-                    )}
-                  </div>
-                  <div style={{...styles.hintText, visibility: isHintEnabled ? 'visible' : 'hidden'}}>
-                    {group.type === 'available' ? group.sticks.length : '-'}
-                  </div>
-                </div>
-              ))}
+              {row.map((stick, stickIndex) =>
+                renderStick(stick, rowIndex, stickIndex)
+              )}
             </div>
           ))}
         </div>
@@ -196,9 +131,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           >
             えらんだぼうをとる
           </PositiveButton>
-          <div data-testid="hint-nim-sum" style={nimSumStyle}>
-            {nimSumStatus}
-          </div>
         </div>
       </div>
     );

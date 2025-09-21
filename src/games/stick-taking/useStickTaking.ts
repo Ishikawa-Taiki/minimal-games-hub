@@ -2,16 +2,13 @@ import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 import {
   BaseGameController,
-  HintableGameController,
   BaseGameState,
-  HintState,
 } from '@/core/types/game';
 import {
   GameState as CoreGameState,
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
-  calculateNimData,
   Difficulty,
   Player,
 } from './core';
@@ -21,8 +18,7 @@ import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 type StickTakingAction =
   | { type: 'SELECT_STICK'; rowIndex: number; stickId: number }
   | { type: 'TAKE_STICKS' }
-  | { type: 'RESET_GAME'; difficulty: Difficulty | null }
-  | { type: 'SET_HINTS_ENABLED'; enabled: boolean };
+  | { type: 'RESET_GAME'; difficulty: Difficulty | null };
 
 // Adapt GameState to BaseGameState
 export interface StickTakingGameState extends BaseGameState {
@@ -31,7 +27,6 @@ export interface StickTakingGameState extends BaseGameState {
   winner: Player | null;
   difficulty: Difficulty | null;
   selectedSticks: CoreGameState['selectedSticks'];
-  hintsEnabled: boolean;
 }
 
 function createNewInitialState(difficulty: Difficulty | null): StickTakingGameState {
@@ -42,7 +37,6 @@ function createNewInitialState(difficulty: Difficulty | null): StickTakingGameSt
       winner: null,
       difficulty: null,
       selectedSticks: [],
-      hintsEnabled: false,
       status: 'waiting',
     };
   }
@@ -50,7 +44,6 @@ function createNewInitialState(difficulty: Difficulty | null): StickTakingGameSt
   return {
     ...coreState,
     status: 'playing',
-    hintsEnabled: false,
   };
 }
 
@@ -71,23 +64,17 @@ function stickTakingReducer(state: StickTakingGameState, action: StickTakingActi
     }
     case 'RESET_GAME':
       return createNewInitialState(action.difficulty);
-    case 'SET_HINTS_ENABLED': {
-      if (state.status !== 'playing') return state;
-      return { ...state, hintsEnabled: action.enabled };
-    }
     default:
       return state;
   }
 }
 
 // Controller type
-export type StickTakingController = BaseGameController<StickTakingGameState, StickTakingAction> &
-  HintableGameController<StickTakingGameState, StickTakingAction> & {
+export type StickTakingController = BaseGameController<StickTakingGameState, StickTakingAction> & {
     selectStick: (rowIndex: number, stickId: number) => void;
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
-    nimData: NimData;
   };
 
 // The hook
@@ -130,31 +117,12 @@ export function useStickTaking(): StickTakingController {
     dispatch({ type: 'TAKE_STICKS' });
   }, [logger]);
 
-  const setHints = useCallback((enabled: boolean) => {
-    logger.log('SET_HINTS_CALLED', { enabled });
-    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
-  }, [logger]);
-
-  const hintState: HintState = useMemo(() => ({
-    enabled: gameState.hintsEnabled,
-  }), [gameState.hintsEnabled]);
-
-  const nimData = useMemo(() => {
-    if (gameState.status !== 'playing' || !gameState.rows || gameState.rows.length === 0) {
-      return { chunkLists: [], nimSum: 0 };
-    }
-    return calculateNimData(gameState.rows);
-  }, [gameState.rows, gameState.status]);
-
   return useMemo(() => ({
     gameState,
     dispatch,
     resetGame,
     selectStick,
     takeSticks,
-    setHints,
-    hintState,
-    nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
     isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
@@ -169,5 +137,5 @@ export function useStickTaking(): StickTakingController {
       }
       return { statusText: 'ゲーム開始' };
     })(),
-  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
+  }), [gameState, resetGame, selectStick, takeSticks, startGame]);
 }

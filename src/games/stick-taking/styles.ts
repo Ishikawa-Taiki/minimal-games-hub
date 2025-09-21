@@ -37,7 +37,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     gap: '0', // Let the groups handle spacing
-    minHeight: '78px', // stick height + hint height
   },
   stickGroup: {
     display: 'flex',
@@ -54,13 +53,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     border: '2px solid rgba(0, 116, 217, 0.5)',
     borderRadius: '6px',
     padding: '4px',
-  },
-  hintText: {
-    minHeight: '1.2rem',
-    color: '#666',
-    fontFamily: 'monospace',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
   },
   stick: {
     height: '60px',
@@ -92,11 +84,5 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     alignItems: 'center',
     gap: '0',
     marginBottom: '1rem',
-  },
-  nimSumStatus: {
-    minHeight: '24px',
-    fontSize: '1.1rem',
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
   },
 });

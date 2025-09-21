@@ -16,17 +16,6 @@ export interface GameState {
   status: 'waiting' | 'playing' | 'ended';
 }
 
-export interface Chunk {
-  length: number;
-  startIndex: number;
-  endIndex: number;
-}
-
-export interface NimData {
-  chunkLists: Chunk[][];
-  nimSum: number;
-}
-
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
   easy: [1, 2, 3],
   normal: [1, 2, 3, 4, 5],
@@ -53,50 +42,6 @@ export function createInitialState(difficulty: Difficulty): GameState {
   };
 }
 
-export function calculateNimData(rows: Stick[][]): NimData {
-  const chunkLists = rows.map(row => {
-    const chunksInRow: Chunk[] = [];
-    let currentChunkSize = 0;
-    let chunkStartIndex = -1;
-
-    row.forEach((stick, index) => {
-      if (!stick.isTaken) {
-        if (currentChunkSize === 0) {
-          chunkStartIndex = index;
-        }
-        currentChunkSize++;
-      } else {
-        if (currentChunkSize > 0) {
-          chunksInRow.push({
-            length: currentChunkSize,
-            startIndex: chunkStartIndex,
-            endIndex: index - 1,
-          });
-        }
-        currentChunkSize = 0;
-        chunkStartIndex = -1;
-      }
-    });
-
-    if (currentChunkSize > 0) {
-      chunksInRow.push({
-        length: currentChunkSize,
-        startIndex: chunkStartIndex,
-        endIndex: row.length - 1,
-      });
-    }
-    return chunksInRow;
-  });
-
-  const allChunkLengths = chunkLists.flat().map(chunk => chunk.length);
-  const nimSum = allChunkLengths.reduce((acc, val) => acc ^ val, 0);
-
-  return {
-    chunkLists,
-    nimSum,
-  };
-}
-
 export function selectStick(
   currentState: GameState,
   rowIndex: number,
@@ -120,12 +65,23 @@ export function selectStick(
       : [...selectedSticks];
 
   if (isAlreadySelected) {
+    const sortedSelection = newSelectedSticks.map(s => s.stickId).sort((a, b) => a - b);
+    const deselectedStickIndex = sortedSelection.indexOf(stickId);
+
+    // Only allow deselection of the first or last stick in a consecutive sequence
+    if (deselectedStickIndex > 0 && deselectedStickIndex < sortedSelection.length - 1) {
+      // If the deselected stick is in the middle, do not change the selection
+      return currentState;
+    }
+
     // Deselect stick
+    const updatedSelection = newSelectedSticks.filter(
+      s => !(s.row === rowIndex && s.stickId === stickId)
+    );
+
     return {
       ...currentState,
-      selectedSticks: newSelectedSticks.filter(
-        s => !(s.row === rowIndex && s.stickId === stickId)
-      ),
+      selectedSticks: updatedSelection,
     };
   }
 
