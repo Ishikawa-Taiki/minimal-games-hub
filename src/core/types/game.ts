@@ -32,7 +32,6 @@ export interface ScoreInfo {
 // ゲームの状態表示用データ
 export interface DisplayInfo {
   statusText: string;
-  color?: string;
 }
 
 export interface BaseGameController<TState extends BaseGameState, TAction> {

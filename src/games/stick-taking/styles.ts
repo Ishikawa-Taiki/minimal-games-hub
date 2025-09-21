@@ -52,44 +52,27 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     gap: '12px',
+    position: 'relative',
   },
-  gameContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    gap: '2rem',
-    width: '100%',
-    padding: '0 2rem',
-  },
-  leftPanel: {
+  rowContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '2rem',
+    gap: '4px',
   },
-  rightPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    minWidth: '150px',
-    paddingTop: '10px', // To align with the first row of sticks
-  },
-  hintSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px', // Matches board gap
-    marginBottom: '1rem',
-    width: '100%',
-    alignItems: 'flex-start',
-  },
-  hintRow: {
-    minHeight: '60px', // Matches stick height
-    display: 'flex',
-    alignItems: 'center',
-    fontFamily: 'monospace',
-    fontSize: '1.2rem',
+  hintChunkText: {
+    fontSize: '0.9rem',
     color: '#666',
+    fontFamily: 'monospace',
+    minHeight: '1.2rem', // 常に高さを確保
+  },
+  hintChunkVisualization: {
+    position: 'absolute',
+    top: '2px',
+    bottom: '2px',
+    backgroundColor: 'rgba(0, 116, 217, 0.2)',
+    borderRadius: '4px',
+    pointerEvents: 'none',
   },
   stick: {
     height: '60px',
@@ -155,61 +138,15 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   controls: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: '1rem',
+    gap: '8px',
     marginBottom: '1rem',
-    minHeight: '44px', // ボタンの高さに合わせる
   },
-  hintNimSum: {
-    minWidth: '200px',
-    textAlign: 'left',
-    paddingLeft: '20px',
+  nimSumStatus: {
+    minHeight: '24px', // 常に高さを確保
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
     fontFamily: 'monospace',
-    fontSize: '1.2rem',
-    fontWeight: 'bold',
-    color: '#0074d9',
-  },
-  hintButton: {
-    backgroundColor: '#6b7280',
-    padding: '0.5rem 1rem',
-    fontSize: '1rem',
-  },
-  hintButtonContainer: {
-    position: 'absolute',
-    bottom: '1rem',
-    right: '1rem',
-  },
-  topBar: {
-    position: 'absolute',
-    top: '1rem',
-    left: '1rem',
-    right: '1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: 'calc(100% - 2rem)',
-    pointerEvents: 'none',
-  },
-  hintBoxLeft: {
-    textAlign: 'left',
-    border: '2px solid #4a90e2',
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    backgroundColor: '#eef5ff',
-    minWidth: '120px',
-    pointerEvents: 'auto',
-  },
-  hintBoxRight: {
-    textAlign: 'right',
-    border: '2px solid #4a90e2',
-    padding: '0.5rem 1rem',
-    borderRadius: '8px',
-    backgroundColor: '#eef5ff',
-    minWidth: '120px',
-    pointerEvents: 'auto',
-  },
-  hintValue: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
   },
 });

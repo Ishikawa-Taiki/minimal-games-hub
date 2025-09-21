@@ -59,13 +59,13 @@ function stickTakingReducer(state: StickTakingGameState, action: StickTakingActi
   switch (action.type) {
     case 'SELECT_STICK': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintsEnabled ? 1 : 0 };
+      const coreState: CoreGameState = { ...state, status: 'playing', currentPlayer: state.currentPlayer, difficulty: state.difficulty };
       const newState = selectStickCore(coreState, action.rowIndex, action.stickId);
-      return { ...state, ...newState, status: 'playing' };
+      return { ...state, ...newState };
     }
     case 'TAKE_STICKS': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintsEnabled ? 1 : 0 };
+      const coreState: CoreGameState = { ...state, status: 'playing', currentPlayer: state.currentPlayer, difficulty: state.difficulty };
       const newState = handleTakeSticksCore(coreState);
       return { ...state, ...newState, status: newState.winner ? 'ended' : 'playing' };
     }
@@ -87,10 +87,7 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
-    nimData: {
-      chunkLists: number[][];
-      nimSum: number;
-    };
+    nimData: NimData;
   };
 
 // The hook
@@ -143,12 +140,11 @@ export function useStickTaking(): StickTakingController {
   }), [gameState.hintsEnabled]);
 
   const nimData = useMemo(() => {
-    if (gameState.status !== 'playing' || !gameState.currentPlayer || !gameState.difficulty) {
+    if (gameState.status !== 'playing' || !gameState.rows || gameState.rows.length === 0) {
       return { chunkLists: [], nimSum: 0 };
     }
-    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintsEnabled ? 1 : 0 };
-    return calculateNimData(coreState);
-  }, [gameState]);
+    return calculateNimData(gameState.rows);
+  }, [gameState.rows, gameState.status]);
 
   return useMemo(() => ({
     gameState,

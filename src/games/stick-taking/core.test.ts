@@ -136,41 +136,45 @@ describe('棒消しゲームのコアロジック', () => {
   describe('新しいヒント機能 (ニム和)', () => {
     it('初期状態（easy）で正しい塊リストとニム和を計算すること', () => {
       const state = createInitialState('easy'); // 盤面: [1, 2, 3]
-      const nimData = calculateNimData(state);
-      expect(nimData.chunkLists).toEqual([[1], [2], [3]]);
+      const nimData = calculateNimData(state.rows);
+      expect(nimData.chunkLists[0]).toEqual([{ length: 1, startIndex: 0, endIndex: 0 }]);
+      expect(nimData.chunkLists[1]).toEqual([{ length: 2, startIndex: 0, endIndex: 1 }]);
+      expect(nimData.chunkLists[2]).toEqual([{ length: 3, startIndex: 0, endIndex: 2 }]);
       expect(nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
     });
 
     it('棒が取られて塊が分割された場合に正しく計算すること', () => {
       const state = createInitialState('normal'); // 盤面: [1, 2, 3, 4, 5]
-      // 4段目(4本)の左から2本目を取る
-      state.rows[3][1].isTaken = true; // [1, 2, 3, [1, 2], 5] -> 4段目が [1, 2] に
+      // 4段目(4本)の左から2本目を取る -> [1, 0, 1, 1] -> 塊は [1, 2]
+      state.rows[3][1].isTaken = true;
 
-      const nimData = calculateNimData(state);
-      expect(nimData.chunkLists).toEqual([[1], [2], [3], [1, 2], [5]]);
+      const nimData = calculateNimData(state.rows);
+      expect(nimData.chunkLists[3]).toEqual([
+        { length: 1, startIndex: 0, endIndex: 0 },
+        { length: 2, startIndex: 2, endIndex: 3 },
+      ]);
+      const chunkLengths = nimData.chunkLists.flat().map(c => c.length);
+      expect(chunkLengths).toEqual([1, 2, 3, 1, 2, 5]);
       expect(nimData.nimSum).toBe(1 ^ 2 ^ 3 ^ 1 ^ 2 ^ 5); // 6
     });
 
     it('負け局面（ニム和が0）を正しく判定すること', () => {
       const state = createInitialState('easy'); // 盤面: [1, 2, 3], ニム和: 0
-      let nimData = calculateNimData(state);
+      const nimData = calculateNimData(state.rows);
       expect(nimData.nimSum).toBe(0);
-
-      // 盤面を [1, 2, 3] から [1, 1, 1] に変更 (プレイヤーが3段目から2本取ったと仮定)
-      state.rows[2][0].isTaken = true;
-      state.rows[2][2].isTaken = true; // 3 -> 1
-      nimData = calculateNimData(state);
-      expect(nimData.chunkLists).toEqual([[1], [2], [1]]);
-      expect(nimData.nimSum).toBe(2); // 1 ^ 2 ^ 1 = 2
     });
 
-    it('勝ち局面（ニム和が0以外）を正しく判定すること', () => {
-      const state = createInitialState('easy'); // 盤面: [1, 2, 3]
-      // 3段目から1本取る -> [1, 2, 2]
+    it('勝ち局面（ニム和が0以外）に遷移することを正しく判定すること', () => {
+      const state = createInitialState('easy'); // 初期盤面: [1, 2, 3], ニム和: 0
+      // 3段目から2本取る -> [1, 2, 1]
       state.rows[2][0].isTaken = true;
-      const nimData = calculateNimData(state);
-      expect(nimData.chunkLists).toEqual([[1], [2], [2]]);
-      expect(nimData.nimSum).toBe(1); // 1 ^ 2 ^ 2 = 1
+      state.rows[2][2].isTaken = true;
+      const nimData = calculateNimData(state.rows);
+
+      expect(nimData.chunkLists[2]).toEqual([{ length: 1, startIndex: 1, endIndex: 1 }]);
+      const chunkLengths = nimData.chunkLists.flat().map(c => c.length);
+      expect(chunkLengths).toEqual([1, 2, 1]);
+      expect(nimData.nimSum).toBe(2); // 1 ^ 2 ^ 1 = 2
     });
 
     it('すべての棒がなくなった場合に空のリストとニム和0を返すこと', () => {
@@ -178,7 +182,7 @@ describe('棒消しゲームのコアロジック', () => {
       state.rows = state.rows.map(row =>
         row.map(stick => ({...stick, isTaken: true}))
       );
-      const nimData = calculateNimData(state);
+      const nimData = calculateNimData(state.rows);
       expect(nimData.chunkLists).toEqual([[], [], []]);
       expect(nimData.nimSum).toBe(0);
     });

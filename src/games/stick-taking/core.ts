@@ -13,7 +13,18 @@ export interface GameState {
   winner: Player | null;
   difficulty: Difficulty;
   selectedSticks: { row: number; stickId: number }[];
-  hintLevel: number;
+  status: 'waiting' | 'playing' | 'ended';
+}
+
+export interface Chunk {
+  length: number;
+  startIndex: number;
+  endIndex: number;
+}
+
+export interface NimData {
+  chunkLists: Chunk[][];
+  nimSum: number;
 }
 
 const STICKS_PER_ROW: { [key in Difficulty]: number[] } = {
@@ -38,32 +49,47 @@ export function createInitialState(difficulty: Difficulty): GameState {
     winner: null,
     difficulty,
     selectedSticks: [],
-    hintLevel: 0,
+    status: 'waiting',
   };
 }
 
-export function calculateNimData(state: GameState): { chunkLists: number[][]; nimSum: number } {
-  const chunkLists = state.rows.map(row => {
-    const chunksInRow: number[] = [];
+export function calculateNimData(rows: Stick[][]): NimData {
+  const chunkLists = rows.map(row => {
+    const chunksInRow: Chunk[] = [];
     let currentChunkSize = 0;
-    row.forEach(stick => {
+    let chunkStartIndex = -1;
+
+    row.forEach((stick, index) => {
       if (!stick.isTaken) {
+        if (currentChunkSize === 0) {
+          chunkStartIndex = index;
+        }
         currentChunkSize++;
       } else {
         if (currentChunkSize > 0) {
-          chunksInRow.push(currentChunkSize);
+          chunksInRow.push({
+            length: currentChunkSize,
+            startIndex: chunkStartIndex,
+            endIndex: index - 1,
+          });
         }
         currentChunkSize = 0;
+        chunkStartIndex = -1;
       }
     });
+
     if (currentChunkSize > 0) {
-      chunksInRow.push(currentChunkSize);
+      chunksInRow.push({
+        length: currentChunkSize,
+        startIndex: chunkStartIndex,
+        endIndex: row.length - 1,
+      });
     }
     return chunksInRow;
   });
 
-  const allChunks = chunkLists.flat();
-  const nimSum = allChunks.reduce((acc, val) => acc ^ val, 0);
+  const allChunkLengths = chunkLists.flat().map(chunk => chunk.length);
+  const nimSum = allChunkLengths.reduce((acc, val) => acc ^ val, 0);
 
   return {
     chunkLists,

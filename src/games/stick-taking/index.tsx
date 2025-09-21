@@ -112,46 +112,61 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const renderGameScreen = () => {
     if (!gameState || !gameState.rows) return null;
 
-    const nimSumStatus = nimData.nimSum === 0
+    const isHintEnabled = hintState.enabled;
+    const nimSumValue = nimData.nimSum;
+
+    const nimSumStatus = nimSumValue === 0
       ? `ピンチ！ (ニム和 = 0)`
-      : `チャンス (ニム和 = ${nimData.nimSum})`;
+      : `チャンス (ニム和 = ${nimSumValue})`;
+
+    const nimSumStyle = {
+      ...styles.nimSumStatus,
+      color: nimSumValue === 0 ? '#ff4136' : '#0074d9',
+      visibility: isHintEnabled ? 'visible' : 'hidden',
+    };
+
+    const STICK_WIDTH = 44;
+    const STICK_GAP = 12;
 
     return (
       <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
-        <div style={styles.gameContainer}>
-          <div style={styles.leftPanel}>
-            <div style={styles.board}>
-              {gameState.rows.map((row, rowIndex) => (
-                <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
+        <div style={styles.board}>
+          {gameState.rows.map((row, rowIndex) => {
+            const chunkList = nimData.chunkLists[rowIndex] || [];
+            const hintText = chunkList.length > 0 ? `[${chunkList.map(c => c.length).join(', ')}]` : '[-]';
+
+            return (
+              <div key={rowIndex} style={styles.rowContainer}>
+                <div data-testid={`row-${rowIndex}`} style={styles.row}>
                   {row.map((stick) => renderStick(stick, rowIndex))}
+                  {isHintEnabled && chunkList.map((chunk, chunkIndex) => {
+                    const width = chunk.length * STICK_WIDTH + (chunk.length - 1) * STICK_GAP;
+                    const left = chunk.startIndex * (STICK_WIDTH + STICK_GAP);
+                    const visualizationStyle = {
+                      ...styles.hintChunkVisualization,
+                      left: `${left}px`,
+                      width: `${width}px`,
+                    };
+                    return <div key={chunkIndex} style={visualizationStyle} />;
+                  })}
                 </div>
-              ))}
-            </div>
-            <div style={styles.controls}>
-              <PositiveButton
-                size="large"
-                onClick={takeSticks}
-                disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
-              >
-                えらんだぼうをとる
-              </PositiveButton>
-            </div>
-          </div>
-          <div style={styles.rightPanel}>
-            {hintState.enabled && (
-              <>
-                <div style={styles.hintSection}>
-                  {gameState.rows.map((row, rowIndex) => (
-                    <div key={rowIndex} style={styles.hintRow} data-testid={`hint-chunk-${rowIndex}`}>
-                      {nimData.chunkLists[rowIndex]?.length > 0 ? `[${nimData.chunkLists[rowIndex].join(', ')}]` : '[-]' }
-                    </div>
-                  ))}
+                <div data-testid={`hint-chunk-${rowIndex}`} style={{ ...styles.hintChunkText, visibility: isHintEnabled ? 'visible' : 'hidden' }}>
+                  {hintText}
                 </div>
-                <div style={styles.hintNimSum} data-testid="hint-nim-sum">
-                  {nimSumStatus}
-                </div>
-              </>
-            )}
+              </div>
+            );
+          })}
+        </div>
+        <div style={styles.controls}>
+          <PositiveButton
+            size="large"
+            onClick={takeSticks}
+            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0 || !!gameState.winner}
+          >
+            えらんだぼうをとる
+          </PositiveButton>
+          <div data-testid="hint-nim-sum" style={nimSumStyle}>
+            {nimSumStatus}
           </div>
         </div>
       </div>

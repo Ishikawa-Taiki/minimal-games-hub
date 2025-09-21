@@ -114,7 +114,11 @@ describe('useStickTaking', () => {
         result.current.setHints(true);
       });
 
-      expect(result.current.nimData.chunkLists).toEqual([[1], [2], [3]]);
+      expect(result.current.nimData.chunkLists).toEqual([
+        [{ length: 1, startIndex: 0, endIndex: 0 }],
+        [{ length: 2, startIndex: 0, endIndex: 1 }],
+        [{ length: 3, startIndex: 0, endIndex: 2 }],
+      ]);
       expect(result.current.nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
     });
   });
