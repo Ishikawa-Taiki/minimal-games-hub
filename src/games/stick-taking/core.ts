@@ -120,7 +120,17 @@ export function selectStick(
       : [...selectedSticks];
 
   if (isAlreadySelected) {
-    // Deselect stick
+    const sortedSelection = newSelectedSticks.map(s => s.stickId).sort((a, b) => a - b);
+    const deselectedStickIndex = sortedSelection.indexOf(stickId);
+
+    if (deselectedStickIndex > 0 && deselectedStickIndex < sortedSelection.length - 1) {
+      // If the deselected stick is in the middle, reset selection to only the currently clicked stick
+      return {
+        ...currentState,
+        selectedSticks: [{ row: rowIndex, stickId }],
+      };
+    }
+    // Deselect stick if it's at the ends
     return {
       ...currentState,
       selectedSticks: newSelectedSticks.filter(

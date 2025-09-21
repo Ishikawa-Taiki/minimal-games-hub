@@ -79,6 +79,20 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.selectedSticks).toHaveLength(0);
     });
 
+    it('選択範囲の真ん中の棒を選択すると、選択がリセットされてその棒のみが選択されること', () => {
+      let state = createInitialState('normal');
+      // Select sticks 1, 2, 3 in row 4
+      state = selectStick(state, 4, state.rows[4][1].id);
+      state = selectStick(state, 4, state.rows[4][2].id);
+      state = selectStick(state, 4, state.rows[4][3].id);
+
+      // Deselect the middle stick (stick 2)
+      state = selectStick(state, 4, state.rows[4][2].id);
+
+      expect(state.selectedSticks).toHaveLength(1);
+      expect(state.selectedSticks[0]).toEqual({ row: 4, stickId: state.rows[4][2].id });
+    });
+
     it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][0];
