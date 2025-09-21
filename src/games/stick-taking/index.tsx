@@ -121,7 +121,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
     const nimSumStyle = {
       ...styles.nimSumStatus,
-      color: nimSumValue === 0 ? '#ff4136' : '#0074d9',
+      color: gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9',
       visibility: isHintEnabled ? 'visible' : 'hidden',
     };
 
