@@ -37,6 +37,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     gap: '0', // Let the groups handle spacing
+    minHeight: '78px', // stick height + hint height
   },
   stickGroup: {
     display: 'flex',

@@ -3,7 +3,6 @@ import {
   createInitialState,
   selectStick,
   handleTakeSticks,
-  calculateNimData,
 } from './core';
 
 describe('棒消しゲームのコアロジック', () => {
@@ -40,10 +39,27 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.selectedSticks[0]).toEqual({ row: 1, stickId: stickToSelect.id });
     });
 
-    it('連続した複数の棒を選択できること', () => {
+    it('右側に連続した複数の棒を選択できること', () => {
       let state = createInitialState('easy');
       const stick1 = state.rows[2][1];
       const stick2 = state.rows[2][2];
+
+      state = selectStick(state, 2, stick1.id);
+      state = selectStick(state, 2, stick2.id);
+
+      expect(state.selectedSticks).toHaveLength(2);
+      expect(state.selectedSticks).toEqual(
+        expect.arrayContaining([
+          { row: 2, stickId: stick1.id },
+          { row: 2, stickId: stick2.id },
+        ])
+      );
+    });
+
+    it('左側に連続した複数の棒を選択できること', () => {
+      let state = createInitialState('easy');
+      const stick1 = state.rows[2][1];
+      const stick2 = state.rows[2][0];
 
       state = selectStick(state, 2, stick1.id);
       state = selectStick(state, 2, stick2.id);
@@ -69,7 +85,7 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.selectedSticks[0]).toEqual({ row: 2, stickId: stick2.id });
     });
 
-    it('選択済みの棒を再度選択すると選択解除されること', () => {
+    it('選択済みの棒（1本のみ）を再度選択すると選択解除されること', () => {
       let state = createInitialState('easy');
       const stick = state.rows[1][0];
 
@@ -79,18 +95,19 @@ describe('棒消しゲームのコアロジック', () => {
       expect(state.selectedSticks).toHaveLength(0);
     });
 
-    it('選択範囲の真ん中の棒を選択すると、選択がリセットされてその棒のみが選択されること', () => {
+    it('選択済みの棒（端）を再度選択するとその棒のみ選択解除されること', () => {
       let state = createInitialState('normal');
-      // Select sticks 1, 2, 3 in row 4
-      state = selectStick(state, 4, state.rows[4][1].id);
-      state = selectStick(state, 4, state.rows[4][2].id);
-      state = selectStick(state, 4, state.rows[4][3].id);
+      const stick1 = state.rows[4][1];
+      const stick2 = state.rows[4][2];
 
-      // Deselect the middle stick (stick 2)
-      state = selectStick(state, 4, state.rows[4][2].id);
+      state = selectStick(state, 4, stick1.id);
+      state = selectStick(state, 4, stick2.id);
+      expect(state.selectedSticks).toHaveLength(2);
 
+      // 端（stick2）を選択解除
+      state = selectStick(state, 4, stick2.id);
       expect(state.selectedSticks).toHaveLength(1);
-      expect(state.selectedSticks[0]).toEqual({ row: 4, stickId: state.rows[4][2].id });
+      expect(state.selectedSticks[0]).toEqual({ row: 4, stickId: stick1.id });
     });
 
     it('連続していない棒を選択すると、後から選択した棒のみが選択状態になること', () => {
@@ -103,6 +120,26 @@ describe('棒消しゲームのコアロジック', () => {
 
       expect(state.selectedSticks).toHaveLength(1);
       expect(state.selectedSticks[0]).toEqual({ row: 2, stickId: stick2.id });
+    });
+
+    it('選択済みの棒（中間）を再度選択すると、選択がリセットされその棒のみが選択された状態になること', () => {
+      let state = createInitialState('normal');
+      const stick1 = state.rows[4][1];
+      const stick2 = state.rows[4][2];
+      const stick3 = state.rows[4][3];
+
+      // 3本選択
+      state = selectStick(state, 4, stick1.id);
+      state = selectStick(state, 4, stick2.id);
+      state = selectStick(state, 4, stick3.id);
+      expect(state.selectedSticks).toHaveLength(3);
+
+      // 真ん中のstick2を再度選択
+      state = selectStick(state, 4, stick2.id);
+
+      // stick2のみが選択された状態になる
+      expect(state.selectedSticks).toHaveLength(1);
+      expect(state.selectedSticks[0]).toEqual({ row: 4, stickId: stick2.id });
     });
   });
 
@@ -147,58 +184,4 @@ describe('棒消しゲームのコアロジック', () => {
     });
   });
 
-  describe('新しいヒント機能 (ニム和)', () => {
-    it('初期状態（easy）で正しい塊リストとニム和を計算すること', () => {
-      const state = createInitialState('easy'); // 盤面: [1, 2, 3]
-      const nimData = calculateNimData(state.rows);
-      expect(nimData.chunkLists[0]).toEqual([{ length: 1, startIndex: 0, endIndex: 0 }]);
-      expect(nimData.chunkLists[1]).toEqual([{ length: 2, startIndex: 0, endIndex: 1 }]);
-      expect(nimData.chunkLists[2]).toEqual([{ length: 3, startIndex: 0, endIndex: 2 }]);
-      expect(nimData.nimSum).toBe(0); // 1 ^ 2 ^ 3 = 0
-    });
-
-    it('棒が取られて塊が分割された場合に正しく計算すること', () => {
-      const state = createInitialState('normal'); // 盤面: [1, 2, 3, 4, 5]
-      // 4段目(4本)の左から2本目を取る -> [1, 0, 1, 1] -> 塊は [1, 2]
-      state.rows[3][1].isTaken = true;
-
-      const nimData = calculateNimData(state.rows);
-      expect(nimData.chunkLists[3]).toEqual([
-        { length: 1, startIndex: 0, endIndex: 0 },
-        { length: 2, startIndex: 2, endIndex: 3 },
-      ]);
-      const chunkLengths = nimData.chunkLists.flat().map(c => c.length);
-      expect(chunkLengths).toEqual([1, 2, 3, 1, 2, 5]);
-      expect(nimData.nimSum).toBe(1 ^ 2 ^ 3 ^ 1 ^ 2 ^ 5); // 6
-    });
-
-    it('負け局面（ニム和が0）を正しく判定すること', () => {
-      const state = createInitialState('easy'); // 盤面: [1, 2, 3], ニム和: 0
-      const nimData = calculateNimData(state.rows);
-      expect(nimData.nimSum).toBe(0);
-    });
-
-    it('勝ち局面（ニム和が0以外）に遷移することを正しく判定すること', () => {
-      const state = createInitialState('easy'); // 初期盤面: [1, 2, 3], ニム和: 0
-      // 3段目から2本取る -> [1, 2, 1]
-      state.rows[2][0].isTaken = true;
-      state.rows[2][2].isTaken = true;
-      const nimData = calculateNimData(state.rows);
-
-      expect(nimData.chunkLists[2]).toEqual([{ length: 1, startIndex: 1, endIndex: 1 }]);
-      const chunkLengths = nimData.chunkLists.flat().map(c => c.length);
-      expect(chunkLengths).toEqual([1, 2, 1]);
-      expect(nimData.nimSum).toBe(2); // 1 ^ 2 ^ 1 = 2
-    });
-
-    it('すべての棒がなくなった場合に空のリストとニム和0を返すこと', () => {
-      const state = createInitialState('easy');
-      state.rows = state.rows.map(row =>
-        row.map(stick => ({...stick, isTaken: true}))
-      );
-      const nimData = calculateNimData(state.rows);
-      expect(nimData.chunkLists).toEqual([[], [], []]);
-      expect(nimData.nimSum).toBe(0);
-    });
-  });
 });

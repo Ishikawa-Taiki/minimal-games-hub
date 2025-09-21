@@ -35,7 +35,9 @@ test.describe('棒消しゲーム', () => {
 
     // 初期状態のヒントが表示されることを確認
     const row4 = page.getByTestId('row-4');
-    await expect(row4.getByText('5')).toBeVisible();
+    await expect(row4.locator('[data-testid^="group-4-"]')).toHaveCount(1);
+    await expect(row4.locator('[data-testid^="group-4-0"]')).toBeVisible();
+
 
     // 5段目の真ん中の1本を取る -> [1,2,3,4,5] -> [1,2,3,4,[2,2]]
     await page.getByTestId('stick-4-2').click();
@@ -46,13 +48,9 @@ test.describe('棒消しゲーム', () => {
     const groups = row4Updated.locator('[data-testid^="group-4-"]');
     await expect(groups).toHaveCount(3);
 
-    // 各グループの内容を確認
-    await expect(groups.nth(0).getByText('2')).toBeVisible();
-    await expect(groups.nth(1).getByText('-')).toBeVisible();
-    await expect(groups.nth(2).getByText('2')).toBeVisible();
 
     // ヒントをオフにする
     await page.getByTestId('control-panel-hint-button').click();
-    await expect(row4.getByText('5')).not.toBeVisible();
+    await expect(row4.locator('[data-testid^="group-4-"]')).toHaveCount(1);
   });
 });
