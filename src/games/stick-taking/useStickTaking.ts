@@ -5,16 +5,16 @@ import {
   HintableGameController,
   BaseGameState,
   HintState,
-  ScoreInfo,
 } from '@/core/types/game';
 import {
   GameState as CoreGameState,
   createInitialState as createCoreInitialState,
   selectStick as selectStickCore,
   handleTakeSticks as handleTakeSticksCore,
-  getHintData,
+  calculateNimData,
   Difficulty,
   Player,
+  NimData,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -60,13 +60,13 @@ function stickTakingReducer(state: StickTakingGameState, action: StickTakingActi
   switch (action.type) {
     case 'SELECT_STICK': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintsEnabled ? 1 : 0 };
+      const coreState: CoreGameState = { ...state, status: 'playing', currentPlayer: state.currentPlayer, difficulty: state.difficulty };
       const newState = selectStickCore(coreState, action.rowIndex, action.stickId);
-      return { ...state, ...newState, status: 'playing' };
+      return { ...state, ...newState };
     }
     case 'TAKE_STICKS': {
       if (state.status !== 'playing' || !state.currentPlayer || !state.difficulty) return state;
-      const coreState: CoreGameState = { ...state, currentPlayer: state.currentPlayer, difficulty: state.difficulty, hintLevel: state.hintsEnabled ? 1 : 0 };
+      const coreState: CoreGameState = { ...state, status: 'playing', currentPlayer: state.currentPlayer, difficulty: state.difficulty };
       const newState = handleTakeSticksCore(coreState);
       return { ...state, ...newState, status: newState.winner ? 'ended' : 'playing' };
     }
@@ -88,6 +88,7 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     takeSticks: () => void;
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
+    nimData: NimData;
   };
 
 // The hook
@@ -121,63 +122,53 @@ export function useStickTaking(): StickTakingController {
   }, [logger, gameState.difficulty]);
 
   const selectStick = useCallback((rowIndex: number, stickId: number) => {
-    if (gameState.status !== 'playing') return;
     logger.log('SELECT_STICK_CALLED', { rowIndex, stickId });
     dispatch({ type: 'SELECT_STICK', rowIndex, stickId });
-  }, [logger, gameState.status]);
+  }, [logger]);
 
   const takeSticks = useCallback(() => {
-    if (gameState.status !== 'playing') return;
     logger.log('TAKE_STICKS_CALLED', {});
     dispatch({ type: 'TAKE_STICKS' });
-  }, [logger, gameState.status]);
+  }, [logger]);
 
   const setHints = useCallback((enabled: boolean) => {
-    if (gameState.status !== 'playing') return;
     logger.log('SET_HINTS_CALLED', { enabled });
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
-  }, [logger, gameState.status]);
-
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    if (gameState.status !== 'playing' || !gameState.hintsEnabled || !gameState.currentPlayer || !gameState.difficulty) return null;
-    const coreState: CoreGameState = { ...gameState, currentPlayer: gameState.currentPlayer, difficulty: gameState.difficulty, hintLevel: gameState.hintsEnabled ? 1 : 0 };
-    const hintData = getHintData(coreState);
-    return {
-      title: 'おしえて！',
-      items: [
-        { label: 'のこりのぼう', value: `${hintData.remainingSticksCount}本` },
-        { label: 'かたまりの数', value: `${hintData.totalChunkCount}個` },
-      ],
-    };
-  }, [gameState]);
+  }, [logger]);
 
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
 
-  return {
+  const nimData = useMemo(() => {
+    if (gameState.status !== 'playing' || !gameState.rows || gameState.rows.length === 0) {
+      return { chunkLists: [], nimSum: 0 };
+    }
+    return calculateNimData(gameState.rows);
+  }, [gameState.rows, gameState.status]);
+
+  return useMemo(() => ({
     gameState,
     dispatch,
     resetGame,
     selectStick,
     takeSticks,
     setHints,
-    getScoreInfo,
     hintState,
+    nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
-    isTurnOnly: useMemo(() => {
-      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
-    }, [gameState.status, gameState.winner]),
-    displayInfo: useMemo(() => {
+    isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
+    displayInfo: (() => {
       if (gameState.status === 'waiting') return { statusText: '難易度を選択してください' };
       if (gameState.winner) {
         return { statusText: `${gameState.winner}のかち` };
       }
       if (gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer}」のばん` };
+        const color = gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9';
+        return { statusText: `「${gameState.currentPlayer}」のばん`, color };
       }
       return { statusText: 'ゲーム開始' };
-    }, [gameState.status, gameState.winner, gameState.currentPlayer]),
-  };
+    })(),
+  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
 }
