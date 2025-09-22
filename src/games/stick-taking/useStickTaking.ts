@@ -1,11 +1,10 @@
-import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 import {
   BaseGameController,
   HintableGameController,
   BaseGameState,
   HintState,
-  ScoreInfo,
 } from '@/core/types/game';
 import {
   GameState as CoreGameState,
@@ -90,13 +89,6 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
     startGame: (difficulty: Difficulty) => void;
     difficulty: Difficulty | null;
     nimData: NimData;
-    interactionHandlers: {
-      onInteractionStart: (rowIndex: number, stickId: number) => void;
-      onInteractionMove: (rowIndex: number, stickId: number) => void;
-      onInteractionEnd: () => void;
-    };
-    getScoreInfo: () => ScoreInfo | null;
-    displayInfo: { statusText: string; color?: string };
   };
 
 // The hook
@@ -104,11 +96,6 @@ export function useStickTaking(): StickTakingController {
   const [gameState, dispatch] = useReducer(stickTakingReducer, createNewInitialState(null));
   const logger = useGameStateLogger('useStickTaking', gameState);
   const { alert } = useDialog();
-
-  const interactionState = useRef<{
-    isInteracting: boolean;
-    action: 'select' | 'deselect' | null;
-  }>({ isInteracting: false, action: null });
 
   useEffect(() => {
     if (gameState.winner) {
@@ -130,6 +117,7 @@ export function useStickTaking(): StickTakingController {
 
   const resetGame = useCallback(() => {
     logger.log('RESET_GAME_CALLED', { difficulty: gameState.difficulty });
+    // ゲームを難易度選択画面にリセットします。
     dispatch({ type: 'RESET_GAME', difficulty: null });
   }, [logger, gameState.difficulty]);
 
@@ -148,33 +136,6 @@ export function useStickTaking(): StickTakingController {
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   }, [logger]);
 
-  const onInteractionStart = useCallback((rowIndex: number, stickId: number) => {
-    if (gameState.status !== 'playing') return;
-    const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
-    if (!stick || stick.isTaken) return;
-    interactionState.current.isInteracting = true;
-    const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
-    interactionState.current.action = isSelected ? 'deselect' : 'select';
-    selectStick(rowIndex, stickId);
-  }, [gameState.status, gameState.rows, gameState.selectedSticks, selectStick]);
-
-  const onInteractionMove = useCallback((rowIndex: number, stickId: number) => {
-    if (!interactionState.current.isInteracting || gameState.status !== 'playing') return;
-    const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
-    if (!stick || stick.isTaken) return;
-    const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
-    if (interactionState.current.action === 'select' && !isSelected) {
-      selectStick(rowIndex, stickId);
-    } else if (interactionState.current.action === 'deselect' && isSelected) {
-      selectStick(rowIndex, stickId);
-    }
-  }, [gameState.status, gameState.rows, gameState.selectedSticks, selectStick]);
-
-  const onInteractionEnd = useCallback(() => {
-    interactionState.current.isInteracting = false;
-    interactionState.current.action = null;
-  }, []);
-
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
@@ -185,34 +146,6 @@ export function useStickTaking(): StickTakingController {
     }
     return calculateNimData(gameState.rows);
   }, [gameState.rows, gameState.status]);
-
-  const interactionHandlers = useMemo(() => ({
-    onInteractionStart,
-    onInteractionMove,
-    onInteractionEnd,
-  }), [onInteractionStart, onInteractionMove, onInteractionEnd]);
-
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    if (gameState.status !== 'playing') return null;
-    return {
-      title: 'のこりのぼう',
-      items: gameState.rows.map((row, index) => ({
-        label: `${index + 1}だんめ`,
-        value: row.filter(stick => !stick.isTaken).length,
-      })),
-    };
-  }, [gameState]);
-
-  const getDisplayStatus = useCallback((): string => {
-    if (gameState.status === 'waiting') return '難易度を選択してください';
-    if (gameState.winner) {
-      return `${gameState.winner}のかち`;
-    }
-    if (gameState.currentPlayer) {
-      return `「${gameState.currentPlayer}」のばん`;
-    }
-    return 'ゲーム開始';
-  }, [gameState.status, gameState.winner, gameState.currentPlayer]);
 
   return useMemo(() => ({
     gameState,
@@ -225,11 +158,17 @@ export function useStickTaking(): StickTakingController {
     nimData,
     startGame,
     difficulty: gameState?.difficulty ?? null,
-    interactionHandlers,
-    getScoreInfo,
-    getDisplayStatus,
-    displayInfo: {
-      statusText: getDisplayStatus(),
-    },
-  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame, interactionHandlers, getScoreInfo, getDisplayStatus]);
+    isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
+    displayInfo: (() => {
+      if (gameState.status === 'waiting') return { statusText: '難易度を選択してください' };
+      if (gameState.winner) {
+        return { statusText: `${gameState.winner}のかち` };
+      }
+      if (gameState.currentPlayer) {
+        const color = gameState.currentPlayer === 'プレイヤー1' ? '#ff4136' : '#0074d9';
+        return { statusText: `「${gameState.currentPlayer}」のばん`, color };
+      }
+      return { statusText: 'ゲーム開始' };
+    })(),
+  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
 }

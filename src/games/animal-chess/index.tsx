@@ -57,7 +57,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isGrayedOu
         const indicatorStyle = moveVectorToIndicatorMap[key];
         if (indicatorStyle) {
           const indicatorColor = piece.owner === OKASHI_TEAM ? 'rgba(239, 68, 68, 0.8)' : 'rgba(59, 130, 246, 0.8)';
-          const dynamicStyle = { ...styles.moveIndicator, ...indicatorStyle, backgroundColor: indicatorColor };
+          const dynamicStyle = { ...styles.moveIndicator, ...indicatorStyle, backgroundColor: indicatorColor, zIndex: 3 };
           return <div key={key} style={dynamicStyle} />;
         }
         return null;
