@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Stick, Difficulty, Chunk } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
@@ -22,44 +22,10 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const internalController = useStickTaking();
   const controller = externalController || internalController;
 
-  const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
-
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
+  const { gameState, takeSticks, startGame, nimData, hintState, interactionHandlers } = controller;
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
-  };
-
-  const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
-    setIsDragging(true);
-    const stick = gameState?.rows?.[rowIndex]?.find(s => s.id === stickId);
-    if (!stick || stick.isTaken) return;
-
-    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
-    const currentDragAction = isSelected ? 'deselect' : 'select';
-    setDragAction(currentDragAction);
-    selectStick(rowIndex, stickId);
-  };
-
-  const handleStickInteractionMove = (rowIndex: number, stickId: number) => {
-    if (isDragging && gameState?.rows) {
-      const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
-      if (!stick || stick.isTaken) return;
-
-      const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
-
-      if (dragAction === 'select' && !isSelected) {
-        selectStick(rowIndex, stickId);
-      } else if (dragAction === 'deselect' && isSelected) {
-        selectStick(rowIndex, stickId);
-      }
-    }
-  };
-
-  const handleInteractionEnd = () => {
-    setIsDragging(false);
-    setDragAction(null);
   };
 
   const renderDifficultyScreen = () => (
@@ -92,25 +58,31 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
         key={stick.id}
         data-testid={`stick-${rowIndex}-${stickIndex}`}
         data-taken={stick.isTaken.toString()}
+        data-selected={isSelected.toString()}
         style={stickStyle}
-        onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
-        onMouseEnter={() => handleStickInteractionMove(rowIndex, stick.id)}
-        onMouseUp={handleInteractionEnd}
+        onMouseDown={() => interactionHandlers.onInteractionStart(rowIndex, stick.id)}
+        onMouseEnter={() => interactionHandlers.onInteractionMove(rowIndex, stick.id)}
+        onMouseUp={interactionHandlers.onInteractionEnd}
         onTouchStart={(e) => {
           e.preventDefault();
-          handleStickInteractionStart(rowIndex, stick.id);
+          interactionHandlers.onInteractionStart(rowIndex, stick.id);
         }}
         onTouchMove={(e) => {
           e.preventDefault();
           const touch = e.touches[0];
           const element = document.elementFromPoint(touch.clientX, touch.clientY);
           if (element && element.getAttribute('data-testid')?.startsWith('stick-')) {
-            const [, rowStr, stickIdStr] = element.getAttribute('data-testid')!.split('-');
-            handleStickInteractionMove(parseInt(rowStr), parseInt(stickIdStr));
+            const [, rowStr, stickIndexStr] = element.getAttribute('data-testid')!.split('-');
+            const rowIndex = parseInt(rowStr, 10);
+            const stickIndex = parseInt(stickIndexStr, 10);
+            const stickUnderFinger = gameState.rows[rowIndex]?.[stickIndex];
+            if (stickUnderFinger) {
+              interactionHandlers.onInteractionMove(rowIndex, stickUnderFinger.id);
+            }
           }
         }}
-        onTouchEnd={handleInteractionEnd}
-        onMouseLeave={isDragging ? undefined : handleInteractionEnd}
+        onTouchEnd={interactionHandlers.onInteractionEnd}
+        onMouseLeave={interactionHandlers.onInteractionEnd}
       >
         {stick.isTaken && <div style={strikeThroughStyle}></div>}
       </div>
@@ -151,7 +123,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     const isHintEnabled = hintState.enabled;
 
     return (
-      <div style={styles.container} onMouseUp={handleInteractionEnd} onTouchEnd={handleInteractionEnd}>
+      <div style={styles.container} onMouseUp={interactionHandlers.onInteractionEnd} onTouchEnd={interactionHandlers.onInteractionEnd}>
         <div style={styles.board}>
           {processedRows.map((groups, rowIndex) => (
             <div key={rowIndex} data-testid={`row-${rowIndex}`} style={styles.row}>
