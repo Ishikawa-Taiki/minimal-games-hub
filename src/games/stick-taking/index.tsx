@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Stick, Difficulty, Chunk } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
@@ -24,42 +24,41 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
 
   const { gameState, selectStick, takeSticks, startGame, nimData, hintState } = controller;
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragAction, setDragAction] = useState<'select' | 'deselect' | null>(null);
+  const isDragging = useRef(false);
+  const dragAction = useRef<'select' | 'deselect' | null>(null);
 
   const handleDifficultySelect = (selectedDifficulty: Difficulty) => {
     startGame(selectedDifficulty);
   };
 
   const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
-    setIsDragging(true);
+    isDragging.current = true;
     const stick = gameState?.rows?.[rowIndex]?.find(s => s.id === stickId);
     if (!stick || stick.isTaken) return;
 
     const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
-    const currentDragAction = isSelected ? 'deselect' : 'select';
-    setDragAction(currentDragAction);
+    dragAction.current = isSelected ? 'deselect' : 'select';
     selectStick(rowIndex, stickId);
   };
 
   const handleStickInteractionMove = (rowIndex: number, stickId: number) => {
-    if (isDragging && gameState?.rows) {
+    if (isDragging.current && gameState?.rows) {
       const stick = gameState.rows[rowIndex]?.find(s => s.id === stickId);
       if (!stick || stick.isTaken) return;
 
       const isSelected = gameState.selectedSticks.some(s => s.row === rowIndex && s.stickId === stickId);
 
-      if (dragAction === 'select' && !isSelected) {
+      if (dragAction.current === 'select' && !isSelected) {
         selectStick(rowIndex, stickId);
-      } else if (dragAction === 'deselect' && isSelected) {
+      } else if (dragAction.current === 'deselect' && isSelected) {
         selectStick(rowIndex, stickId);
       }
     }
   };
 
   const handleInteractionEnd = () => {
-    setIsDragging(false);
-    setDragAction(null);
+    isDragging.current = false;
+    dragAction.current = null;
   };
 
   const renderDifficultyScreen = () => (
@@ -74,7 +73,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     </div>
   );
 
-  const renderStick = (stick: Stick, rowIndex: number, stickIndex: number) => {
+  const renderStick = (stick: Stick, rowIndex: number) => {
     const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stick.id);
     const stickStyle = {
       ...styles.stick,
@@ -90,7 +89,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     return (
       <div
         key={stick.id}
-        data-testid={`stick-${rowIndex}-${stickIndex}`}
+        data-testid={`stick-${rowIndex}-${stick.id}`}
         data-taken={stick.isTaken.toString()}
         style={stickStyle}
         onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
@@ -110,7 +109,6 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           }
         }}
         onTouchEnd={handleInteractionEnd}
-        onMouseLeave={isDragging ? undefined : handleInteractionEnd}
       >
         {stick.isTaken && <div style={strikeThroughStyle}></div>}
       </div>
@@ -165,8 +163,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
                   }}
                 >
                   <div style={styles.stickGroupSticks}>
-                    {group.sticks.map((stick, stickIndex) =>
-                      renderStick(stick, rowIndex, group.originalIndices[stickIndex])
+                    {group.sticks.map((stick) =>
+                      renderStick(stick, rowIndex)
                     )}
                   </div>
                   <div style={{...styles.hintText, visibility: isHintEnabled ? 'visible' : 'hidden'}}>

@@ -18,7 +18,7 @@ test.describe('棒消しゲーム', () => {
 
   test('棒を取るとターンが交代すること', async ({ page }) => {
     await page.getByRole('button', { name: 'かんたん (3だん)' }).click();
-    await page.locator('[data-testid="stick-0-0"]').click();
+    await page.getByTestId('row-0').locator('[data-testid^="stick-"]').nth(0).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
     await expect(page.getByTestId('game-state-display').locator('p')).toHaveText('「プレイヤー2」のばん');
   });
@@ -38,7 +38,7 @@ test.describe('棒消しゲーム', () => {
     await expect(row4.getByText('5')).toBeVisible();
 
     // 5段目の真ん中の1本を取る -> [1,2,3,4,5] -> [1,2,3,4,[2,2]]
-    await page.getByTestId('stick-4-2').click();
+    await page.getByTestId('row-4').locator('[data-testid^="stick-"]').nth(2).click();
     await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
 
     // ヒントが更新されることを確認
