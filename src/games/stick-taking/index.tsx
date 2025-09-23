@@ -73,7 +73,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     </div>
   );
 
-  const renderStick = (stick: Stick, rowIndex: number, stickIndex: number) => {
+  const renderStick = (stick: Stick, rowIndex: number) => {
     const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stick.id);
     const stickStyle = {
       ...styles.stick,
@@ -89,7 +89,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
     return (
       <div
         key={stick.id}
-        data-testid={`stick-${rowIndex}-${stickIndex}`}
+        data-testid={`stick-${rowIndex}-${stick.id}`}
         data-taken={stick.isTaken.toString()}
         style={stickStyle}
         onMouseDown={() => handleStickInteractionStart(rowIndex, stick.id)}
@@ -163,8 +163,8 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
                   }}
                 >
                   <div style={styles.stickGroupSticks}>
-                    {group.sticks.map((stick, stickIndex) =>
-                      renderStick(stick, rowIndex, group.originalIndices[stickIndex])
+                    {group.sticks.map((stick) =>
+                      renderStick(stick, rowIndex)
                     )}
                   </div>
                   <div style={{...styles.hintText, visibility: isHintEnabled ? 'visible' : 'hidden'}}>
