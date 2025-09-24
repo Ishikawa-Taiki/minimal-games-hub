@@ -120,13 +120,13 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
         <div style={styles.scoreItem}>
           <span style={styles.scorePiece}>歩</span>
           <span style={styles.capturedPiece}>
-            捕獲数: {gameState.capturedPieces.PLAYER2}
+            とったかず: {gameState.capturedPieces.PLAYER2}
           </span>
         </div>
         <div style={styles.scoreItem}>
           <span style={styles.scorePiece}>と</span>
           <span style={styles.capturedPiece}>
-            捕獲数: {gameState.capturedPieces.PLAYER1}
+            とったかず: {gameState.capturedPieces.PLAYER1}
           </span>
         </div>
       </div>
