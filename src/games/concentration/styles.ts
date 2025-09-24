@@ -209,12 +209,13 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   scoreBoard: {
     display: 'flex',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
-    padding: '10px 0',
+    padding: '10px 20px',
     marginBottom: '15px',
     fontSize: '1.2rem',
     fontWeight: 'bold',
+    boxSizing: 'border-box',
   },
   score: {
     padding: '8px 16px',

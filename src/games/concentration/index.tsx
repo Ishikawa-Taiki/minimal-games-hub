@@ -174,10 +174,10 @@ const Concentration = ({ controller }: ConcentrationProps) => {
     return (
       <div style={styles.scoreBoard}>
         <div style={player1ScoreStyle} data-testid="score-player1">
-          プレイヤー1 とったペア: {scores.player1}
+          プレイヤー1のペア: {scores.player1}
         </div>
         <div style={player2ScoreStyle} data-testid="score-player2">
-          プレイヤー2 とったペア: {scores.player2}
+          プレイヤー2のペア: {scores.player2}
         </div>
       </div>
     );

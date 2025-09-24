@@ -272,14 +272,9 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
 
   const getScoreInfo = useCallback((): ScoreInfo | null => {
-    return {
-      title: 'スコア',
-      items: [
-        { label: 'プレイヤー1', value: gameState.scores.player1 },
-        { label: 'プレイヤー2', value: gameState.scores.player2 }
-      ]
-    };
-  }, [gameState.scores]);
+    // 画面上部にスコアを直接表示するため、サイドバーのスコア情報は無効化する
+    return null;
+  }, []);
 
   const isGameStarted = useCallback(() => {
     return gameState.flippedIndices.length > 0 || 
