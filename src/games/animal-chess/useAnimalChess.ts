@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useDialog } from '@/app/components/ui/DialogProvider';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -146,8 +146,6 @@ export type AnimalChessController = BaseGameController<AnimalChessGameState, Ani
     getSelectedCell: () => GameState['selectedCell'];
     getSelectedCaptureIndex: () => GameState['selectedCaptureIndex'];
     getBoard: () => GameState['board'];
-    // スコア情報
-    getScoreInfo: () => ScoreInfo | null;
   };
 
 const TEAM_NAMES: { [key in Player]: string } = {
@@ -312,16 +310,6 @@ export function useAnimalChess(): AnimalChessController {
   const getSelectedCaptureIndex = useCallback(() => gameState.selectedCaptureIndex, [gameState.selectedCaptureIndex]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
 
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    return {
-      title: '捕獲駒数',
-      items: [
-        { label: TEAM_NAMES.OKASHI, value: `${gameState.capturedPieces.OKASHI.length}個` },
-        { label: TEAM_NAMES.OHANA, value: `${gameState.capturedPieces.OHANA.length}個` }
-      ]
-    };
-  }, [gameState.capturedPieces]);
-
   const displayInfo = useMemo(() => {
     if (gameState.winner) {
       return { statusText: `${TEAM_NAMES[gameState.winner]}のかち` };
@@ -345,7 +333,6 @@ export function useAnimalChess(): AnimalChessController {
     getSelectedCell,
     getSelectedCaptureIndex,
     getBoard,
-    getScoreInfo,
     // HintableGameController
     hintState,
     setHints,
