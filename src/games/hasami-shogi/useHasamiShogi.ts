@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Move } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -115,8 +115,6 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
     isGameStarted: () => boolean;
-    // スコア情報
-    getScoreInfo: () => ScoreInfo | null;
   };
 
 export function useHasamiShogi(): HasamiShogiController {
@@ -184,16 +182,6 @@ export function useHasamiShogi(): HasamiShogiController {
            gameState.capturedPieces.PLAYER2 > 0;
   }, [gameState.board, gameState.capturedPieces]);
 
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    return {
-      title: '捕獲数',
-      items: [
-        { label: '「歩」', value: gameState.capturedPieces.PLAYER2 },
-        { label: '「と」', value: gameState.capturedPieces.PLAYER1 }
-      ]
-    };
-  }, [gameState.capturedPieces]);
-
   return {
     gameState,
     dispatch,
@@ -207,7 +195,6 @@ export function useHasamiShogi(): HasamiShogiController {
     getSelectedPiece,
     getPotentialCaptures,
     isGameStarted,
-    getScoreInfo,
     // HintableGameController
     hintState,
     setHints,
