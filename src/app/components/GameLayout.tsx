@@ -26,6 +26,7 @@ interface GameLayoutProps<TState extends BaseGameState, TAction> {
 
 // コントロールパネルコンポーネント
 interface ControlPanelProps<TState extends BaseGameState, TAction> {
+  slug: string; // Add slug to props
   gameController: BaseGameController<TState, TAction> |
   HintableGameController<TState, TAction> |
   HistoryGameController<TState, TAction> |
@@ -35,6 +36,7 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
 }
 
 function ControlPanel<TState extends BaseGameState, TAction>({
+  slug, // Add slug to props
   gameController,
   isVisible = true,
   onShowRules,
@@ -65,6 +67,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
 
   // ゲーム固有のスコア表示（ポリモーフィック設計）
   const renderScoreInfo = () => {
+    if (slug === 'concentration') return null; // 神経衰弱では表示しない
     // 新しい設計: 各ゲームコントローラーが自身のスコア情報を提供
     if ('getScoreInfo' in gameController && typeof gameController.getScoreInfo === 'function') {
       const scoreInfo = gameController.getScoreInfo();
@@ -249,6 +252,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             title="コントロール"
           >
             <ControlPanel
+              slug={slug}
               gameController={gameController}
               onShowRules={() => setIsRulesModalOpen(true)}
             />
@@ -275,6 +279,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
               <h1 style={gameLayoutStyles.sidebarTitle}>{gameName}</h1>
             </div>
             <ControlPanel
+              slug={slug}
               gameController={gameController}
               onShowRules={() => setIsRulesModalOpen(true)}
             />
