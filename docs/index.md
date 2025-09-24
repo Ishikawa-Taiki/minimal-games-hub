@@ -10,6 +10,7 @@
 
 -   **[プロジェクト憲法](./rules/project-manifest.md)**
 -   **[人間向けガイド](./rules/human-developer-guide.md)**
+-   **[AIエージェント向けガイド](../AGENTS.md)**
 -   **技術ガイド**
     -   [アプリケーションアーキテクチャ](./rules/technical-guide-application-architecture.md)
     -   [共通コンポーネント](./rules/technical-guide-common-components.md)
