@@ -207,4 +207,25 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     width: '100%',
     maxWidth: '300px',
   },
+  scoreBoard: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: '10px 20px',
+    marginBottom: '15px',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    boxSizing: 'border-box',
+  },
+  score: {
+    padding: '8px 16px',
+    borderRadius: '8px',
+    transition: 'background-color 0.3s',
+  },
+  activePlayerScore: {
+    padding: '8px 16px',
+    borderRadius: '8px',
+    transition: 'background-color 0.3s',
+    backgroundColor: 'rgba(255, 255, 0, 0.3)', // yellow highlight
+  },
 });

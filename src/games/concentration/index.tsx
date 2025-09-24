@@ -166,8 +166,26 @@ const Concentration = ({ controller }: ConcentrationProps) => {
     ...getBoardDimensions(),
   };
 
+  const ScoreBoard = () => {
+    const { scores, currentPlayer } = gameState;
+    const player1ScoreStyle = currentPlayer === 'player1' ? styles.activePlayerScore : styles.score;
+    const player2ScoreStyle = currentPlayer === 'player2' ? styles.activePlayerScore : styles.score;
+
+    return (
+      <div style={styles.scoreBoard}>
+        <div style={player1ScoreStyle} data-testid="score-player1">
+          プレイヤー1のペア: {scores.player1}
+        </div>
+        <div style={player2ScoreStyle} data-testid="score-player2">
+          プレイヤー2のペア: {scores.player2}
+        </div>
+      </div>
+    );
+  };
+
   const gameContent = (
     <div style={styles.gameContent}>
+      <ScoreBoard />
       <div style={styles.boardContainer}>
         <div style={boardStyle}>
           {board.map((card, index) => (
