@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useDialog } from '@/app/components/ui/DialogProvider';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, ScoreInfo } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
