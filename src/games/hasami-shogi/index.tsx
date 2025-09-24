@@ -116,6 +116,20 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
 
   const gameContent = (
     <>
+      <div style={styles.scoreBoard}>
+        <div style={styles.scoreItem}>
+          <span style={styles.scorePiece}>歩</span>
+          <span style={styles.capturedPiece}>
+            とったかず: {gameState.capturedPieces.PLAYER2}
+          </span>
+        </div>
+        <div style={styles.scoreItem}>
+          <span style={styles.scorePiece}>と</span>
+          <span style={styles.capturedPiece}>
+            とったかず: {gameState.capturedPieces.PLAYER1}
+          </span>
+        </div>
+      </div>
       <div style={styles.board}>
         {gameState.board.map((row, r) =>
           row.map((cell, c) => {

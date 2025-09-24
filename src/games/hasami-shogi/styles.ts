@@ -206,4 +206,29 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     width: '100%',
     maxWidth: '300px',
   },
+  scoreBoard: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: '400px',
+    padding: '0.5rem 1rem',
+    marginBottom: '1rem',
+    backgroundColor: '#f7fafc',
+    borderRadius: '8px',
+    boxSizing: 'border-box',
+  },
+  scoreItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  scorePiece: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+  },
+  capturedPiece: {
+    fontSize: '1rem',
+    color: '#718096', // gray-500
+  },
 });
