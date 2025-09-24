@@ -219,19 +219,6 @@ describe('useConcentration', () => {
     });
   });
 
-  describe('スコア情報', () => {
-    it('正しいスコア情報を返す', () => {
-      const { result } = renderHook(() => useConcentration());
-      
-      const scoreInfo = result.current.getScoreInfo();
-      expect(scoreInfo).not.toBeNull();
-      expect(scoreInfo?.title).toBe('スコア');
-      expect(scoreInfo?.items).toHaveLength(2);
-      expect(scoreInfo?.items[0]).toEqual({ label: 'プレイヤー1', value: 0 });
-      expect(scoreInfo?.items[1]).toEqual({ label: 'プレイヤー2', value: 0 });
-    });
-  });
-
   describe('ゲーム状態チェック', () => {
     it('ゲーム開始状態を正しく判定する', () => {
       const { result } = renderHook(() => useConcentration());
@@ -275,7 +262,6 @@ describe('useConcentration', () => {
       expect(result.current.gameState).toBeDefined();
       expect(result.current.dispatch).toBeDefined();
       expect(typeof result.current.resetGame).toBe('function');
-      expect(typeof result.current.getScoreInfo).toBe('function');
     });
   });
 

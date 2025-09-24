@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, ScoreInfo } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -157,8 +157,6 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     getHintedIndices: () => number[];
     getBoard: () => GameState['board'];
     getDifficulty: () => Difficulty;
-    // スコア情報
-    getScoreInfo: () => ScoreInfo | null;
     // ゲーム状態チェック
     isGameStarted: () => boolean;
     isEvaluating: () => boolean;
@@ -271,11 +269,6 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
   const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
 
-  const getScoreInfo = useCallback((): ScoreInfo | null => {
-    // 画面上部にスコアを直接表示するため、サイドバーのスコア情報は無効化する
-    return null;
-  }, []);
-
   const isGameStarted = useCallback(() => {
     return gameState.flippedIndices.length > 0 || 
            gameState.revealedIndices.length > 0 || 
@@ -301,7 +294,6 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getHintedIndices,
     getBoard,
     getDifficulty,
-    getScoreInfo,
     isGameStarted,
     isEvaluating,
     // HintableGameController
