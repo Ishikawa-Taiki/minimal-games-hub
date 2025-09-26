@@ -57,17 +57,21 @@ npm run test:e2e-ui            # UI付きで実行
 npm run test:e2e -- <spec>     # 特定specファイルの実行
 ```
 
-**テストファイル命名規則**:
-- `tests/*.spec.ts`
-- ゲーム名やページ名を含む
+**配置場所と命名規則**:
+- **ゲーム固有のテスト:**
+  - `src/games/{ゲーム名}/e2e/*.spec.ts`
+  - 各ゲームのディレクトリ配下の`e2e`ディレクトリに配置します。
+- **横断的なテスト:**
+  - `tests/*.spec.ts`
+  - 特定のゲームに依存しない、共通機能（ナビゲーション等）のテストを配置します。
 
 **例**:
 ```typescript
-// tests/reversi.spec.ts
+// src/games/reversi/e2e/reversi.spec.ts
 test('履歴機能が正しく動作する', async ({ page }) => {
   await page.goto('/games/reversi');
   await page.locator('[data-testid="cell-2-3"]').click();
-  
+
   const counter = await page.locator('[data-testid="history-counter"]').textContent();
   expect(counter).toBe('2 / 2');
 });
@@ -134,11 +138,11 @@ describe('Reversi Core Logic', () => {
 describe('useReversi Hook', () => {
   it('履歴機能が動作する', () => {
     const { result } = renderHook(() => useReversi());
-    
+
     act(() => {
       result.current.makeMove(2, 3);
     });
-    
+
     expect(result.current.gameHistory.length).toBe(2);
   });
 });
@@ -175,7 +179,7 @@ await page.locator('button:has-text("リセット")').click();
 
 ```bash
 npm run test:lint              # ESLint
-npm run test:license           # ライセンスチェック  
+npm run test:license           # ライセンスチェック
 npm run test:unit              # ユニットテスト
 npm run test:e2e               # E2Eテスト
 npm run build                  # ビルド確認
@@ -206,7 +210,7 @@ describe('New Game Core Logic', () => {
   });
 });
 
-// tests/new-game.spec.ts  
+// src/games/new-game/e2e/new-game.spec.ts
 describe('New GameのE2Eテスト', () => {
   test('基本操作が動作する', async ({ page }) => {
     // テスト実装
