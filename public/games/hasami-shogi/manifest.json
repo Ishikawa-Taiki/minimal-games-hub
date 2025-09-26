@@ -8,34 +8,16 @@
   "specDisplayFile": "/src/games/hasami-shogi/spec-display.md",
   "hints": [
     {
-      "id": "movable-pieces",
-      "title": "動かせる駒",
-      "description": "現在の手番で、あなたが動かせる全ての駒が、白く強調表示されます。",
-      "level": "base"
-    },
-    {
-      "id": "selected-piece",
-      "title": "選択中の駒",
-      "description": "あなたが選択した駒が、黄色く強調表示されます。",
-      "level": "base"
-    },
-    {
-      "id": "safe-moves",
       "title": "安全なマス",
-      "description": "「おしえて！」がONの時、選択中の駒が移動でき、かつ次の相手の手番で取られる心配のないマスが、緑色で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、選択中の駒が移動でき、かつ次の相手の手番で取られる心配のないマスが、緑色で表示されます。"
     },
     {
-      "id": "danger-moves",
       "title": "危険なマス",
-      "description": "「おしえて！」がONの時、選択中の駒が移動できるものの、移動すると次の相手の手番で取られてしまうマスが、赤色で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、選択中の駒が移動できるものの、移動すると次の相手の手番で取られてしまうマスが、赤色で表示されます。"
     },
     {
-      "id": "potential-captures",
       "title": "捕獲のチャンス",
-      "description": "「おしえて！」がONの時、選択中の駒をいずれかのマスに動かした場合に、捕獲できる可能性のある相手の駒すべてが、水色で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、選択中の駒をいずれかのマスに動かした場合に、捕獲できる可能性のある相手の駒すべてが、水色で表示されます。"
     }
   ]
 }

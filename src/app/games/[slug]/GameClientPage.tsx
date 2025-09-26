@@ -18,7 +18,7 @@ interface GameClientPageProps {
 
 // 三目並べ用の新しいレイアウト対応コンポーネント
 const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useTicTacToe(manifest);
+  const controller = useTicTacToe();
   
   return (
     <GameLayout 
@@ -32,9 +32,9 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
   );
 });
 
-// リバーシ用の新しいレイアウト対応コンポーнент
+// リバーシ用の新しいレイアウト対応コンポーネント
 const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useReversi(manifest);
+  const controller = useReversi();
   
   return (
     <GameLayout 
@@ -50,7 +50,7 @@ const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug
 
 // 神経衰弱用の新しいレイアウト対応コンポーネント
 const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useConcentration(manifest);
+  const controller = useConcentration();
   
   return (
     <GameLayout 
@@ -66,7 +66,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
 
 // 棒消しゲーム用の新しいレイアウト対応コンポーネント
 const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPageProps) => {
-  const controller = useStickTaking(manifest);
+  const controller = useStickTaking();
 
   return (
     <GameLayout
@@ -82,7 +82,7 @@ const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPa
 
 // アニマルチェス用の新しいレイアウト対応コンポーネント
 const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useAnimalChess(manifest);
+  const controller = useAnimalChess();
 
   return (
     <GameLayout
@@ -98,7 +98,7 @@ const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manife
 
 // はさみ将棋用の新しいレイアウト対応コンポーネント
 const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useHasamiShogi(manifest);
+  const controller = useHasamiShogi();
 
   return (
     <GameLayout

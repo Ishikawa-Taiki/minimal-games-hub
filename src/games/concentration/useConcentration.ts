@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position, GameManifest, HintDefinition } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -162,7 +162,7 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     isEvaluating: () => boolean;
   };
 
-export function useConcentration(manifest?: GameManifest, initialDifficulty: Difficulty = 'easy'): ConcentrationController {
+export function useConcentration(initialDifficulty: Difficulty = 'easy'): ConcentrationController {
   const [gameState, dispatch] = useReducer(concentrationReducer, createInitialConcentrationState(initialDifficulty));
   
   // ログ機能
@@ -280,34 +280,6 @@ export function useConcentration(manifest?: GameManifest, initialDifficulty: Dif
     return gameState.gameStatus === 'evaluating';
   }, [gameState.gameStatus]);
 
-  const hasPotentialPair = useMemo(() => {
-    if (!gameState.hintsEnabled || !gameState.hintedIndices || gameState.hintedIndices.length < 2) {
-        return false;
-    }
-    const hintedCards = gameState.hintedIndices.map(index => gameState.board[index]?.value).filter(Boolean);
-    const valueCounts = hintedCards.reduce((acc, value) => {
-        acc[value] = (acc[value] || 0) + 1;
-        return acc;
-    }, {} as {[key: string]: number});
-    return Object.values(valueCounts).some(count => count >= 2);
-  }, [gameState.hintsEnabled, gameState.hintedIndices, gameState.board]);
-
-  const getCurrentHint = useCallback((): HintDefinition | null => {
-    if (!manifest || !manifest.hints || !manifest.hints.length === 0 || !gameState.hintsEnabled) {
-      return null;
-    }
-
-    if (hasPotentialPair) {
-      return manifest.hints.find(h => h.id === 'potential-pairs') || null;
-    }
-
-    if (gameState.hintedIndices.length > 0) {
-        return manifest.hints.find(h => h.id === 'known-cards') || null;
-    }
-
-    return null;
-  }, [gameState.hintsEnabled, gameState.hintedIndices, hasPotentialPair, manifest]);
-
   return {
     gameState,
     dispatch,
@@ -327,7 +299,6 @@ export function useConcentration(manifest?: GameManifest, initialDifficulty: Dif
     // HintableGameController
     hintState,
     setHints,
-    getCurrentHint,
     isTurnOnly: useMemo(() => {
       return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
     }, [gameState.status, gameState.winner]),

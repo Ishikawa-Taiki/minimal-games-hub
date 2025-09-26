@@ -5,8 +5,6 @@ import {
   HintableGameController,
   BaseGameState,
   HintState,
-  GameManifest,
-  HintDefinition,
 } from '@/core/types/game';
 import {
   GameState as CoreGameState,
@@ -94,7 +92,7 @@ export type StickTakingController = BaseGameController<StickTakingGameState, Sti
   };
 
 // The hook
-export function useStickTaking(manifest?: GameManifest): StickTakingController {
+export function useStickTaking(): StickTakingController {
   const [gameState, dispatch] = useReducer(stickTakingReducer, createNewInitialState(null));
   const logger = useGameStateLogger('useStickTaking', gameState);
   const { alert } = useDialog();
@@ -149,16 +147,6 @@ export function useStickTaking(manifest?: GameManifest): StickTakingController {
     return calculateNimData(gameState.rows);
   }, [gameState.rows, gameState.status]);
 
-  const getCurrentHint = useCallback((): HintDefinition | null => {
-    if (!manifest || !manifest.hints || !manifest.hints.length === 0) {
-      return null;
-    }
-    if (gameState.hintsEnabled) {
-      return manifest.hints.find(h => h.id === 'chunk-visualization') || null;
-    }
-    return null;
-  }, [gameState.hintsEnabled, manifest]);
-
   return useMemo(() => ({
     gameState,
     dispatch,
@@ -169,7 +157,6 @@ export function useStickTaking(manifest?: GameManifest): StickTakingController {
     hintState,
     nimData,
     startGame,
-    getCurrentHint,
     difficulty: gameState?.difficulty ?? null,
     isTurnOnly: (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner,
     displayInfo: (() => {
@@ -183,5 +170,5 @@ export function useStickTaking(manifest?: GameManifest): StickTakingController {
       }
       return { statusText: 'ゲーム開始' };
     })(),
-  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame, getCurrentHint]);
+  }), [gameState, resetGame, selectStick, takeSticks, setHints, hintState, nimData, startGame]);
 }

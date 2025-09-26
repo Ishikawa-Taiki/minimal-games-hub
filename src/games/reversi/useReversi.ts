@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus, GameManifest, HintDefinition } from '@/core/types/game';
+import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '@/core/types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -113,7 +113,7 @@ export type ReversiController = BaseGameController<ReversiGameState, ReversiActi
     currentHistoryIndex: number;
   };
 
-export function useReversi(manifest?: GameManifest): ReversiController {
+export function useReversi(): ReversiController {
   const [gameHistory, setGameHistory] = useState<ReversiGameState[]>([createInitialReversiState()]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(0);
   const gameState = gameHistory[currentHistoryIndex];
@@ -245,22 +245,6 @@ export function useReversi(manifest?: GameManifest): ReversiController {
     return { statusText: 'ゲーム開始' };
   }, [gameState.status, gameState.winner, gameState.currentPlayer, gameState.gameStatus]);
 
-  const getCurrentHint = useCallback((): HintDefinition | null => {
-    if (!manifest || !manifest.hints || manifest.hints.length === 0) {
-      return null;
-    }
-    // プレビュー中の場合、プレビューに関するヒントを返す
-    if (gameState.hintsEnabled && gameState.selectedHintCell) {
-      return manifest.hints.find(h => h.id === 'preview-flip') || null;
-    }
-    // ヒントが有効な場合、獲得数に関するヒントを返す
-    if (gameState.hintsEnabled) {
-      return manifest.hints.find(h => h.id === 'flip-count') || null;
-    }
-    // デフォルトでは、配置可能マスに関する基本ヒントを返す
-    return manifest.hints.find(h => h.id === 'placeable-cells') || null;
-  }, [gameState.hintsEnabled, gameState.selectedHintCell, manifest]);
-
   return {
     gameState,
     dispatch: () => {}, // dispatchは直接使用しない
@@ -273,7 +257,6 @@ export function useReversi(manifest?: GameManifest): ReversiController {
     // HintableGameController
     hintState,
     setHints,
-    getCurrentHint,
     // HistoryGameController
     undoMove,
     redoMove,

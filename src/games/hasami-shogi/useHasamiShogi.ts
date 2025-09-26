@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, GameManifest, HintDefinition } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Move } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -117,7 +117,7 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     isGameStarted: () => boolean;
   };
 
-export function useHasamiShogi(manifest?: GameManifest): HasamiShogiController {
+export function useHasamiShogi(): HasamiShogiController {
   const [gameState, dispatch] = useReducer(hasamiShogiReducer, createInitialHasamiShogiState());
   
   // ログ機能
@@ -198,23 +198,6 @@ export function useHasamiShogi(manifest?: GameManifest): HasamiShogiController {
     // HintableGameController
     hintState,
     setHints,
-    getCurrentHint: useCallback((): HintDefinition | null => {
-      if (!manifest || !manifest.hints || manifest.hints.length === 0) {
-        return null;
-      }
-      // 駒を選択中の場合
-      if (gameState.selectedPiece) {
-        // ヒントが有効な場合、安全なマスに関するヒントを返す
-        if (gameState.hintsEnabled) {
-          // 複数の戦略的ヒントが同時に有効になりうるが、代表としてsafe-movesを返す
-          return manifest.hints.find(h => h.id === 'safe-moves') || null;
-        }
-        // ヒントが無効な場合、駒選択に関する基本ヒントを返す
-        return manifest.hints.find(h => h.id === 'selected-piece') || null;
-      }
-      // デフォルトでは、操作可能駒に関する基本ヒントを返す
-      return manifest.hints.find(h => h.id === 'movable-pieces') || null;
-    }, [gameState.selectedPiece, gameState.hintsEnabled, manifest]),
     isTurnOnly: useMemo(() => {
       return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
     }, [gameState.status, gameState.winner]),

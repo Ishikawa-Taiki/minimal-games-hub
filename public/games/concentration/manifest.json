@@ -8,16 +8,12 @@
   "specDisplayFile": "/src/games/concentration/spec-display.md",
   "hints": [
     {
-      "id": "known-cards",
       "title": "覚えているカード",
-      "description": "「おしえて！」がONの時、過去に一度以上表向きにされたが、まだペアになっていないカードが、黄色で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、過去に一度以上表向きにされたが、まだペアになっていないカードが、黄色で表示されます。"
     },
     {
-      "id": "potential-pairs",
       "title": "ペアのチャンス！",
-      "description": "「おしえて！」がONの時、覚えているカードの中にペアが作れるものがある場合、それらのカードが緑色で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、覚えているカードの中にペアが作れるものがある場合、それらのカードが緑色で表示されます。"
     }
   ]
 }

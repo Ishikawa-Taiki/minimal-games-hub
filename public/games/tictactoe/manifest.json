@@ -8,16 +8,12 @@
   "specDisplayFile": "/src/games/tictactoe/spec-display.md",
   "hints": [
     {
-      "id": "reach-squares",
       "title": "リーチマス",
-      "description": "「おしえて！」がONの時、次にマークを置けば勝利できるマスが、特別な色（○なら赤、×なら青、両方なら黄色）で強調表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、次にマークを置けば勝利できるマスが、特別な色（○なら赤、×なら青、両方なら黄色）で強調表示されます。"
     },
     {
-      "id": "potential-lines",
       "title": "潜在ライン数",
-      "description": "「おしえて！」がONの時、空いている各マスに、そのマスにマークを置いた場合に形成できる有効なラインの数が、薄いグレーの数値で表示されます。",
-      "level": "strategy"
+      "description": "「おしえて！」がONの時、空いている各マスに、そのマスにマークを置いた場合に形成できる有効なラインの数が、薄いグレーの数値で表示されます。"
     }
   ]
 }

@@ -84,23 +84,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
     return null;
   };
 
-  // ヒント機能の情報表示
-  const renderHintInfo = () => {
-    const hintController = gameController as HintableGameController<TState, TAction>;
-    if (hintController.getCurrentHint) {
-      const currentHint = hintController.getCurrentHint();
-      if (currentHint) {
-        return (
-          <div style={gameLayoutStyles.scoreInfo} data-testid="hint-info">
-            <h4 style={gameLayoutStyles.sectionTitle}>{currentHint.title}</h4>
-            <p style={gameLayoutStyles.hintDescription}>{currentHint.description}</p>
-          </div>
-        );
-      }
-    }
-    return null;
-  };
-
   // ヒント機能のボタン
   const renderHintButton = () => {
     const hintController = gameController as HintableGameController<TState, TAction>;
@@ -127,8 +110,6 @@ function ControlPanel<TState extends BaseGameState, TAction>({
       <GameStateDisplay gameController={gameController} />
 
       {renderScoreInfo()}
-
-      {renderHintInfo()}
 
       <div style={gameLayoutStyles.actionsSection}>
         <Button variant="ghost" onClick={onShowRules}>
