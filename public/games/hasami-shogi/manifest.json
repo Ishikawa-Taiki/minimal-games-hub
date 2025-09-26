@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/hasami-shogi/spec-rules.md",
   "specActionFile": "/src/games/hasami-shogi/spec-action.md",
   "specDisplayFile": "/src/games/hasami-shogi/spec-display.md",
+  "specHintFile": "/src/games/hasami-shogi/spec-hint.md",
   "hints": [
     {
       "title": "安全なマス",

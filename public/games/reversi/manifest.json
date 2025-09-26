@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/reversi/spec-rules.md",
   "specActionFile": "/src/games/reversi/spec-action.md",
   "specDisplayFile": "/src/games/reversi/spec-display.md",
+  "specHintFile": "/src/games/reversi/spec-hint.md",
   "hints": [
     {
       "title": "獲得できる数",

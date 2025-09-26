@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/tictactoe/spec-rules.md",
   "specActionFile": "/src/games/tictactoe/spec-action.md",
   "specDisplayFile": "/src/games/tictactoe/spec-display.md",
+  "specHintFile": "/src/games/tictactoe/spec-hint.md",
   "hints": [
     {
       "title": "リーチマス",

@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/concentration/spec-rules.md",
   "specActionFile": "/src/games/concentration/spec-action.md",
   "specDisplayFile": "/src/games/concentration/spec-display.md",
+  "specHintFile": "/src/games/concentration/spec-hint.md",
   "hints": [
     {
       "title": "覚えているカード",

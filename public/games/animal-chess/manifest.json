@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/animal-chess/spec-rules.md",
   "specActionFile": "/src/games/animal-chess/spec-action.md",
   "specDisplayFile": "/src/games/animal-chess/spec-display.md",
+  "specHintFile": "/src/games/animal-chess/spec-hint.md",
   "hints": [
     {
       "title": "捕獲のチャンス",

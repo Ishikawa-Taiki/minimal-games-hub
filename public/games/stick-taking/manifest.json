@@ -6,6 +6,7 @@
   "rulesFile": "/src/games/stick-taking/spec-rules.md",
   "specActionFile": "/src/games/stick-taking/spec-action.md",
   "specDisplayFile": "/src/games/stick-taking/spec-display.md",
+  "specHintFile": "/src/games/stick-taking/spec-hint.md",
   "hints": [
     {
       "title": "棒のカタマリ",
