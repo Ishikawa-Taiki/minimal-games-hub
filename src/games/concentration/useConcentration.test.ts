@@ -28,7 +28,7 @@ describe('useConcentration', () => {
     });
 
     it('指定した難易度で初期化される', () => {
-      const { result } = renderHook(() => useConcentration('hard'));
+      const { result } = renderHook(() => useConcentration(undefined, 'hard'));
       
       expect(result.current.getDifficulty()).toBe('hard');
       expect(result.current.getBoard().length).toBe(54); // hard: 54枚
@@ -50,7 +50,7 @@ describe('useConcentration', () => {
     });
 
     it('2枚目のカードをめくると評価状態になる', () => {
-      const { result } = renderHook(() => useConcentration('easy'));
+      const { result } = renderHook(() => useConcentration(undefined, 'easy'));
 
       const board = result.current.getBoard();
       const firstCard = board[0];
@@ -75,7 +75,7 @@ describe('useConcentration', () => {
     });
 
     it('評価中はカードクリックが無視される', async () => { // async を追加
-      const { result } = renderHook(() => useConcentration('easy'));
+      const { result } = renderHook(() => useConcentration(undefined, 'easy'));
 
       const board = result.current.getBoard();
       const firstCard = board[0];
@@ -160,7 +160,7 @@ describe('useConcentration', () => {
     });
 
     it('難易度を指定してリセットできる', () => {
-      const { result } = renderHook(() => useConcentration('easy'));
+      const { result } = renderHook(() => useConcentration(undefined, 'easy'));
       
       act(() => {
         result.current.resetGame('hard');
@@ -173,7 +173,7 @@ describe('useConcentration', () => {
 
   describe('難易度設定', () => {
     it('難易度を変更できる', () => {
-      const { result } = renderHook(() => useConcentration('easy'));
+      const { result } = renderHook(() => useConcentration(undefined, 'easy'));
       
       act(() => {
         result.current.setDifficulty('normal');
@@ -233,7 +233,7 @@ describe('useConcentration', () => {
     });
 
     it('評価状態を正しく判定する', () => {
-      const { result } = renderHook(() => useConcentration('easy'));
+      const { result } = renderHook(() => useConcentration(undefined, 'easy'));
       
       expect(result.current.isEvaluating()).toBe(false);
       

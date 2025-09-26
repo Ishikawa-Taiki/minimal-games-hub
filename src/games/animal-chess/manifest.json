@@ -1,0 +1,41 @@
+{
+  "name": "animal-chess",
+  "displayName": "どうぶつしょうぎ",
+  "shortDescription": "3x4マスの盤で、ライオンをつかまえるゲームです。",
+  "path": "/games/animal-chess",
+  "rulesFile": "spec-rules.md",
+  "specActionFile": "spec-action.md",
+  "specDisplayFile": "spec-display.md",
+  "hints": [
+    {
+      "id": "movable-pieces",
+      "title": "動かせる駒",
+      "description": "あなたが動かせる駒のマスが、白く強調表示されます。",
+      "level": "base"
+    },
+    {
+      "id": "movable-squares",
+      "title": "移動できるマス",
+      "description": "選択した駒が移動できるマスが、白く強調表示されます。",
+      "level": "base"
+    },
+    {
+      "id": "capture-squares",
+      "title": "捕獲のチャンス",
+      "description": "「おしえて！」がONの時、移動先に相手の駒がいて捕獲できる場合、そのマスは紫色で表示されます。",
+      "level": "strategy"
+    },
+    {
+      "id": "danger-squares",
+      "title": "危険なマス",
+      "description": "「おしえて！」がONの時、あるマスへ移動したり、持ち駒を置くと次の相手の手番で取られてしまう場合、そのマスは赤色で表示されます。",
+      "level": "strategy"
+    },
+    {
+      "id": "threatened-pieces",
+      "title": "狙われている駒",
+      "description": "「おしえて！」がONの時、次の相手の手番で取られる可能性があるあなたの駒が、青色で表示されます。",
+      "level": "strategy"
+    }
+  ]
+}

@@ -125,4 +125,31 @@ test.describe('リバーシゲームのE2Eテスト', () => {
     const historyCounter5 = await page.locator('[data-testid="history-counter"]').textContent();
     expect(historyCounter5).toBe('3 / 3');
   });
+
+  test('ヒント情報の表示が正しく切り替わる', async ({ page }) => {
+    const hintInfo = page.locator('[data-testid="hint-info"]');
+    const hintButton = page.locator('[data-testid="control-panel-hint-button"]');
+
+    // 初期状態：基本ヒントが表示されている
+    await expect(hintInfo).toBeVisible();
+    await expect(hintInfo.locator('h4')).toHaveText('石を置ける場所');
+
+    // 「おしえて！」をONにする
+    await hintButton.click();
+
+    // 戦略ヒントに切り替わる
+    await expect(hintInfo.locator('h4')).toHaveText('獲得できる数');
+
+    // プレビュー状態にする
+    await page.locator('[data-testid="cell-2-3"]').click();
+
+    // プレビューヒントに切り替わる
+    await expect(hintInfo.locator('h4')).toHaveText('プレビュー機能');
+
+    // 「おしえて！」をOFFにする
+    await hintButton.click();
+
+    // 基本ヒントに戻る
+    await expect(hintInfo.locator('h4')).toHaveText('石を置ける場所');
+  });
 });

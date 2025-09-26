@@ -1,0 +1,17 @@
+{
+  "name": "stick-taking",
+  "displayName": "棒取りゲーム",
+  "shortDescription": "最後の1本を取らないように、棒を取り合うゲームです。",
+  "path": "/games/stick-taking",
+  "rulesFile": "spec-rules.md",
+  "specActionFile": "spec-action.md",
+  "specDisplayFile": "spec-display.md",
+  "hints": [
+    {
+      "id": "chunk-visualization",
+      "title": "棒のカタマリ",
+      "description": "「おしえて！」がONの時、各段に残っている連続した棒の「塊」が、色付きの四角で囲まれ、その下に棒の数が表示されます。この数字の組み合わせが勝利の鍵です。",
+      "level": "strategy"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useDialog } from '@/app/components/ui/DialogProvider';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
+import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, GameManifest, HintDefinition } from '@/core/types/game';
 import { 
   GameState, 
   createInitialState, 
@@ -153,7 +153,7 @@ const TEAM_NAMES: { [key in Player]: string } = {
   OHANA: 'おはなチーム',
 };
 
-export function useAnimalChess(): AnimalChessController {
+export function useAnimalChess(manifest?: GameManifest): AnimalChessController {
   const [gameState, dispatch] = useReducer(animalChessReducer, createInitialAnimalChessState());
   const { alert } = useDialog();
 
@@ -336,6 +336,28 @@ export function useAnimalChess(): AnimalChessController {
     // HintableGameController
     hintState,
     setHints,
+    getCurrentHint: useCallback((): HintDefinition | null => {
+      if (!manifest || !manifest.hints || manifest.hints.length === 0) {
+        return null;
+      }
+      const isPieceSelected = gameState.selectedCell !== null || gameState.selectedCaptureIndex !== null;
+
+      if (gameState.hintsEnabled) {
+        if (isPieceSelected) {
+          // 駒選択時は、危険マスのヒントを優先
+          return manifest.hints.find(h => h.id === 'danger-squares') || null;
+        }
+        // 駒未選択時は、狙われている駒のヒント
+        return manifest.hints.find(h => h.id === 'threatened-pieces') || null;
+      } else {
+        if (isPieceSelected) {
+          // 基本ヒント：移動可能マス
+          return manifest.hints.find(h => h.id === 'movable-squares') || null;
+        }
+        // 基本ヒント：操作可能駒
+        return manifest.hints.find(h => h.id === 'movable-pieces') || null;
+      }
+    }, [gameState.selectedCell, gameState.selectedCaptureIndex, gameState.hintsEnabled, manifest]),
     isTurnOnly: useMemo(() => {
       return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
     }, [gameState.status, gameState.winner]),

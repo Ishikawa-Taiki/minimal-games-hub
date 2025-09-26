@@ -1,3 +1,11 @@
+// ヒント定義の型
+export type HintDefinition = {
+  id: string;
+  title: string;
+  description: string;
+  level: 'base' | 'strategy';
+};
+
 export type GameManifest = {
   name: string;
   displayName: string;
@@ -6,6 +14,7 @@ export type GameManifest = {
   rulesFile: string;
   specActionFile: string;
   specDisplayFile: string;
+  hints?: HintDefinition[];
 };
 
 // ゲームの基本状態
@@ -79,11 +88,12 @@ export interface HistoryGameState extends BaseGameState {
 }
 
 // ヒント機能付きコントローラー
-export interface HintableGameController<TState extends BaseGameState, TAction> 
+export interface HintableGameController<TState extends BaseGameState, TAction>
   extends BaseGameController<TState, TAction> {
   setHints: (enabled: boolean) => void;
   hintState: HintState;
   clearHints?: () => void;
+  getCurrentHint?: () => HintDefinition | null;
 }
 
 // 履歴機能付きコントローラー（リバーシなど）

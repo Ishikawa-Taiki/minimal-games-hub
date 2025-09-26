@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useGameEngine } from '@/core/hooks/useGameEngine';
-import { HintableGameController, HintState } from '@/core/types/game';
+import { HintableGameController, HintState, GameManifest, HintDefinition } from '@/core/types/game';
 import { 
   TicTacToeGameState, 
   TicTacToeAction, 
@@ -24,7 +24,7 @@ export type TicTacToeController = HintableGameController<TicTacToeGameState, Tic
  * 
  * @returns TicTacToeController - ゲーム操作用のコントローラー
  */
-export function useTicTacToe(): TicTacToeController {
+export function useTicTacToe(manifest?: GameManifest): TicTacToeController {
   // useGameEngineを使用して状態管理
   const {
     gameState,
@@ -80,5 +80,17 @@ export function useTicTacToe(): TicTacToeController {
     hintState,
     isTurnOnly,
     displayInfo,
+    getCurrentHint: useCallback((): HintDefinition | null => {
+      if (!manifest || !manifest.hints || manifest.hints.length === 0) {
+        return null;
+      }
+      // ヒントが有効な場合
+      if (gameState.hintLevel > 0) {
+        // 複数の戦略的ヒントがあるが、代表としてリーチマスを返す
+        return manifest.hints.find(h => h.id === 'reach-squares') || null;
+      }
+      // ヒントが無効な場合は何も表示しない
+      return null;
+    }, [gameState.hintLevel, manifest]),
   };
 }

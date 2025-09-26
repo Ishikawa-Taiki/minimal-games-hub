@@ -1,0 +1,23 @@
+{
+  "name": "concentration",
+  "displayName": "神経衰弱",
+  "shortDescription": "カードをめくって、同じ数字のペアを見つける記憶力ゲームです。",
+  "path": "/games/concentration",
+  "rulesFile": "spec-rules.md",
+  "specActionFile": "spec-action.md",
+  "specDisplayFile": "spec-display.md",
+  "hints": [
+    {
+      "id": "known-cards",
+      "title": "覚えているカード",
+      "description": "「おしえて！」がONの時、過去に一度以上表向きにされたが、まだペアになっていないカードが、黄色で表示されます。",
+      "level": "strategy"
+    },
+    {
+      "id": "potential-pairs",
+      "title": "ペアのチャンス！",
+      "description": "「おしえて！」がONの時、覚えているカードの中にペアが作れるものがある場合、それらのカードが緑色で表示されます。",
+      "level": "strategy"
+    }
+  ]
+}
