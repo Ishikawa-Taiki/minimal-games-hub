@@ -199,15 +199,6 @@ export const gameLayoutStyles = StyleSheet.create({
     fontSize: '0.875rem',
     color: '#374151',
   },
-  hintDescription: {
-    fontSize: '0.875rem',
-    color: '#4b5563',
-    margin: '0',
-    padding: '0 0.5rem 0.5rem',
-    lineHeight: '1.5',
-    whiteSpace: 'pre-wrap',
-  },
-
   // フローティングアクションボタン（FAB）
   fab: {
     position: 'fixed',

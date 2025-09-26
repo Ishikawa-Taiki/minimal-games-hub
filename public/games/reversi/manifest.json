@@ -6,15 +6,5 @@
   "rulesFile": "/src/games/reversi/spec-rules.md",
   "specActionFile": "/src/games/reversi/spec-action.md",
   "specDisplayFile": "/src/games/reversi/spec-display.md",
-  "specHintFile": "/src/games/reversi/spec-hint.md",
-  "hints": [
-    {
-      "title": "獲得できる数",
-      "description": "「おしえて！」がONの時、石を置けるマスに、裏返せる相手の石の数が数字で表示されます。"
-    },
-    {
-      "title": "プレビュー機能",
-      "description": "「おしえて！」がONの時、数字が表示されたマスを選択すると、実際に裏返る相手の石がプレビューとしてハイライトされます。もう一度同じマスを選択すると、その手が確定されます。"
-    }
-  ]
+  "specHintFile": "/src/games/reversi/spec-hint.md"
 }
