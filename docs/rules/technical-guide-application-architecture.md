@@ -20,7 +20,8 @@
 ├── manifest.json       # ゲームのメタデータ
 ├── spec-rules.md       # ゲームのルール (ユーザー向け)
 ├── spec-action.md      # システム動作仕様書
-└── spec-display.md     # システム表示仕様書
+├── spec-display.md     # システム表示仕様書
+└── spec-hint.md        # ヒント機能仕様書
 ```
 
 ### 1.2. manifest.json の仕様
@@ -34,7 +35,8 @@
 -   `rulesFile` (string): `spec-rules.md` へのパス。
 -   `specActionFile` (string): `spec-action.md` へのパス。
 -   `specDisplayFile` (string): `spec-display.md` へのパス。
--   `hints` (array, optional): ゲームで提供されるヒント機能の定義の配列。詳細はプロジェクト共通の技術ガイド `docs/rules/spec-hint.md` を参照してください。
+-   `specHintFile` (string): `spec-hint.md` へのパス。
+-   `hints` (array, optional): ゲームで提供されるヒント機能の定義の配列。各ヒントの具体的な仕様は、同ディレクトリ内の `spec-hint.md` を参照してください。
 
 ## 2. ゲーム実装の原則
 
@@ -58,9 +60,7 @@
 
 ### 2.5. ヒント機能の設計指針
 
-ゲームの「おしえて！」（ヒント）機能に関する統一的な仕様、`manifest.json`での定義方法、および各ゲーム固有のヒント内容については、以下の専門ドキュメントを参照してください。
-
--   **[技術ガイド - ヒント機能仕様 (spec-hint.md)](./spec-hint.md)**
+ゲームの「おしえて！」（ヒント）機能に関する仕様は、各ゲームディレクトリに配置された `spec-hint.md` にて定義されます。`manifest.json` の `hints` プロパティは、この仕様書で定義されたヒントの具体的な文言やレベルを設定するために使用します。
 
 ### 2.4. テストコードの記述
 
