@@ -6,18 +6,5 @@
   "rulesFile": "/src/games/animal-chess/spec-rules.md",
   "specActionFile": "/src/games/animal-chess/spec-action.md",
   "specDisplayFile": "/src/games/animal-chess/spec-display.md",
-  "hints": [
-    {
-      "title": "捕獲のチャンス",
-      "description": "「おしえて！」がONの時、移動先に相手の駒がいて捕獲できる場合、そのマスは紫色で表示されます。"
-    },
-    {
-      "title": "危険なマス",
-      "description": "「おしえて！」がONの時、あるマスへ移動したり、持ち駒を置くと次の相手の手番で取られてしまう場合、そのマスは赤色で表示されます。"
-    },
-    {
-      "title": "狙われている駒",
-      "description": "「おしえて！」がONの時、次の相手の手番で取られる可能性があるあなたの駒が、青色で表示されます。"
-    }
-  ]
+  "specHintFile": "/src/games/animal-chess/spec-hint.md"
 }

@@ -6,10 +6,5 @@
   "rulesFile": "/src/games/stick-taking/spec-rules.md",
   "specActionFile": "/src/games/stick-taking/spec-action.md",
   "specDisplayFile": "/src/games/stick-taking/spec-display.md",
-  "hints": [
-    {
-      "title": "棒のカタマリ",
-      "description": "「おしえて！」がONの時、各段に残っている連続した棒の「塊」が、色付きの四角で囲まれ、その下に棒の数が表示されます。この数字の組み合わせが勝利の鍵です。"
-    }
-  ]
+  "specHintFile": "/src/games/stick-taking/spec-hint.md"
 }
