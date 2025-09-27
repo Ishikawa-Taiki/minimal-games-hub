@@ -199,7 +199,6 @@ export const gameLayoutStyles = StyleSheet.create({
     fontSize: '0.875rem',
     color: '#374151',
   },
-
   // フローティングアクションボタン（FAB）
   fab: {
     position: 'fixed',

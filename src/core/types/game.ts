@@ -79,7 +79,7 @@ export interface HistoryGameState extends BaseGameState {
 }
 
 // ヒント機能付きコントローラー
-export interface HintableGameController<TState extends BaseGameState, TAction> 
+export interface HintableGameController<TState extends BaseGameState, TAction>
   extends BaseGameController<TState, TAction> {
   setHints: (enabled: boolean) => void;
   hintState: HintState;
