@@ -9,6 +9,7 @@ import Concentration, { useConcentration } from '@/games/concentration/index';
 import StickTaking, { useStickTaking } from '@/games/stick-taking';
 import AnimalChess, { useAnimalChess } from '@/games/animal-chess';
 import HasamiShogi, { useHasamiShogi } from '@/games/hasami-shogi';
+import DotsAndBoxes, { useDotsAndBoxes } from '@/games/dots-and-boxes';
 
 interface GameClientPageProps {
   manifest: GameManifest;
@@ -140,9 +141,29 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesConte
   if (slug === 'hasami-shogi') {
     return <HasamiShogiWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
   }
+
+  if (slug === 'dots-and-boxes') {
+    return <DotsAndBoxesWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+  }
   
   // Fallback for any other case, though generateStaticParams should prevent this.
   return null;
+});
+
+// ドット＆ボックス用の新しいレイアウト対応コンポーネント
+const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+  const controller = useDotsAndBoxes();
+
+  return (
+    <GameLayout
+      gameName={manifest.displayName}
+      slug={slug}
+      gameController={controller}
+      rulesContent={rulesContent}
+    >
+      <DotsAndBoxes controller={controller} />
+    </GameLayout>
+  );
 });
 
 export default GameClientPage;
