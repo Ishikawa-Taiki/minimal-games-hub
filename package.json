@@ -12,6 +12,8 @@
     "test:unit-ui": "vitest --ui",
     "test:e2e": "npx playwright test",
     "test:e2e-ui": "npx playwright test --ui",
+    "_check:style": "! grep -r 'style={{' src/",
+    "test:rules": "npm run _check:style",
     "gemini": "gemini",
     "update:license": "node scripts/license-update.js",
     "prepare": "husky",
