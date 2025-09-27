@@ -1,30 +1,38 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('ドット＆ボックス E2Eテスト', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/games/dots-and-boxes');
-    await page.waitForLoadState('networkidle');
-  });
-
   test('難易度を選択してゲームを開始し、基本的な操作ができる', async ({ page }) => {
-    // 1. 難易度選択画面が表示されていることを確認
-    await expect(page.getByRole('heading', { name: 'むずかしさをえらんでね' })).toBeVisible();
+    await page.goto('/games/dots-and-boxes');
 
-    // 2. 「かんたん」を選択してゲームを開始
-    await page.getByRole('button', { name: 'かんたん (2x2マス)' }).click();
+    // 1. 難易度選択画面が表示されることを確認
+    await expect(page.getByRole('button', { name: 'かんたん' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ふつう' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'むずかしい' })).toBeVisible();
 
-    // 3. ゲームボードが表示されることを確認 (ドットの数で判断)
-    await expect(page.locator('[data-testid^="dot-"]')).toHaveCount(9);
+    // 2. 「かんたん」モードを選択
+    await page.getByRole('button', { name: 'かんたん' }).click();
 
-    // 4. 最初の線を引く (プレビュー)
-    const firstHorizontalLine = page.locator('[data-testid="h-line-0-0"]');
-    await firstHorizontalLine.click();
+    // 3. ゲームボードが表示されることを確認 (2x2のマスなので、h-line-0-0が存在するはず)
+    const firstLine = page.locator('[data-testid="h-line-0-0"]');
+    await expect(firstLine).toBeVisible();
 
-    // 5. 同じ線を再度クリックして手を確定
-    await firstHorizontalLine.click();
+    // 4. 最初のラインを引く
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー1」のばん');
+    await firstLine.click();
 
-    // 6. ターンがプレイヤー2に切り替わったことを確認
-    const statusText = page.locator('[data-testid="game-state-display"]');
-    await expect(statusText).toHaveText('「プレイヤー2」のばん');
+    // 5. プレイヤーが交代することを確認
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー2」のばん');
+
+    // 6. ボックスを完成させる
+    await page.locator('[data-testid="v-line-0-0"]').click(); // p2
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー1」のばん');
+    await page.locator('[data-testid="h-line-1-0"]').click(); // p1
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー2」のばん');
+    await page.locator('[data-testid="v-line-0-1"]').click(); // p2 completes a box
+
+    // 7. スコアが加算され、ターンが維持されることを確認
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー2」のばん');
+    const scorePlayer2 = page.locator('[data-testid="score-value-player2"]');
+    await expect(scorePlayer2).toHaveText('1');
   });
 });

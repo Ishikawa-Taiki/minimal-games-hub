@@ -1,7 +1,7 @@
 {
   "name": "dots-and-boxes",
   "displayName": "ドット＆ボックス",
-  "shortDescription": "点と点を線でつないで、たくさんの四角をつくろう！",
+  "shortDescription": "点をつないで四角をつくろう！たくさん陣地をとったほうが勝ちのクラシックなゲームだよ。",
   "path": "/games/dots-and-boxes",
   "rulesFile": "./spec-rules.md",
   "specActionFile": "./spec-action.md",

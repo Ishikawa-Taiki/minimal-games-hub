@@ -1,182 +1,130 @@
-// =================================================================
-// Types
-// =================================================================
-export type Player = 'PLAYER1' | 'PLAYER2';
+export type Player = 'player1' | 'player2';
 export type Difficulty = 'easy' | 'normal' | 'hard';
-export type GameStatus = 'playing' | 'ended';
-export type Winner = Player | 'DRAW' | null;
+export type GameStatus = 'waiting' | 'playing' | 'ended';
 
-type LineState = Player | null;
-export type HorizontalLines = LineState[][];
-export type VerticalLines = LineState[][];
-export type BoxState = Player | null;
-export type Boxes = BoxState[][];
-export type LineType = 'horizontal' | 'vertical';
-
-export interface DrawLinePayload {
-  lineType: LineType;
-  row: number;
-  col: number;
+export interface Line {
+  owner: Player | null;
+  preview: Player | null;
 }
 
-export type GameAction =
-  | {
-      type: 'DRAW_LINE';
-      payload: DrawLinePayload;
-    }
-  | {
-      type: 'RESET';
-      payload: GameState;
-    };
+export interface Box {
+  owner: Player | null;
+  preview: Player | null;
+}
 
 export interface GameState {
-  boardSize: { rows: number; cols: number };
-  lines: {
-    horizontal: HorizontalLines;
-    vertical: VerticalLines;
-  };
-  boxes: Boxes;
-  currentPlayer: Player;
-  scores: { [key in Player]: number };
-  status: GameStatus;
-  winner: Winner;
   difficulty: Difficulty;
+  rows: number;
+  cols: number;
+  hLines: Line[][];
+  vLines: Line[][];
+  boxes: Box[][];
+  currentPlayer: Player;
+  scores: Record<Player, number>;
+  gameStatus: GameStatus;
+  winner: Player | 'draw' | null;
+  remainingLines: number;
 }
 
-// =================================================================
-// Constants
-// =================================================================
-const DIFFICULTY_SETTINGS: { [key in Difficulty]: { rows: number; cols: number } } = {
+const difficultySettings: Record<Difficulty, { rows: number; cols: number }> = {
   easy: { rows: 2, cols: 2 },
   normal: { rows: 4, cols: 4 },
   hard: { rows: 6, cols: 6 },
 };
 
-// =================================================================
-// Initial State
-// =`================================================================
-export const initialState: GameState = createGame('easy');
+export const createInitialState = (difficulty: Difficulty): GameState => {
+  const settings = difficultySettings[difficulty];
+  const rows = settings.rows;
+  const cols = settings.cols;
 
-// =================================================================
-// Game Logic
-// =================================================================
+  const createLineArray = (r: number, c: number) =>
+    Array.from({ length: r }, () =>
+      Array.from({ length: c }, () => ({ owner: null, preview: null }))
+    );
 
-export function gameReducer(state: GameState, action: GameAction): GameState {
-  if (state.status === 'ended') {
-    return state;
-  }
-
-  switch (action.type) {
-    case 'RESET':
-      return action.payload;
-    case 'DRAW_LINE': {
-      const { lineType, row, col } = action.payload;
-      const { currentPlayer } = state;
-
-      const lines = JSON.parse(JSON.stringify(state.lines));
-
-      // Check if the line is already drawn
-      if (
-        (lineType === 'horizontal' && lines.horizontal[row][col]) ||
-        (lineType === 'vertical' && lines.vertical[row][col])
-      ) {
-        return state; // Line already exists, return current state
-      }
-
-      // Draw the line
-      if (lineType === 'horizontal') {
-        lines.horizontal[row][col] = currentPlayer;
-      } else {
-        lines.vertical[row][col] = currentPlayer;
-      }
-
-      // Check for completed boxes
-      let boxesCompleted = 0;
-      const newBoxes = JSON.parse(JSON.stringify(state.boxes));
-
-      for (let r = 0; r < state.boardSize.rows; r++) {
-        for (let c = 0; c < state.boardSize.cols; c++) {
-          if (
-            newBoxes[r][c] === null &&
-            lines.horizontal[r][c] &&
-            lines.horizontal[r + 1][c] &&
-            lines.vertical[r][c] &&
-            lines.vertical[r][c + 1]
-          ) {
-            newBoxes[r][c] = currentPlayer;
-            boxesCompleted++;
-          }
-        }
-      }
-
-      const newScores = { ...state.scores };
-      if (boxesCompleted > 0) {
-        newScores[currentPlayer] += boxesCompleted;
-      }
-
-      const nextPlayer =
-        boxesCompleted > 0
-          ? currentPlayer
-          : currentPlayer === 'PLAYER1'
-          ? 'PLAYER2'
-          : 'PLAYER1';
-
-      const newState: GameState = {
-        ...state,
-        lines,
-        boxes: newBoxes,
-        scores: newScores,
-        currentPlayer: nextPlayer,
-      };
-
-      // Check for game end
-      const totalBoxes = state.boardSize.rows * state.boardSize.cols;
-      const totalScore = newScores.PLAYER1 + newScores.PLAYER2;
-
-      if (totalScore === totalBoxes) {
-        newState.status = 'ended';
-        if (newScores.PLAYER1 > newScores.PLAYER2) {
-          newState.winner = 'PLAYER1';
-        } else if (newScores.PLAYER2 > newScores.PLAYER1) {
-          newState.winner = 'PLAYER2';
-        } else {
-          newState.winner = 'DRAW';
-        }
-      }
-
-      return newState;
-    }
-    default:
-      return state;
-  }
-}
-
-/**
- * Creates a new game state based on the selected difficulty.
- * @param difficulty The difficulty level of the game.
- * @returns A new GameState object.
- */
-export function createGame(difficulty: Difficulty): GameState {
-  const settings = DIFFICULTY_SETTINGS[difficulty];
-  const { rows, cols } = settings;
+  const totalLines = rows * (cols + 1) + (rows + 1) * cols;
 
   return {
-    boardSize: { rows, cols },
-    lines: {
-      horizontal: Array(rows + 1)
-        .fill(null)
-        .map(() => Array(cols).fill(null)),
-      vertical: Array(rows)
-        .fill(null)
-        .map(() => Array(cols + 1).fill(null)),
-    },
-    boxes: Array(rows)
-      .fill(null)
-      .map(() => Array(cols).fill(null)),
-    currentPlayer: 'PLAYER1',
-    scores: { PLAYER1: 0, PLAYER2: 0 },
-    status: 'playing',
-    winner: null,
     difficulty,
+    rows,
+    cols,
+    hLines: createLineArray(rows + 1, cols),
+    vLines: createLineArray(rows, cols + 1),
+    boxes: Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => ({ owner: null, preview: null }))
+    ),
+    currentPlayer: 'player1',
+    scores: { player1: 0, player2: 0 },
+    gameStatus: 'playing',
+    winner: null,
+    remainingLines: totalLines,
   };
-}
+};
+
+export const selectLine = (
+  state: GameState,
+  r: number,
+  c: number,
+  type: 'h' | 'v'
+): GameState => {
+  const newState = JSON.parse(JSON.stringify(state)) as GameState;
+  const { currentPlayer, rows, cols } = newState;
+
+  const line = type === 'h' ? newState.hLines[r][c] : newState.vLines[r][c];
+
+  if (line.owner) {
+    return state; // Already taken, do nothing
+  }
+
+  line.owner = currentPlayer;
+  newState.remainingLines--;
+
+  const previousTotalScore = newState.scores.player1 + newState.scores.player2;
+
+  // Check all boxes to see if any are newly completed
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      if (!newState.boxes[i][j].owner) {
+        const top = newState.hLines[i][j].owner;
+        const bottom = newState.hLines[i + 1][j].owner;
+        const left = newState.vLines[i][j].owner;
+        const right = newState.vLines[i][j + 1].owner;
+
+        if (top && bottom && left && right) {
+          newState.boxes[i][j].owner = currentPlayer;
+        }
+      }
+    }
+  }
+
+  // Recalculate scores from scratch
+  const newScores: Record<Player, number> = { player1: 0, player2: 0 };
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      if (newState.boxes[i][j].owner) {
+        newScores[newState.boxes[i][j].owner!]++;
+      }
+    }
+  }
+  newState.scores = newScores;
+
+  const newTotalScore = newScores.player1 + newScores.player2;
+  const boxCompletedThisTurn = newTotalScore > previousTotalScore;
+
+  if (newState.remainingLines === 0) {
+    newState.gameStatus = 'ended';
+    if (newState.scores.player1 > newState.scores.player2) {
+      newState.winner = 'player1';
+    } else if (newState.scores.player2 > newState.scores.player1) {
+      newState.winner = 'player2';
+    } else {
+      newState.winner = 'draw';
+    }
+  } else {
+    if (!boxCompletedThisTurn) {
+      newState.currentPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
+    }
+  }
+
+  return newState;
+};

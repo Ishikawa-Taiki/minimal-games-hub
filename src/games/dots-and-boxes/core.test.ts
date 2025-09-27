@@ -1,156 +1,122 @@
-import { describe, it, expect } from 'vitest';
-import { createGame, gameReducer, GameState, GameAction } from './core';
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  createInitialState,
+  selectLine,
+  type GameState,
+  type Difficulty,
+} from './core';
 
-describe('ドット＆ボックス コアロジック', () => {
-  describe('createGame', () => {
-    it('「かんたん」レベル（2x2）でゲームを正しく初期化できる', () => {
-      const easyState = createGame('easy');
-      expect(easyState.boardSize).toEqual({ rows: 2, cols: 2 });
-      expect(easyState.lines.horizontal).toHaveLength(3);
-      expect(easyState.lines.horizontal.flat()).not.toContain('PLAYER1');
-      expect(easyState.lines.vertical).toHaveLength(2);
-      expect(easyState.lines.vertical.flat()).not.toContain('PLAYER1');
-      expect(easyState.boxes).toHaveLength(2);
-      expect(easyState.boxes.flat().every(b => b === null)).toBe(true);
-      expect(easyState.currentPlayer).toBe('PLAYER1');
-      expect(easyState.scores).toEqual({ PLAYER1: 0, PLAYER2: 0 });
-      expect(easyState.winner).toBeNull();
-      expect(easyState.status).toBe('playing');
-    });
-
-    it('「ふつう」レベル（4x4）でゲームを正しく初期化できる', () => {
-      const normalState = createGame('normal');
-      expect(normalState.boardSize).toEqual({ rows: 4, cols: 4 });
-      expect(normalState.lines.horizontal).toHaveLength(5);
-      expect(normalState.lines.vertical).toHaveLength(4);
-      expect(normalState.boxes).toHaveLength(4);
-    });
-
-    it('「むずかしい」レベル（6x6）でゲームを正しく初期化できる', () => {
-      const hardState = createGame('hard');
-      expect(hardState.boardSize).toEqual({ rows: 6, cols: 6 });
-      expect(hardState.lines.horizontal).toHaveLength(7);
-      expect(hardState.lines.vertical).toHaveLength(6);
-      expect(hardState.boxes).toHaveLength(6);
-    });
+describe('Dots and Boxes Core Logic', () => {
+  describe('createInitialState', () => {
+    it.each([
+      ['easy', 2, 2],
+      ['normal', 4, 4],
+      ['hard', 6, 6],
+    ])(
+      'should create a correct initial state for %s difficulty',
+      (difficulty, rows, cols) => {
+        const state = createInitialState(difficulty as Difficulty);
+        expect(state.difficulty).toBe(difficulty);
+        expect(state.rows).toBe(rows);
+        expect(state.cols).toBe(cols);
+      }
+    );
   });
 
-  describe('gameReducer', () => {
-    it('水平線を正しく引き、プレイヤーが交代する', () => {
-      const state = createGame('easy');
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'horizontal', row: 0, col: 0 },
-      };
-      const newState = gameReducer(state, action);
-      expect(newState.lines.horizontal[0][0]).toBe('PLAYER1');
-      expect(newState.currentPlayer).toBe('PLAYER2');
-      expect(newState.scores.PLAYER1).toBe(0);
+  describe('selectLine for 2x2 board', () => {
+    let s: GameState;
+
+    beforeEach(() => {
+      s = createInitialState('easy');
     });
 
-    it('垂直線を正しく引き、プレイヤーが交代する', () => {
-      const state = createGame('easy');
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'vertical', row: 0, col: 0 },
-      };
-      const newState = gameReducer(state, action);
-      expect(newState.lines.vertical[0][0]).toBe('PLAYER1');
-      expect(newState.currentPlayer).toBe('PLAYER2');
+    it('should switch player when no box is made', () => {
+      s = selectLine(s, 0, 0, 'h');
+      expect(s.currentPlayer).toBe('player2');
     });
 
-    it('すでに引かれたラインは引けない', () => {
-      let state = createGame('easy');
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'horizontal', row: 0, col: 0 },
-      };
-      state = gameReducer(state, action); // PLAYER1が引く
-      const newState = gameReducer(state, action); // PLAYER2が同じ線を引こうとする
-      expect(newState).toEqual(state);
+    it('should award a point and not switch player when a box is made', () => {
+      s = selectLine(s, 0, 0, 'h'); // p1
+      s = selectLine(s, 0, 0, 'v'); // p2
+      s = selectLine(s, 1, 0, 'h'); // p1
+      s = selectLine(s, 0, 1, 'v'); // p2 makes box (0,0)
+      expect(s.scores.player2).toBe(1);
+      expect(s.currentPlayer).toBe('player2');
     });
 
-    it('ボックスを完成させると、スコアが加算され、同じプレイヤーのターンが続く', () => {
-      let state = createGame('easy');
-      state.lines.horizontal[0][0] = 'PLAYER2';
-      state.lines.vertical[0][0] = 'PLAYER2';
-      state.lines.vertical[0][1] = 'PLAYER2';
-
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'horizontal', row: 1, col: 0 },
-      };
-      const newState = gameReducer(state, action);
-
-      expect(newState.boxes[0][0]).toBe('PLAYER1');
-      expect(newState.scores.PLAYER1).toBe(1);
-      expect(newState.currentPlayer).toBe('PLAYER1');
+    it('should award two points for two boxes at once', () => {
+      s = selectLine(s, 0, 0, 'h'); // p1
+      s = selectLine(s, 0, 1, 'h'); // p2
+      s = selectLine(s, 2, 0, 'h'); // p1
+      s = selectLine(s, 2, 1, 'h'); // p2
+      s = selectLine(s, 0, 0, 'v'); // p1
+      s = selectLine(s, 1, 0, 'v'); // p2
+      s = selectLine(s, 0, 2, 'v'); // p1
+      s = selectLine(s, 1, 2, 'v'); // p2
+      s = selectLine(s, 0, 1, 'v'); // p1 -> p2
+      s = selectLine(s, 1, 1, 'v'); // p2 -> p1
+      // p1 to play h[1][0]
+      s = selectLine(s, 1, 0, 'h');
+      expect(s.scores.player1).toBe(2);
+      expect(s.currentPlayer).toBe('player1');
     });
 
-    it('最後のボックスを完成させてゲームが終了し、勝者が決まる', () => {
-      // 1x1の盤面で、3辺が埋まっている状態を準備
-      const state: GameState = {
-        boardSize: { rows: 1, cols: 1 },
-        lines: {
-          horizontal: [['PLAYER1'], [null]],
-          vertical: [['PLAYER1', 'PLAYER1']],
-        },
-        boxes: [[null]],
-        currentPlayer: 'PLAYER2',
-        scores: { PLAYER1: 0, PLAYER2: 0 },
-        status: 'playing',
-        winner: null,
-        difficulty: 'easy',
-      };
+    it('should declare a winner correctly (P1 wins 4-0)', () => {
+        let s = createInitialState('easy');
+        // A full game simulation where P1 wins all boxes
+        s = selectLine(s, 0, 0, 'h'); // p1
+        s = selectLine(s, 0, 1, 'h'); // p2
+        s = selectLine(s, 1, 0, 'h'); // p1
+        s = selectLine(s, 1, 1, 'h'); // p2
+        s = selectLine(s, 2, 0, 'h'); // p1
+        s = selectLine(s, 2, 1, 'h'); // p2
+        s = selectLine(s, 0, 0, 'v'); // p1
+        s = selectLine(s, 1, 0, 'v'); // p2
+        s = selectLine(s, 0, 2, 'v'); // p1
+        s = selectLine(s, 1, 2, 'v'); // p2
+        // P1 to play. 2 lines left: v(0,1), v(1,1)
+        expect(s.currentPlayer).toBe('player1');
 
-      // PLAYER2が最後の1辺を引いてボックスを完成させる
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'horizontal', row: 1, col: 0 },
-      };
-      const newState = gameReducer(state, action);
+        s = selectLine(s, 0, 1, 'v'); // P1 completes box (0,0) and (0,1). Score 2-0.
+        expect(s.scores.player1).toBe(2);
+        expect(s.currentPlayer).toBe('player1');
 
-      // ボックスがPLAYER2のものになる
-      expect(newState.boxes[0][0]).toBe('PLAYER2');
-      // スコアが加算される
-      expect(newState.scores).toEqual({ PLAYER1: 0, PLAYER2: 1 });
-      // ゲームが終了する
-      expect(newState.status).toBe('ended');
-      // 勝者が決まる
-      expect(newState.winner).toBe('PLAYER2');
+        s = selectLine(s, 1, 1, 'v'); // P1 completes box (1,0) and (1,1). Score 4-0.
+        expect(s.scores.player1).toBe(4);
+        expect(s.currentPlayer).toBe('player1');
+
+        expect(s.gameStatus).toBe('ended');
+        expect(s.winner).toBe('player1');
     });
 
-    it('引き分けでゲームが終了する', () => {
-      // 1x2の盤面で、PLAYER1が1箱、PLAYER2が0箱の状態で最後の1箱が完成間近の状態
-      const state: GameState = {
-        boardSize: { rows: 1, cols: 2 },
-        lines: {
-          horizontal: [['PLAYER1', 'PLAYER1'], ['PLAYER1', null]],
-          vertical: [['PLAYER1', 'PLAYER1', 'PLAYER2']],
-        },
-        boxes: [['PLAYER1', null]],
-        currentPlayer: 'PLAYER2',
-        scores: { PLAYER1: 1, PLAYER2: 0 },
-        status: 'playing',
-        winner: null,
-        difficulty: 'easy',
-      };
+    it('should declare a draw correctly (2-2)', () => {
+        let s = createInitialState('easy');
+        // A full game simulation leading to a 2-2 draw
+        s = selectLine(s, 0, 0, 'h'); // p1
+        s = selectLine(s, 1, 0, 'h'); // p2
+        s = selectLine(s, 0, 1, 'h'); // p1
+        s = selectLine(s, 1, 1, 'h'); // p2
+        s = selectLine(s, 0, 0, 'v'); // p1
+        s = selectLine(s, 0, 2, 'v'); // p2
+        s = selectLine(s, 1, 0, 'v'); // p1
+        s = selectLine(s, 1, 2, 'v'); // p2
+        // 4 lines left. p1 to play.
+        s = selectLine(s, 0, 1, 'v'); // p1 takes box(0,0) and box(0,1). Score: p1=2. Turn: p1
+        expect(s.scores.player1).toBe(2);
+        expect(s.currentPlayer).toBe('player1');
 
-      // PLAYER2が最後の1辺を引いてボックスを完成させる
-      const action: GameAction = {
-        type: 'DRAW_LINE',
-        payload: { lineType: 'horizontal', row: 1, col: 1 },
-      };
-      const newState = gameReducer(state, action);
+        // p1 is forced to play a line that doesn't complete a box
+        s = selectLine(s, 2, 0, 'h'); // p1 -> p2
+        expect(s.currentPlayer).toBe('player2');
 
-      // 最後のボックスがPLAYER2のものになる
-      expect(newState.boxes[0][1]).toBe('PLAYER2');
-      // スコアが加算される
-      expect(newState.scores).toEqual({ PLAYER1: 1, PLAYER2: 1 });
-      // ゲームが終了する
-      expect(newState.status).toBe('ended');
-      // 引き分けになる
-      expect(newState.winner).toBe('DRAW');
+        // p2 takes the remaining two boxes
+        s = selectLine(s, 1, 1, 'v'); // p2 takes box(1,0). Score: p2=1. Turn: p2
+        expect(s.scores.player2).toBe(1);
+        s = selectLine(s, 2, 1, 'h'); // p2 takes box(1,1). Score: p2=2. Turn: p2. Game over.
+        expect(s.scores.player2).toBe(2);
+
+        expect(s.gameStatus).toBe('ended');
+        expect(s.winner).toBe('draw');
     });
   });
 });

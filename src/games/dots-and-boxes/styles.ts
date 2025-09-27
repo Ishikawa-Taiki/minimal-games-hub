@@ -1,129 +1,107 @@
 import StyleSheet from '@/app/styles/StyleSheet';
 
-export const CELL_SIZE = 60;
-export const DOT_SIZE = 16;
-export const LINE_THICKNESS = 8;
+const player1Color = 'var(--color-player1)';
+const player2Color = 'var(--color-player2)';
 
-const styles = StyleSheet.create({
-  // Difficulty selection
-  difficultyContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-    height: '100%',
-  },
-  difficultyTitle: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1f2937', // gray-800
-  },
-  difficultyButtonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-
-  // Game container
+export const styles = StyleSheet.create({
   container: {
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     width: '100%',
     height: '100%',
-  },
-  boardWrapper: {
-    position: 'relative',
+    padding: '1rem',
+    boxSizing: 'border-box',
   },
   board: {
+    position: 'relative',
     display: 'grid',
-    gap: CELL_SIZE,
-    padding: DOT_SIZE / 2,
+    backgroundColor: 'var(--color-surface-container-highest)',
+    padding: '1rem',
+    borderRadius: '8px',
   },
   dot: {
-    width: DOT_SIZE,
-    height: DOT_SIZE,
+    width: '12px',
+    height: '12px',
+    backgroundColor: 'var(--color-outline-variant)',
     borderRadius: '50%',
-    backgroundColor: '#374151', // gray-700
-    zIndex: 2,
-  },
-  linesContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 1,
   },
   line: {
     position: 'absolute',
-    backgroundColor: '#d1d5db', // gray-300
-    transition: 'background-color 0.2s ease-in-out',
-  },
-  lineClickable: {
+    backgroundColor: 'var(--color-surface-container-highest)',
     cursor: 'pointer',
-  },
-  lineHover: {
-    backgroundColor: '#f3f4f6', // gray-100
+    transition: 'background-color 0.2s ease',
+    '&:hover': {
+      backgroundColor: 'var(--color-surface-container-low)',
+    },
   },
   hLine: {
-    height: LINE_THICKNESS,
-    top: -LINE_THICKNESS / 2,
-    width: CELL_SIZE,
+    height: '8px',
   },
   vLine: {
-    width: LINE_THICKNESS,
-    left: -LINE_THICKNESS / 2,
-    height: CELL_SIZE,
+    width: '8px',
   },
-  player1Line: {
-    backgroundColor: '#ef4444', // red-500
+  lineOwned: {
+    cursor: 'default',
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
   },
-  player2Line: {
-    backgroundColor: '#3b82f6', // blue-500
+  line_player1: {
+    backgroundColor: player1Color,
+    '&:hover': {
+      backgroundColor: player1Color,
+    },
   },
-  boxesContainer: {
-    position: 'absolute',
-    top: DOT_SIZE / 2,
-    left: DOT_SIZE / 2,
-    display: 'grid',
-    gap: LINE_THICKNESS,
-    zIndex: 0,
+  line_player2: {
+    backgroundColor: player2Color,
+    '&:hover': {
+      backgroundColor: player2Color,
+    },
+  },
+  line_preview: {
+    opacity: 0.5,
   },
   box: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
+    position: 'absolute',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background-color 0.3s',
+    transition: 'background-color 0.3s ease',
   },
-  player1Box: {
-    backgroundColor: 'rgba(254, 202, 202, 0.5)', // red-200 with 0.5 opacity
+  box_player1: {
+    backgroundColor: `rgba(var(--color-player1-rgb), 0.3)`,
   },
-  player2Box: {
-    backgroundColor: 'rgba(191, 219, 254, 0.5)', // blue-200 with 0.5 opacity
+  box_player2: {
+    backgroundColor: `rgba(var(--color-player2-rgb), 0.3)`,
   },
   hintNumber: {
-    fontSize: 24,
+    fontSize: '2rem',
     fontWeight: 'bold',
-    color: '#9ca3af', // gray-400
+    opacity: 0.2,
+    color: 'var(--color-on-surface)',
     pointerEvents: 'none',
+    transition: 'color 0.3s, opacity 0.3s',
   },
-  // Preview hint styles
-  player1PreviewBox: {
-    backgroundColor: '#fee2e2', // red-100
+  hintNumber_preview_player1: {
+    color: player1Color,
+    opacity: 0.7,
   },
-  player2PreviewBox: {
-    backgroundColor: '#dbeafe', // blue-100
+  hintNumber_preview_player2: {
+    color: player2Color,
+    opacity: 0.7,
   },
-  player1PreviewHintNumber: {
-    color: '#fca5a5', // red-300
+  previewHighlight_player1: {
+     backgroundColor: `rgba(var(--color-player1-rgb), 0.2)`,
   },
-  player2PreviewHintNumber: {
-    color: '#93c5fd', // blue-300
+    previewHighlight_player2: {
+     backgroundColor: `rgba(var(--color-player2-rgb), 0.2)`,
+  },
+  difficultySelector: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
   },
 });
-
-export default styles;
