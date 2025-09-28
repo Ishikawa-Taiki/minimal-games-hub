@@ -30,6 +30,27 @@ const isPreviewBox = (r: number, c: number, preview: Preview | null) => {
 };
 
 // --- Sub-components ---
+const ScoreBoard = memo(function ScoreBoard({
+  scores,
+  getPlayerDisplayName,
+}: {
+  scores: { player1: number; player2: number };
+  getPlayerDisplayName: (player: Player) => string;
+}) {
+  return (
+    <div style={styles.scoreBoard}>
+      <div style={{ ...styles.scoreItem, ...styles.score_player1 }}>
+        <span>{getPlayerDisplayName('player1')}: </span>
+        <span data-testid="score-value-player1">{scores.player1}</span>
+      </div>
+      <div style={{ ...styles.scoreItem, ...styles.score_player2 }}>
+        <span>{getPlayerDisplayName('player2')}: </span>
+        <span data-testid="score-value-player2">{scores.player2}</span>
+      </div>
+    </div>
+  );
+});
+
 const Dot = memo(function Dot({ r, c }: { r: number; c: number }) {
   return (
     <div
@@ -113,34 +134,34 @@ const Box = memo(function Box({
   const isPreview = isPreviewBox(r, c, preview);
 
   const boxStyle = useMemo(() => {
-    let style = {
+    const baseStyle = {
       ...styles.box,
       gridRow: 2 * r + 2,
       gridColumn: 2 * c + 2,
     };
     if (owner) {
-      return owner === 'player1'
-        ? { ...style, ...styles.box_player1 }
-        : { ...style, ...styles.box_player2 };
+      const playerBoxStyle = owner === 'player1' ? styles.box_player1 : styles.box_player2;
+      return { ...baseStyle, ...playerBoxStyle };
     }
     if (isPreview) {
-      style = { ...style, ...styles.previewHighlight };
-      return currentPlayer === 'player1'
-        ? { ...style, ...styles.previewHighlight_player1 }
-        : { ...style, ...styles.previewHighlight_player2 };
+      const playerPreviewStyle =
+        currentPlayer === 'player1'
+          ? styles.previewHighlight_player1
+          : styles.previewHighlight_player2;
+      return { ...baseStyle, ...playerPreviewStyle };
     }
-    return style;
+    return baseStyle;
   }, [owner, isPreview, currentPlayer, r, c]);
 
   const hintStyle = useMemo(() => {
-    let style = { ...styles.hintNumber };
     if (isPreview) {
-      style = { ...style, ...styles.hintNumber_preview };
-      return currentPlayer === 'player1'
-        ? { ...style, ...styles.hintNumber_preview_player1 }
-        : { ...style, ...styles.hintNumber_preview_player2 };
+      const playerPreviewStyle =
+        currentPlayer === 'player1'
+          ? styles.hintNumber_preview_player1
+          : styles.hintNumber_preview_player2;
+      return { ...styles.hintNumber, ...playerPreviewStyle };
     }
-    return style;
+    return styles.hintNumber;
   }, [isPreview, currentPlayer]);
 
   return (
@@ -265,6 +286,10 @@ const DotsAndBoxesGame: React.FC<DotsAndBoxesGameProps> = ({
 
   return (
     <div style={styles.gameContainer}>
+      <ScoreBoard
+        scores={controller.gameState.scores}
+        getPlayerDisplayName={controller.getPlayerDisplayName}
+      />
       <Board controller={controller} />
     </div>
   );

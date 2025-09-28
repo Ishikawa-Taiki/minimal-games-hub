@@ -113,4 +113,29 @@ export const styles = StyleSheet.create({
     color: player2Color,
     opacity: 0.7,
   },
+
+  // --- Scoreboard ---
+  scoreBoard: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    width: '100%',
+    maxWidth: '400px',
+    padding: '0.5rem',
+    borderRadius: '8px',
+    backgroundColor: '#f9fafb', // gray-50
+    border: '1px solid #e5e7eb', // gray-200
+  },
+  scoreItem: {
+    fontSize: '1.25rem', // 20px
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  score_player1: {
+    color: player1Color,
+  },
+  score_player2: {
+    color: player2Color,
+  },
 });

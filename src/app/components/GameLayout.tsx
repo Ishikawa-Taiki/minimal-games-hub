@@ -92,7 +92,7 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         <SelectableButton
           isSelected={hintController.hintState.enabled}
           onStateChange={(isSelected) => hintController.setHints(isSelected)}
-          aria-label="おしえて！機能のON/OFFを切り替える"
+          ariaLabel="おしえて！機能のON/OFFを切り替える"
           data-testid="control-panel-hint-button"
         >
           おしえて！

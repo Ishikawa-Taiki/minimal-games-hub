@@ -18,7 +18,6 @@ import { useDialog } from '@/app/components/ui/DialogProvider';
 export type DotsAndBoxesController = HintableGameController<GameState, Action> & {
   setDifficulty: (difficulty: Difficulty) => void;
   selectLine: (r: number, c: number, type: 'h' | 'v') => void;
-  getScoreInfo: () => ScoreInfo;
   getPlayerDisplayName: (player: Player) => string;
   remainingLinesCounts: number[][];
   preview: Preview | null;
@@ -71,11 +70,16 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
   const { status, winner, scores } = gameState;
   useEffect(() => {
     if (status === 'ended' && winner) {
-      const title =
-        winner === 'draw'
-          ? 'ひきわけ'
-          : `${getPlayerDisplayName(winner)}のかち！`;
-      const message = `プレイヤー1: ${scores.player1} vs プレイヤー2: ${scores.player2}`;
+      let title;
+      let message;
+      if (winner === 'draw') {
+        title = 'ひきわけ！';
+        message = `てにいれた かず: ${scores.player1}`;
+      } else {
+        const winnerName = getPlayerDisplayName(winner);
+        title = `${winnerName}のかち！`;
+        message = `プレイヤー1: ${scores.player1}, プレイヤー2: ${scores.player2}`;
+      }
       alert({ title, message }).then(resetGame);
     }
   }, [status, winner, scores, alert, resetGame, getPlayerDisplayName]);
@@ -119,21 +123,6 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     enabled: gameState.hintsEnabled,
   }), [gameState.hintsEnabled]);
 
-  const getScoreInfo = useCallback((): ScoreInfo => {
-    return {
-      title: '獲得したかず',
-      items: [
-        {
-          label: getPlayerDisplayName('player1'),
-          value: gameState.scores.player1,
-        },
-        {
-          label: getPlayerDisplayName('player2'),
-          value: gameState.scores.player2,
-        },
-      ],
-    };
-  }, [gameState.scores, getPlayerDisplayName]);
 
   const remainingLinesCounts = useMemo(() => {
     if (!gameState.hintsEnabled || gameState.status !== 'playing') {
@@ -166,7 +155,6 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     selectLine: handleLineSelection,
     setHints,
     hintState, // <--- この行を追加！
-    getScoreInfo,
     getPlayerDisplayName,
     remainingLinesCounts,
     preview,

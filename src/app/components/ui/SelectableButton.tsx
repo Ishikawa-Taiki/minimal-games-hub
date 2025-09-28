@@ -71,7 +71,6 @@ export const SelectableButton: React.FC<SelectableButtonProps> = ({
       variant={variant}
       onClick={handleClick}
       data-testid={dataTestId}
-      aria-pressed={isSelected}
       {...baseButtonProps}
     >
       <div style={styles.container}>
