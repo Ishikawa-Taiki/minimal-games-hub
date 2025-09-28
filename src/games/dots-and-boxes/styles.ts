@@ -1,7 +1,9 @@
 import StyleSheet from '@/app/styles/StyleSheet';
 
-const player1Color = 'var(--color-player1)';
-const player2Color = 'var(--color-player2)';
+const player1Color = '#ef4444'; // red-500
+const player2Color = '#3b82f6'; // blue-500
+const player1ColorRgb = '239, 68, 68';
+const player2ColorRgb = '59, 130, 246';
 
 export const styles = StyleSheet.create({
   container: {
@@ -17,23 +19,23 @@ export const styles = StyleSheet.create({
   board: {
     position: 'relative',
     display: 'grid',
-    backgroundColor: 'var(--color-surface-container-highest)',
+    backgroundColor: '#e5e7eb', // gray-200
     padding: '1rem',
     borderRadius: '8px',
   },
   dot: {
     width: '12px',
     height: '12px',
-    backgroundColor: 'var(--color-outline-variant)',
+    backgroundColor: '#9ca3af', // gray-400
     borderRadius: '50%',
   },
   line: {
     position: 'absolute',
-    backgroundColor: 'var(--color-surface-container-highest)',
+    backgroundColor: '#d1d5db', // gray-300
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
     '&:hover': {
-      backgroundColor: 'var(--color-surface-container-low)',
+      backgroundColor: '#e5e7eb', // gray-200
     },
   },
   hLine: {
@@ -71,16 +73,16 @@ export const styles = StyleSheet.create({
     transition: 'background-color 0.3s ease',
   },
   box_player1: {
-    backgroundColor: `rgba(var(--color-player1-rgb), 0.3)`,
+    backgroundColor: `rgba(${player1ColorRgb}, 0.3)`,
   },
   box_player2: {
-    backgroundColor: `rgba(var(--color-player2-rgb), 0.3)`,
+    backgroundColor: `rgba(${player2ColorRgb}, 0.3)`,
   },
   hintNumber: {
     fontSize: '2rem',
     fontWeight: 'bold',
     opacity: 0.2,
-    color: 'var(--color-on-surface)',
+    color: '#6b7280', // gray-500
     pointerEvents: 'none',
     transition: 'color 0.3s, opacity 0.3s',
   },
@@ -93,15 +95,38 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   previewHighlight_player1: {
-     backgroundColor: `rgba(var(--color-player1-rgb), 0.2)`,
+    backgroundColor: `rgba(${player1ColorRgb}, 0.2)`,
   },
-    previewHighlight_player2: {
-     backgroundColor: `rgba(var(--color-player2-rgb), 0.2)`,
+  previewHighlight_player2: {
+    backgroundColor: `rgba(${player2ColorRgb}, 0.2)`,
   },
   difficultySelector: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '1rem',
+  },
+  scoreBoard: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    width: '100%',
+    maxWidth: '400px',
+    marginBottom: '1rem',
+    padding: '0.5rem',
+    borderRadius: '8px',
+    backgroundColor: '#f9fafb', // gray-50
+  },
+  scoreItem: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  score_player1: {
+    color: player1Color,
+  },
+  score_player2: {
+    color: player2Color,
   },
 });
