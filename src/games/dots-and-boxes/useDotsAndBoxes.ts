@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import {
   createInitialState,
   selectLine,
@@ -13,6 +13,7 @@ import type {
   HintableGameController,
   DisplayInfo,
 } from '@/core/types/game';
+import { useDialog } from '@/app/components/ui/DialogProvider';
 
 export type DotsAndBoxesController = BaseGameController<GameState, Action> &
   HintableGameController<GameState, Action> & {
@@ -56,7 +57,7 @@ const reducer = (state: GameState, action: Action): GameState => {
     case 'START_GAME':
       return createInitialState(action.payload.difficulty);
     case 'RESET_GAME':
-      return createInitialState(state.difficulty);
+      return { ...initialGameState }; // Go back to difficulty selection
     case 'SELECT_LINE':
       return selectLine(
         state,
@@ -104,13 +105,39 @@ const reducer = (state: GameState, action: Action): GameState => {
 
 export const useDotsAndBoxes = (): DotsAndBoxesController => {
   const [gameState, dispatch] = useReducer(reducer, initialGameState);
+  const { alert } = useDialog();
 
-  const setDifficulty = useCallback((difficulty: Difficulty) => {
-    dispatch({ type: 'START_GAME', payload: { difficulty } });
+  const getPlayerDisplayName = useCallback((player: Player): string => {
+    return player === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
   }, []);
 
   const resetGame = useCallback(() => {
     dispatch({ type: 'RESET_GAME' });
+  }, []);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      if (gameState.winner === 'draw') {
+        alert({
+          title: 'ひきわけ',
+          message: `プレイヤー1もプレイヤー2も ${gameState.scores.player1}個のボックスをとったよ！`,
+        }).then(() => {
+          resetGame();
+        });
+      } else {
+        const winnerText = getPlayerDisplayName(gameState.winner);
+        alert({
+          title: `${winnerText}のかち`,
+          message: `プレイヤー1が${gameState.scores.player1}個、プレイヤー2が${gameState.scores.player2}個のボックスをとったよ！`,
+        }).then(() => {
+          resetGame();
+        });
+      }
+    }
+  }, [gameState.winner, gameState.scores, alert, resetGame, getPlayerDisplayName]);
+
+  const setDifficulty = useCallback((difficulty: Difficulty) => {
+    dispatch({ type: 'START_GAME', payload: { difficulty } });
   }, []);
 
   const selectLineAction = useCallback(
@@ -141,10 +168,6 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     },
     []
   );
-
-  const getPlayerDisplayName = useCallback((player: Player): string => {
-    return player === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
-  }, []);
 
   const displayInfo = useMemo((): DisplayInfo => {
     if (gameState.status === 'ended') {
