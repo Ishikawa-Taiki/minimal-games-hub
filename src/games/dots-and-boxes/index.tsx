@@ -1,149 +1,167 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useDotsAndBoxes, type DotsAndBoxesController } from './useDotsAndBoxes';
 export { useDotsAndBoxes } from './useDotsAndBoxes';
 import { styles } from './styles';
-import type { Difficulty, GameState, Player } from './core';
 import { Button } from '@/app/components/ui/Button';
-
-const DOT_SIZE = 12;
-const CELL_SIZE = 60;
+import type { GameState, Line, Box, Player } from './core';
 
 interface DotsAndBoxesGameProps {
   controller?: DotsAndBoxesController;
 }
 
-const renderDots = (rows: number, cols: number) => {
-  const dots = [];
-  for (let r = 0; r <= rows; r++) {
-    for (let c = 0; c <= cols; c++) {
-      dots.push(
-        <div
-          key={`dot-${r}-${c}`}
-          style={{
-            ...styles.dot,
-            position: 'absolute',
-            top: r * CELL_SIZE - DOT_SIZE / 2,
-            left: c * CELL_SIZE - DOT_SIZE / 2,
-          }}
-        />
-      );
+const CELL_SIZE = 50; // size of each box
+const DOT_SIZE = 12;
+const LINE_THICKNESS = 8;
+
+const getLineStyle = (line: Line, baseStyle: React.CSSProperties): React.CSSProperties => {
+  let style = { ...baseStyle };
+  if (line.owner) {
+    style = { ...style, ...styles.lineOwned };
+    if (line.owner === 'player1') {
+      style = { ...style, ...styles.line_player1 };
+    } else {
+      style = { ...style, ...styles.line_player2 };
     }
   }
-  return dots;
+  if (line.preview) {
+    style = { ...style, ...styles.line_preview };
+    if (line.preview === 'player1') {
+      style = { ...style, ...styles.line_player1 };
+    } else {
+      style = { ...style, ...styles.line_player2 };
+    }
+  }
+  return style;
 };
 
-const getLineStyle = (line: GameState['hLines'][0][0]) => {
-  const owner = line.preview || line.owner;
-  return {
-    ...styles.line,
-    ...(owner && styles.lineOwned),
-    ...(owner === 'player1' && styles.line_player1),
-    ...(owner === 'player2' && styles.line_player2),
-    ...(line.preview && styles.line_preview),
-  };
+const getBoxStyle = (box: Box): React.CSSProperties => {
+  let style: React.CSSProperties = styles.box;
+  if (box.owner) {
+    style = box.owner === 'player1' ? { ...style, ...styles.box_player1 } : { ...style, ...styles.box_player2 };
+  }
+  if (box.preview) {
+     style = box.preview === 'player1' ? { ...style, ...styles.previewHighlight_player1 } : { ...style, ...styles.previewHighlight_player2 };
+  }
+  return style;
 };
+
+const Board = ({ gameState, selectLine }: { gameState: GameState; selectLine: (r: number, c: number, type: 'h' | 'v') => void }) => {
+  const { rows, cols, hLines, vLines, boxes } = gameState;
+
+  const boardWidth = cols * CELL_SIZE + (cols + 1) * DOT_SIZE;
+  const boardHeight = rows * CELL_SIZE + (rows + 1) * DOT_SIZE;
+
+  const boardStyle = useMemo(() => ({
+    ...styles.board,
+    gridTemplateColumns: `repeat(${cols + 1}, ${DOT_SIZE}px)`,
+    gridTemplateRows: `repeat(${rows + 1}, ${DOT_SIZE}px)`,
+    gridGap: `${CELL_SIZE}px`,
+    width: `${boardWidth}px`,
+    height: `${boardHeight}px`,
+  }), [rows, cols, boardWidth, boardHeight]);
+
+  return (
+    <div style={boardStyle} data-testid="game-board">
+      {/* Render Dots */}
+      {Array.from({ length: (rows + 1) * (cols + 1) }).map((_, i) => (
+        <div key={`dot-${i}`} style={styles.dot} />
+      ))}
+
+      {/* Render Horizontal Lines */}
+      {hLines.map((row, r) =>
+        row.map((line, c) => (
+          <div
+            key={`h-line-${r}-${c}`}
+            data-testid={`h-line-${r}-${c}`}
+            style={getLineStyle(line, {
+              ...styles.line,
+              ...styles.hLine,
+              width: `${CELL_SIZE}px`,
+              left: `${c * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
+              top: `${r * (CELL_SIZE + DOT_SIZE) + (DOT_SIZE - LINE_THICKNESS) / 2}px`,
+            })}
+            onClick={() => !line.owner && selectLine(r, c, 'h')}
+          />
+        ))
+      )}
+
+      {/* Render Vertical Lines */}
+      {vLines.map((row, r) =>
+        row.map((line, c) => (
+          <div
+            key={`v-line-${r}-${c}`}
+            data-testid={`v-line-${r}-${c}`}
+            style={getLineStyle(line, {
+              ...styles.line,
+              ...styles.vLine,
+              height: `${CELL_SIZE}px`,
+              top: `${r * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
+              left: `${c * (CELL_SIZE + DOT_SIZE) + (DOT_SIZE - LINE_THICKNESS) / 2}px`,
+            })}
+            onClick={() => !line.owner && selectLine(r, c, 'v')}
+          />
+        ))
+      )}
+
+      {/* Render Boxes */}
+      {boxes.map((row, r) =>
+        row.map((box, c) => (
+          <div
+            key={`box-${r}-${c}`}
+            data-testid={`box-${r}-${c}`}
+            style={{
+              ...getBoxStyle(box),
+              width: `${CELL_SIZE}px`,
+              height: `${CELL_SIZE}px`,
+              top: `${r * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
+              left: `${c * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
+            }}
+          />
+        ))
+      )}
+    </div>
+  );
+};
+
 
 const DotsAndBoxesGame: React.FC<DotsAndBoxesGameProps> = ({
   controller: externalController,
 }) => {
   const internalController = useDotsAndBoxes();
-  const { gameState, setDifficulty, selectLine, setPreview } =
-    externalController || internalController;
-
-  const handleLineClick = useCallback((r: number, c: number, type: 'h' | 'v') => {
-    const line = type === 'h' ? gameState.hLines[r][c] : gameState.vLines[r][c];
-    if (line.owner) return;
-
-    if (gameState.hintsEnabled) {
-      if (line.preview) {
-        selectLine(r, c, type);
-        setPreview(null, null, null);
-      } else {
-        setPreview(r, c, type);
-      }
-    } else {
-      selectLine(r, c, type);
-    }
-  }, [gameState, selectLine, setPreview]);
-
-  const boardWidth = gameState.cols * CELL_SIZE;
-  const boardHeight = gameState.rows * CELL_SIZE;
-
-  const getRemainingLines = useCallback((box_r: number, box_c: number) => {
-    const { hLines, vLines } = gameState;
-    let count = 4;
-    if (hLines[box_r][box_c].owner || hLines[box_r][box_c].preview) count--;
-    if (hLines[box_r + 1][box_c].owner || hLines[box_r + 1][box_c].preview) count--;
-    if (vLines[box_r][box_c].owner || vLines[box_r][box_c].preview) count--;
-    if (vLines[box_r][box_c + 1].owner || vLines[box_r][box_c + 1].preview) count--;
-    return count;
-  }, [gameState]);
+  const controller = externalController || internalController;
+  const { gameState, setDifficulty, selectLine } = controller;
 
   if (gameState.gameStatus === 'waiting') {
     return (
       <div style={styles.difficultySelector}>
-        <Button onClick={() => setDifficulty('easy')} size="large">かんたん</Button>
-        <Button onClick={() => setDifficulty('normal')} size="large">ふつう</Button>
-        <Button onClick={() => setDifficulty('hard')} size="large">むずかしい</Button>
+        <Button onClick={() => setDifficulty('easy')} size="large" data-testid="difficulty-easy">かんたん</Button>
+        <Button onClick={() => setDifficulty('normal')} size="large" data-testid="difficulty-normal">ふつう</Button>
+        <Button onClick={() => setDifficulty('hard')} size="large" data-testid="difficulty-hard">むずかしい</Button>
       </div>
     );
   }
 
+  const getPlayerName = (player: Player) => {
+    return player === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
+  };
+
   return (
     <div style={styles.container}>
-      <div style={{ ...styles.board, width: boardWidth, height: boardHeight }}>
-        {renderDots(gameState.rows, gameState.cols)}
-        {gameState.boxes.map((row, r) =>
-          row.map((box, c) => {
-            const owner = box.preview || box.owner;
-            const boxStyle = {
-              ...styles.box,
-              top: r * CELL_SIZE,
-              left: c * CELL_SIZE,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              ...(owner === 'player1' ? styles.box_player1 : {}),
-              ...(owner === 'player2' ? styles.box_player2 : {}),
-              ...(box.preview === 'player1' ? styles.previewHighlight_player1 : {}),
-              ...(box.preview === 'player2' ? styles.previewHighlight_player2 : {}),
-            };
-            const hintNumberStyle = {
-                ...styles.hintNumber,
-                ...(box.preview === 'player1' && styles.hintNumber_preview_player1),
-                ...(box.preview === 'player2' && styles.hintNumber_preview_player2),
-            };
+      <div style={styles.scoreBoard}>
+        <div style={{...styles.scoreItem, ...styles.score_player1}}>
+            <span>{getPlayerName('player1')}: </span>
+            <span data-testid="score-value-player1">{gameState.scores.player1}</span>
+        </div>
+        <div style={{...styles.scoreItem, ...styles.score_player2}}>
+            <span>{getPlayerName('player2')}: </span>
+            <span data-testid="score-value-player2">{gameState.scores.player2}</span>
+        </div>
+      </div>
 
-            return (
-              <div key={`box-${r}-${c}`} style={boxStyle}>
-                {gameState.hintsEnabled && !box.owner && (
-                  <span style={hintNumberStyle}>
-                    {getRemainingLines(r, c)}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        )}
-        {gameState.hLines.map((row, r) =>
-          row.map((line, c) => (
-            <div
-              key={`h-line-${r}-${c}`}
-              data-testid={`h-line-${r}-${c}`}
-              style={{ ...getLineStyle(line), ...styles.hLine, top: r * CELL_SIZE - 4, left: c * CELL_SIZE, width: CELL_SIZE }}
-              onClick={() => handleLineClick(r, c, 'h')}
-            />
-          ))
-        )}
-        {gameState.vLines.map((row, r) =>
-          row.map((line, c) => (
-            <div
-              key={`v-line-${r}-${c}`}
-              data-testid={`v-line-${r}-${c}`}
-              style={{ ...getLineStyle(line), ...styles.vLine, top: r * CELL_SIZE, left: c * CELL_SIZE - 4, height: CELL_SIZE }}
-              onClick={() => handleLineClick(r, c, 'v')}
-            />
-          ))
-        )}
+      <Board gameState={gameState} selectLine={selectLine} />
+
+      <div style={styles.turnDisplay} data-testid="game-state-display">
+        <p>「{getPlayerName(gameState.currentPlayer)}」のばん</p>
       </div>
     </div>
   );

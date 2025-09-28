@@ -2,8 +2,10 @@ import { useReducer, useCallback } from 'react';
 import {
   createInitialState,
   selectLine,
+  type Box,
   type Difficulty,
   type GameState,
+  type Line,
 } from './core';
 import type {
   BaseGameController,
@@ -48,9 +50,9 @@ const reducer = (state: GameState, action: Action): GameState => {
     case 'SET_PREVIEW': {
       const newState = JSON.parse(JSON.stringify(state));
       // Clear previous preview states
-      newState.hLines.forEach((row: any) => row.forEach((line: any) => (line.preview = null)));
-      newState.vLines.forEach((row: any) => row.forEach((line: any) => (line.preview = null)));
-      newState.boxes.forEach((row: any) => row.forEach((box: any) => (box.preview = null)));
+      newState.hLines.forEach((row: Line[]) => row.forEach((line: Line) => (line.preview = null)));
+      newState.vLines.forEach((row: Line[]) => row.forEach((line: Line) => (line.preview = null)));
+      newState.boxes.forEach((row: Box[]) => row.forEach((box: Box) => (box.preview = null)));
 
       if (action.payload) {
         const { r, c, type } = action.payload;

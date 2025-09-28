@@ -113,6 +113,22 @@ const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manife
   );
 });
 
+// ドット＆ボックス用の新しいレイアウト対応コンポーネント
+const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+  const controller = useDotsAndBoxes();
+
+  return (
+    <GameLayout
+      gameName={manifest.displayName}
+      slug={slug}
+      gameController={controller}
+      rulesContent={rulesContent}
+    >
+      <DotsAndBoxes controller={controller} />
+    </GameLayout>
+  );
+});
+
 const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesContent }: GameClientPageProps) {
   // 棒消しゲームの場合は新しいレイアウトを使用
   if (slug === 'stick-taking') {
@@ -148,22 +164,6 @@ const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesConte
   
   // Fallback for any other case, though generateStaticParams should prevent this.
   return null;
-});
-
-// ドット＆ボックス用の新しいレイアウト対応コンポーネント
-const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
-  const controller = useDotsAndBoxes();
-
-  return (
-    <GameLayout
-      gameName={manifest.displayName}
-      slug={slug}
-      gameController={controller}
-      rulesContent={rulesContent}
-    >
-      <DotsAndBoxes controller={controller} />
-    </GameLayout>
-  );
 });
 
 export default GameClientPage;

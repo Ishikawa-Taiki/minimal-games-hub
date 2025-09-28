@@ -24,6 +24,7 @@ export interface GameState {
   gameStatus: GameStatus;
   winner: Player | 'draw' | null;
   remainingLines: number;
+  hintsEnabled: boolean;
 }
 
 const difficultySettings: Record<Difficulty, { rows: number; cols: number }> = {
@@ -58,6 +59,7 @@ export const createInitialState = (difficulty: Difficulty): GameState => {
     gameStatus: 'playing',
     winner: null,
     remainingLines: totalLines,
+    hintsEnabled: false,
   };
 };
 
@@ -68,48 +70,48 @@ export const selectLine = (
   type: 'h' | 'v'
 ): GameState => {
   const newState = JSON.parse(JSON.stringify(state)) as GameState;
-  const { currentPlayer, rows, cols } = newState;
+  const { currentPlayer, hLines, vLines, boxes, rows, cols } = newState;
 
-  const line = type === 'h' ? newState.hLines[r][c] : newState.vLines[r][c];
-
+  const line = type === 'h' ? hLines[r][c] : vLines[r][c];
   if (line.owner) {
-    return state; // Already taken, do nothing
+    return state; // Line already taken
   }
 
   line.owner = currentPlayer;
   newState.remainingLines--;
 
-  const previousTotalScore = newState.scores.player1 + newState.scores.player2;
+  let completedBoxesCount = 0;
 
-  // Check all boxes to see if any are newly completed
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      if (!newState.boxes[i][j].owner) {
-        const top = newState.hLines[i][j].owner;
-        const bottom = newState.hLines[i + 1][j].owner;
-        const left = newState.vLines[i][j].owner;
-        const right = newState.vLines[i][j + 1].owner;
-
-        if (top && bottom && left && right) {
-          newState.boxes[i][j].owner = currentPlayer;
-        }
+  const checkAndOwnBox = (boxR: number, boxC: number) => {
+    if (boxR >= 0 && boxR < rows && boxC >= 0 && boxC < cols) {
+      if (
+        !boxes[boxR][boxC].owner &&
+        hLines[boxR][boxC].owner &&
+        hLines[boxR + 1][boxC].owner &&
+        vLines[boxR][boxC].owner &&
+        vLines[boxR][boxC + 1].owner
+      ) {
+        boxes[boxR][boxC].owner = currentPlayer;
+        completedBoxesCount++;
       }
     }
+  };
+
+  if (type === 'h') {
+    // Check the box above and below the horizontal line
+    checkAndOwnBox(r - 1, c);
+    checkAndOwnBox(r, c);
+  } else { // type === 'v'
+    // Check the box to the left and right of the vertical line
+    checkAndOwnBox(r, c - 1);
+    checkAndOwnBox(r, c);
   }
 
-  // Recalculate scores from scratch
-  const newScores: Record<Player, number> = { player1: 0, player2: 0 };
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      if (newState.boxes[i][j].owner) {
-        newScores[newState.boxes[i][j].owner!]++;
-      }
-    }
+  if (completedBoxesCount > 0) {
+    newState.scores[currentPlayer] += completedBoxesCount;
+  } else {
+    newState.currentPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
   }
-  newState.scores = newScores;
-
-  const newTotalScore = newScores.player1 + newScores.player2;
-  const boxCompletedThisTurn = newTotalScore > previousTotalScore;
 
   if (newState.remainingLines === 0) {
     newState.gameStatus = 'ended';
@@ -119,10 +121,6 @@ export const selectLine = (
       newState.winner = 'player2';
     } else {
       newState.winner = 'draw';
-    }
-  } else {
-    if (!boxCompletedThisTurn) {
-      newState.currentPlayer = currentPlayer === 'player1' ? 'player2' : 'player1';
     }
   }
 
