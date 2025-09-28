@@ -2,6 +2,7 @@ import React, { memo, useState, useMemo } from 'react';
 import { useDotsAndBoxes, type DotsAndBoxesController } from './useDotsAndBoxes';
 import { styles } from './styles';
 import { Button } from '@/app/components/ui/Button';
+import { GameStateDisplay } from '@/app/components/GameStateDisplay';
 import type { Player, Preview } from './core';
 
 // --- Prop Types ---
@@ -24,9 +25,14 @@ const isPreviewLine = (
   );
 };
 
-const isPreviewBox = (r: number, c: number, preview: Preview | null) => {
+const isAdjacentPreviewBox = (r: number, c: number, preview: Preview | null) => {
   if (!preview) return false;
-  return preview.boxes.some((box) => box.r === r && box.c === c);
+  return preview.adjacentBoxes.some((box) => box.r === r && box.c === c);
+};
+
+const isCompletedPreviewBox = (r: number, c: number, preview: Preview | null) => {
+  if (!preview) return false;
+  return preview.completedBoxes.some((box) => box.r === r && box.c === c);
 };
 
 // --- Sub-components ---
@@ -131,7 +137,8 @@ const Box = memo(function Box({
   currentPlayer: Player;
   remainingCount: number;
 }) {
-  const isPreview = isPreviewBox(r, c, preview);
+  const isAdjacent = isAdjacentPreviewBox(r, c, preview);
+  const isCompleted = isCompletedPreviewBox(r, c, preview);
 
   const boxStyle = useMemo(() => {
     const baseStyle = {
@@ -143,7 +150,7 @@ const Box = memo(function Box({
       const playerBoxStyle = owner === 'player1' ? styles.box_player1 : styles.box_player2;
       return { ...baseStyle, ...playerBoxStyle };
     }
-    if (isPreview) {
+    if (isCompleted) { // 背景ハイライトは完成するボックスのみ
       const playerPreviewStyle =
         currentPlayer === 'player1'
           ? styles.previewHighlight_player1
@@ -151,10 +158,10 @@ const Box = memo(function Box({
       return { ...baseStyle, ...playerPreviewStyle };
     }
     return baseStyle;
-  }, [owner, isPreview, currentPlayer, r, c]);
+  }, [owner, isCompleted, currentPlayer, r, c]);
 
   const hintStyle = useMemo(() => {
-    if (isPreview) {
+    if (isAdjacent) { // 数字のプレビューは隣接するすべてのボックス
       const playerPreviewStyle =
         currentPlayer === 'player1'
           ? styles.hintNumber_preview_player1
@@ -162,11 +169,13 @@ const Box = memo(function Box({
       return { ...styles.hintNumber, ...playerPreviewStyle };
     }
     return styles.hintNumber;
-  }, [isPreview, currentPlayer]);
+  }, [isAdjacent, currentPlayer]);
+
+  const displayCount = isAdjacent ? remainingCount - 1 : remainingCount;
 
   return (
     <div style={boxStyle} data-testid={`box-${r}-${c}`}>
-      {remainingCount > 0 && <div style={hintStyle}>{remainingCount}</div>}
+      {displayCount > 0 && <div style={hintStyle}>{displayCount}</div>}
     </div>
   );
 });
@@ -286,6 +295,7 @@ const DotsAndBoxesGame: React.FC<DotsAndBoxesGameProps> = ({
 
   return (
     <div style={styles.gameContainer}>
+      <GameStateDisplay gameController={controller} />
       <ScoreBoard
         scores={controller.gameState.scores}
         getPlayerDisplayName={controller.getPlayerDisplayName}

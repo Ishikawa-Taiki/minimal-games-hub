@@ -29,7 +29,8 @@ export interface GameState {
 
 export interface Preview {
   line: LineId;
-  boxes: { r: number; c: number }[];
+  adjacentBoxes: { r: number; c: number }[];
+  completedBoxes: { r: number; c: number }[];
 }
 
 const difficultySettings: Record<Difficulty, { rows: number; cols: number }> = {
@@ -193,7 +194,7 @@ export const calculateRemainingLinesCounts = (state: GameState): number[][] => {
  * @param r ラインの行
  * @param c ラインの列
  * @param type ラインの種類（水平 or 垂直）
- * @returns プレビュー情報（プレビュー対象のラインと、それによって完成するボックスのリスト）
+ * @returns プレビュー情報。隣接するボックスと、その中で完成するボックスのリストを含む。
  */
 export const getPreview = (
   state: GameState,
@@ -201,40 +202,45 @@ export const getPreview = (
   c: number,
   type: 'h' | 'v'
 ): Preview => {
-  const { rows, cols, boxes } = state;
-  const previewBoxes: { r: number; c: number }[] = [];
+  const { rows, cols, hLines, vLines, boxes, currentPlayer } = state;
+  const adjacentBoxes: { r: number; c: number }[] = [];
+  const completedBoxes: { r: number; c: number }[] = [];
 
-  // ラインが引かれたと仮定した一時的な盤面を作成
-  const tempHLines = state.hLines.map((row) => [...row]);
-  const tempVLines = state.vLines.map((row) => [...row]);
+  // 1. 選択されたラインに隣接するボックスを特定する
   if (type === 'h') {
-    tempHLines[r][c] = { owner: state.currentPlayer };
-  } else {
-    tempVLines[r][c] = { owner: state.currentPlayer };
+    if (r > 0) adjacentBoxes.push({ r: r - 1, c }); // 上のボックス
+    if (r < rows) adjacentBoxes.push({ r, c });   // 下のボックス
+  } else { // type === 'v'
+    if (c > 0) adjacentBoxes.push({ r, c: c - 1 }); // 左のボックス
+    if (c < cols) adjacentBoxes.push({ r, c });   // 右のボックス
   }
 
-  const checkAndAddPreviewBox = (boxR: number, boxC: number) => {
-    if (boxR >= 0 && boxR < rows && boxC >= 0 && boxC < cols) {
-      if (
-        !boxes[boxR][boxC].owner &&
-        tempHLines[boxR][boxC].owner &&
-        tempHLines[boxR + 1][boxC].owner &&
-        tempVLines[boxR][boxC].owner &&
-        tempVLines[boxR][boxC + 1].owner
-      ) {
-        previewBoxes.push({ r: boxR, c: boxC });
-      }
+  // 2. ラインが引かれたと仮定して、隣接ボックスが完成するかどうかを判定する
+  const tempHLines = hLines.map(row => row.map(line => ({ ...line })));
+  const tempVLines = vLines.map(row => row.map(line => ({ ...line })));
+
+  if (type === 'h') {
+    tempHLines[r][c].owner = currentPlayer;
+  } else {
+    tempVLines[r][c].owner = currentPlayer;
+  }
+
+  for (const box of adjacentBoxes) {
+    if (boxes[box.r][box.c].owner) continue;
+
+    const topOwned = tempHLines[box.r][box.c].owner;
+    const bottomOwned = tempHLines[box.r + 1][box.c].owner;
+    const leftOwned = tempVLines[box.r][box.c].owner;
+    const rightOwned = tempVLines[box.r][box.c + 1].owner;
+
+    if (topOwned && bottomOwned && leftOwned && rightOwned) {
+      completedBoxes.push(box);
     }
-  };
-
-  // 新しいラインに関連するボックスをチェック
-  if (type === 'h') {
-    checkAndAddPreviewBox(r - 1, c); // 上のボックス
-    checkAndAddPreviewBox(r, c); // 下のボックス
-  } else {
-    checkAndAddPreviewBox(r, c - 1); // 左のボックス
-    checkAndAddPreviewBox(r, c); // 右のボックス
   }
 
-  return { line: { r, c, type }, boxes: previewBoxes };
+  return {
+    line: { r, c, type },
+    adjacentBoxes,
+    completedBoxes,
+  };
 };
