@@ -89,6 +89,7 @@ const Board = ({
             key={`h-line-${r}-${c}`}
             data-testid={`h-line-${r}-${c}`}
             style={getLineStyle(line, {
+              ...styles.line,
               ...styles.hLine,
               width: `${CELL_SIZE}px`,
               left: `${c * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
@@ -108,6 +109,7 @@ const Board = ({
             key={`v-line-${r}-${c}`}
             data-testid={`v-line-${r}-${c}`}
             style={getLineStyle(line, {
+              ...styles.line,
               ...styles.vLine,
               height: `${CELL_SIZE}px`,
               top: `${r * (CELL_SIZE + DOT_SIZE) + DOT_SIZE}px`,
