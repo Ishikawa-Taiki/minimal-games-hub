@@ -93,15 +93,38 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   previewHighlight_player1: {
-     backgroundColor: `rgba(var(--color-player1-rgb), 0.2)`,
+    backgroundColor: `rgba(var(--color-player1-rgb), 0.2)`,
   },
-    previewHighlight_player2: {
-     backgroundColor: `rgba(var(--color-player2-rgb), 0.2)`,
+  previewHighlight_player2: {
+    backgroundColor: `rgba(var(--color-player2-rgb), 0.2)`,
   },
   difficultySelector: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '1rem',
+  },
+  scoreBoard: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    width: '100%',
+    maxWidth: '400px',
+    marginBottom: '1rem',
+    padding: '0.5rem',
+    borderRadius: '8px',
+    backgroundColor: 'var(--color-surface-container)',
+  },
+  scoreItem: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  score_player1: {
+    color: player1Color,
+  },
+  score_player2: {
+    color: player2Color,
   },
 });

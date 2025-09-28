@@ -21,7 +21,7 @@ export interface GameState {
   boxes: Box[][];
   currentPlayer: Player;
   scores: Record<Player, number>;
-  gameStatus: GameStatus;
+  status: GameStatus;
   winner: Player | 'draw' | null;
   remainingLines: number;
   hintsEnabled: boolean;
@@ -56,7 +56,7 @@ export const createInitialState = (difficulty: Difficulty): GameState => {
     ),
     currentPlayer: 'player1',
     scores: { player1: 0, player2: 0 },
-    gameStatus: 'playing',
+    status: 'playing',
     winner: null,
     remainingLines: totalLines,
     hintsEnabled: false,
@@ -114,7 +114,7 @@ export const selectLine = (
   }
 
   if (newState.remainingLines === 0) {
-    newState.gameStatus = 'ended';
+    newState.status = 'ended';
     if (newState.scores.player1 > newState.scores.player2) {
       newState.winner = 'player1';
     } else if (newState.scores.player2 > newState.scores.player1) {
