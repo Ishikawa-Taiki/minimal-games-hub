@@ -158,23 +158,15 @@ const Board = memo(function Board({
   const { gameState, selectLine, remainingLinesCounts, preview } = controller;
   const { rows, cols, hLines, vLines, boxes, currentPlayer } = gameState;
 
-  const boardStyle = useMemo(() => {
-    const DOT_SIZE = 12;
-    const CELL_SIZE = 50;
-
-    const colsDef = Array.from({ length: cols * 2 + 1 })
-      .map((_, i) => (i % 2 === 0 ? `${DOT_SIZE}px` : `${CELL_SIZE}px`))
-      .join(' ');
-    const rowsDef = Array.from({ length: rows * 2 + 1 })
-      .map((_, i) => (i % 2 === 0 ? `${DOT_SIZE}px` : `${CELL_SIZE}px`))
-      .join(' ');
-
-    return {
+  const boardStyle = useMemo(
+    () => ({
       ...styles.board,
-      gridTemplateRows: rowsDef,
-      gridTemplateColumns: colsDef,
-    };
-  }, [rows, cols]);
+      gridTemplateRows: `repeat(${rows * 2 + 1}, auto)`,
+      gridTemplateColumns: `repeat(${cols * 2 + 1}, auto)`,
+      aspectRatio: `${cols * 2 + 1} / ${rows * 2 + 1}`,
+    }),
+    [rows, cols]
+  );
 
   return (
     <div style={boardStyle} data-testid="game-board">

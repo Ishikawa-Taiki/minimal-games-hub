@@ -15,6 +15,7 @@ import type {
 } from '@/core/types/game';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 
+// GameControllerの型定義を更新
 export type DotsAndBoxesController = HintableGameController<GameState, Action> & {
   setDifficulty: (difficulty: Difficulty) => void;
   selectLine: (r: number, c: number, type: 'h' | 'v') => void;
@@ -24,6 +25,7 @@ export type DotsAndBoxesController = HintableGameController<GameState, Action> &
   preview: Preview | null;
 };
 
+// Actionからプレビュー関連を削除し、よりシンプルに
 type Action =
   | { type: 'SELECT_LINE'; payload: { r: number; c: number; type: 'h' | 'v' } }
   | { type: 'START_GAME'; payload: { difficulty: Difficulty } }
@@ -84,21 +86,27 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     dispatch({ type: 'START_GAME', payload: { difficulty } });
   }, []);
 
+  // ヒント機能のON/OFFで処理を分岐させる
   const handleLineSelection = useCallback(
     (r: number, c: number, type: 'h' | 'v') => {
+      // すでに引かれているラインは無視
       const line = type === 'h' ? gameState.hLines[r][c] : gameState.vLines[r][c];
       if (line.owner) return;
 
       if (!gameState.hintsEnabled) {
+        // ヒントOFF: 即座に手を確定
         dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
         return;
       }
 
+      // ヒントON: プレビューロジック
       const newPreview = getPreview(gameState, r, c, type);
       if (preview && preview.line.r === r && preview.line.c === c && preview.line.type === type) {
+        // 同じラインを再度クリック: 手を確定
         dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
         setPreview(null);
       } else {
+        // 違うラインをクリック: プレビューを更新
         setPreview(newPreview);
       }
     },
@@ -109,16 +117,13 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     (enabled: boolean) => {
       dispatch({ type: 'SET_HINTS', payload: { enabled } });
       if (!enabled) {
-        setPreview(null);
+        setPreview(null); // ヒントをOFFにしたらプレビューも消す
       }
     },
     []
   );
 
-  const hintState = useMemo(() => ({
-    enabled: gameState.hintsEnabled,
-  }), [gameState.hintsEnabled]);
-
+  // アーキテクチャガイドラインに準拠したスコア情報
   const getScoreInfo = useCallback((): ScoreInfo => {
     return {
       title: '獲得したかず',
@@ -135,8 +140,10 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     };
   }, [gameState.scores, getPlayerDisplayName]);
 
+  // 残りライン数を計算する
   const remainingLinesCounts = useMemo(() => {
     if (!gameState.hintsEnabled || gameState.status !== 'playing') {
+      // 空の配列を返すか、計算しない
       return Array(gameState.rows).fill(Array(gameState.cols).fill(0));
     }
     return calculateRemainingLinesCounts(gameState);
@@ -165,7 +172,6 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     setDifficulty,
     selectLine: handleLineSelection,
     setHints,
-    hintState, // <--- この行を追加！
     getScoreInfo,
     getPlayerDisplayName,
     remainingLinesCounts,
