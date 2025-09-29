@@ -161,5 +161,6 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     remainingLinesCounts,
     preview,
     displayInfo,
+    isTurnOnly: true,
   };
 };
