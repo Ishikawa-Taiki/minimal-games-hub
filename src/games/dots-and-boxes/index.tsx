@@ -1,8 +1,8 @@
 import React, { memo, useState, useMemo } from 'react';
 import { useDotsAndBoxes, type DotsAndBoxesController } from './useDotsAndBoxes';
 import { styles } from './styles';
-import { Button } from '@/app/components/ui/Button';
-import type { Player, Preview } from './core';
+import { PositiveButton } from '@/app/components/ui';
+import type { Player, Preview, Difficulty } from './core';
 
 // --- Prop Types ---
 interface DotsAndBoxesGameProps {
@@ -35,6 +35,23 @@ const isCompletedPreviewBox = (r: number, c: number, preview: Preview | null) =>
 };
 
 // --- Sub-components ---
+const PreGameScreen = ({ onSelect }: { onSelect: (difficulty: Difficulty) => void }) => (
+  <div style={styles.preGameContainer} data-testid="pre-game-screen">
+    <h2 style={styles.preGameTitle}>難易度を選んでください</h2>
+    <div style={styles.preGameButtonContainer}>
+      <PositiveButton onClick={() => onSelect('easy')} data-testid="difficulty-easy">
+        かんたん
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('normal')} data-testid="difficulty-normal">
+        ふつう
+      </PositiveButton>
+      <PositiveButton onClick={() => onSelect('hard')} data-testid="difficulty-hard">
+        むずかしい
+      </PositiveButton>
+    </div>
+  </div>
+);
+
 const ScoreBoard = memo(function ScoreBoard({
   scores,
   getPlayerDisplayName,
@@ -105,6 +122,8 @@ const Line = memo(function Line({
           currentPlayer === 'player1'
             ? { ...style, ...styles.line_player1 }
             : { ...style, ...styles.line_player2 };
+        // Apply transform to make preview lines thinner
+        style.transform = type === 'h' ? 'scaleY(0.5)' : 'scaleX(0.5)';
       }
     }
     return style;
@@ -196,20 +215,20 @@ const Board = memo(function Board({
   const { rows, cols, hLines, vLines, boxes, currentPlayer } = gameState;
 
   const boardStyle = useMemo(() => {
-    const DOT_SIZE = 12;
-    const CELL_SIZE = 50;
+    const DOT_SIZE = '12px';
 
     const colsDef = Array.from({ length: cols * 2 + 1 })
-      .map((_, i) => (i % 2 === 0 ? `${DOT_SIZE}px` : `${CELL_SIZE}px`))
+      .map((_, i) => (i % 2 === 0 ? DOT_SIZE : '1fr'))
       .join(' ');
     const rowsDef = Array.from({ length: rows * 2 + 1 })
-      .map((_, i) => (i % 2 === 0 ? `${DOT_SIZE}px` : `${CELL_SIZE}px`))
+      .map((_, i) => (i % 2 === 0 ? DOT_SIZE : '1fr'))
       .join(' ');
 
     return {
       ...styles.board,
       gridTemplateRows: rowsDef,
       gridTemplateColumns: colsDef,
+      aspectRatio: `${cols + 1} / ${rows + 1}`,
     };
   }, [rows, cols]);
 
@@ -285,19 +304,7 @@ const DotsAndBoxesGame: React.FC<DotsAndBoxesGameProps> = ({
   const { gameState, setDifficulty } = controller;
 
   if (gameState.status === 'waiting') {
-    return (
-      <div style={styles.difficultySelector}>
-        <Button onClick={() => setDifficulty('easy')} size="large">
-          かんたん
-        </Button>
-        <Button onClick={() => setDifficulty('normal')} size="large">
-          ふつう
-        </Button>
-        <Button onClick={() => setDifficulty('hard')} size="large">
-          むずかしい
-        </Button>
-      </div>
-    );
+    return <PreGameScreen onSelect={setDifficulty} />;
   }
 
   return (

@@ -24,12 +24,26 @@ export const styles = StyleSheet.create({
     gap: '1rem',
   },
 
-  // --- Difficulty Selector ---
-  difficultySelector: {
+  // --- Pre-Game Screen ---
+  preGameContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+    gap: '1.5rem',
+  },
+  preGameTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  preGameButtonContainer: {
+    display: 'flex',
+    flexDirection: 'column',
     gap: '1rem',
+    width: '100%',
+    maxWidth: '300px',
   },
 
   // --- Board Layout (Grid Based) ---
@@ -37,6 +51,8 @@ export const styles = StyleSheet.create({
     display: 'grid',
     alignItems: 'center',
     justifyItems: 'center',
+    width: '100%',
+    maxWidth: '600px', // Prevent the board from becoming excessively large on wide screens
   },
 
   // --- Grid Items ---
@@ -49,16 +65,21 @@ export const styles = StyleSheet.create({
   },
   line: {
     backgroundColor: defaultLineColor,
-    transition: 'background-color 0.2s ease',
+    transition: 'all 0.2s ease',
     width: '100%',
     height: '100%',
     cursor: 'pointer',
+    borderRadius: '9999px',
+    boxSizing: 'border-box',
   },
   lineHover: {
     backgroundColor: hoverLineColor,
   },
   lineOwned: {
     cursor: 'default',
+    border: '1.5px solid #1f2937', // dark gray/black border
+    // The transform makes it pop out a bit, fulfilling "少し太め"
+    transform: 'scale(1.1)',
   },
   line_player1: {
     backgroundColor: player1Color,
@@ -67,7 +88,9 @@ export const styles = StyleSheet.create({
     backgroundColor: player2Color,
   },
   line_preview: {
-    opacity: 0.5,
+    // The preview line is made thinner via transform in the component.
+    // The opacity makes the color less intense.
+    opacity: 0.8,
   },
   box: {
     width: '100%',
