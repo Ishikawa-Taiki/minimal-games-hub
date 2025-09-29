@@ -1,12 +1,18 @@
 import StyleSheet from '@/app/styles/StyleSheet';
 
+// --- Color Palette ---
 const player1Color = '#ef4444'; // red-500
 const player2Color = '#3b82f6'; // blue-500
 const player1ColorRgb = '239, 68, 68';
 const player2ColorRgb = '59, 130, 246';
+const defaultLineColor = '#d1d5db'; // gray-300
+const hoverLineColor = '#f3f4f6'; // gray-100
+const dotColor = '#9ca3af'; // gray-400
+const hintTextColor = '#6b7280'; // gray-500
 
 export const styles = StyleSheet.create({
-  container: {
+  // --- Game Container ---
+  gameContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -15,58 +21,57 @@ export const styles = StyleSheet.create({
     height: '100%',
     padding: '1rem',
     boxSizing: 'border-box',
+    gap: '1rem',
   },
+
+  // --- Difficulty Selector ---
+  difficultySelector: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+
+  // --- Board Layout (Grid Based) ---
   board: {
-    position: 'relative',
     display: 'grid',
-    backgroundColor: '#e5e7eb', // gray-200
-    padding: '1rem',
-    borderRadius: '8px',
+    alignItems: 'center',
+    justifyItems: 'center',
   },
+
+  // --- Grid Items ---
   dot: {
     width: '12px',
     height: '12px',
-    backgroundColor: '#9ca3af', // gray-400
+    backgroundColor: dotColor,
     borderRadius: '50%',
+    zIndex: 2, // Dots should be on top of lines
   },
   line: {
-    position: 'absolute',
-    backgroundColor: '#d1d5db', // gray-300
-    cursor: 'pointer',
+    backgroundColor: defaultLineColor,
     transition: 'background-color 0.2s ease',
-    '&:hover': {
-      backgroundColor: '#e5e7eb', // gray-200
-    },
+    width: '100%',
+    height: '100%',
+    cursor: 'pointer',
   },
-  hLine: {
-    height: '8px',
-  },
-  vLine: {
-    width: '8px',
+  lineHover: {
+    backgroundColor: hoverLineColor,
   },
   lineOwned: {
     cursor: 'default',
-    '&:hover': {
-      backgroundColor: 'transparent',
-    },
   },
   line_player1: {
     backgroundColor: player1Color,
-    '&:hover': {
-      backgroundColor: player1Color,
-    },
   },
   line_player2: {
     backgroundColor: player2Color,
-    '&:hover': {
-      backgroundColor: player2Color,
-    },
   },
   line_preview: {
     opacity: 0.5,
   },
   box: {
-    position: 'absolute',
+    width: '100%',
+    height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -78,13 +83,27 @@ export const styles = StyleSheet.create({
   box_player2: {
     backgroundColor: `rgba(${player2ColorRgb}, 0.3)`,
   },
+
+  // --- Hint and Preview Styles ---
   hintNumber: {
-    fontSize: '2rem',
+    fontSize: 'clamp(1rem, 8vw, 2rem)', // Responsive font size
     fontWeight: 'bold',
-    opacity: 0.2,
-    color: '#6b7280', // gray-500
+    color: hintTextColor,
+    opacity: 0.25,
     pointerEvents: 'none',
     transition: 'color 0.3s, opacity 0.3s',
+  },
+  previewHighlight: {
+    // This style is for the box's background during preview
+  },
+  previewHighlight_player1: {
+    backgroundColor: `rgba(${player1ColorRgb}, 0.2)`,
+  },
+  previewHighlight_player2: {
+    backgroundColor: `rgba(${player2ColorRgb}, 0.2)`,
+  },
+  hintNumber_preview: {
+    // This style is for the hint number during preview
   },
   hintNumber_preview_player1: {
     color: player1Color,
@@ -94,30 +113,20 @@ export const styles = StyleSheet.create({
     color: player2Color,
     opacity: 0.7,
   },
-  previewHighlight_player1: {
-    backgroundColor: `rgba(${player1ColorRgb}, 0.2)`,
-  },
-  previewHighlight_player2: {
-    backgroundColor: `rgba(${player2ColorRgb}, 0.2)`,
-  },
-  difficultySelector: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '1rem',
-  },
+
+  // --- Scoreboard ---
   scoreBoard: {
     display: 'flex',
     justifyContent: 'space-around',
     width: '100%',
     maxWidth: '400px',
-    marginBottom: '1rem',
     padding: '0.5rem',
     borderRadius: '8px',
     backgroundColor: '#f9fafb', // gray-50
+    border: '1px solid #e5e7eb', // gray-200
   },
   scoreItem: {
-    fontSize: '1.2rem',
+    fontSize: '1.25rem', // 20px
     fontWeight: 'bold',
     display: 'flex',
     alignItems: 'center',

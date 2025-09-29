@@ -1,65 +1,46 @@
-import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useState } from 'react';
 import {
   createInitialState,
-  selectLine,
-  type Box,
+  selectLine as coreSelectLine,
+  calculateRemainingLinesCounts,
+  getPreview,
   type Difficulty,
   type GameState,
-  type Line,
   type Player,
+  type Preview,
 } from './core';
 import type {
-  BaseGameController,
   HintableGameController,
-  DisplayInfo,
 } from '@/core/types/game';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 
-export type DotsAndBoxesController = BaseGameController<GameState, Action> &
-  HintableGameController<GameState, Action> & {
-    setDifficulty: (difficulty: Difficulty) => void;
-    selectLine: (r: number, c: number, type: 'h' | 'v') => void;
-    setPreview: (
-      r: number | null,
-      c: number | null,
-      type: 'h' | 'v' | null
-    ) => void;
-    getPlayerDisplayName: (player: Player) => string;
-  };
+import { DisplayInfo } from '@/core/types/game';
+
+export type DotsAndBoxesController = HintableGameController<GameState, Action> & {
+  setDifficulty: (difficulty: Difficulty) => void;
+  selectLine: (r: number, c: number, type: 'h' | 'v') => void;
+  getPlayerDisplayName: (player: Player) => string;
+  remainingLinesCounts: number[][];
+  preview: Preview | null;
+  displayInfo: DisplayInfo;
+};
 
 type Action =
   | { type: 'SELECT_LINE'; payload: { r: number; c: number; type: 'h' | 'v' } }
   | { type: 'START_GAME'; payload: { difficulty: Difficulty } }
   | { type: 'RESET_GAME' }
-  | { type: 'SET_HINTS'; payload: { enabled: boolean } }
-  | {
-      type: 'SET_PREVIEW';
-      payload: { r: number; c: number; type: 'h' | 'v' } | null;
-    };
+  | { type: 'SET_HINTS'; payload: { enabled: boolean } };
 
-const initialGameState: GameState = {
-  difficulty: 'easy',
-  rows: 0,
-  cols: 0,
-  hLines: [],
-  vLines: [],
-  boxes: [],
-  currentPlayer: 'player1',
-  scores: { player1: 0, player2: 0 },
-  status: 'waiting',
-  winner: null,
-  remainingLines: 0,
-  hintsEnabled: false,
-};
+const initialGameState = createInitialState('easy');
 
 const reducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
     case 'START_GAME':
       return createInitialState(action.payload.difficulty);
     case 'RESET_GAME':
-      return { ...initialGameState }; // Go back to difficulty selection
+      return { ...initialGameState, status: 'waiting' };
     case 'SELECT_LINE':
-      return selectLine(
+      return coreSelectLine(
         state,
         action.payload.r,
         action.payload.c,
@@ -67,44 +48,17 @@ const reducer = (state: GameState, action: Action): GameState => {
       );
     case 'SET_HINTS':
       return { ...state, hintsEnabled: action.payload.enabled };
-    case 'SET_PREVIEW': {
-      const newState = JSON.parse(JSON.stringify(state));
-      newState.hLines.forEach((row: Line[]) => row.forEach((line: Line) => (line.preview = null)));
-      newState.vLines.forEach((row: Line[]) => row.forEach((line: Line) => (line.preview = null)));
-      newState.boxes.forEach((row: Box[]) => row.forEach((box: Box) => (box.preview = null)));
-
-      if (action.payload) {
-        const { r, c, type } = action.payload;
-        if (type === 'h') newState.hLines[r][c].preview = newState.currentPlayer;
-        else newState.vLines[r][c].preview = newState.currentPlayer;
-
-        const tempState = JSON.parse(JSON.stringify(newState));
-        const tempLine = type === 'h' ? tempState.hLines[r][c] : tempState.vLines[r][c];
-        tempLine.owner = tempState.currentPlayer;
-
-        for (let i = 0; i < tempState.rows; i++) {
-          for (let j = 0; j < tempState.cols; j++) {
-            if (!tempState.boxes[i][j].owner) {
-              const top = tempState.hLines[i][j].owner;
-              const bottom = tempState.hLines[i + 1][j].owner;
-              const left = tempState.vLines[i][j].owner;
-              const right = tempState.vLines[i][j + 1].owner;
-              if (top && bottom && left && right) {
-                newState.boxes[i][j].preview = newState.currentPlayer;
-              }
-            }
-          }
-        }
-      }
-      return newState;
-    }
     default:
       return state;
   }
 };
 
 export const useDotsAndBoxes = (): DotsAndBoxesController => {
-  const [gameState, dispatch] = useReducer(reducer, initialGameState);
+  const [gameState, dispatch] = useReducer(reducer, {
+    ...initialGameState,
+    status: 'waiting',
+  });
+  const [preview, setPreview] = useState<Preview | null>(null);
   const { alert } = useDialog();
 
   const getPlayerDisplayName = useCallback((player: Player): string => {
@@ -115,59 +69,69 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     dispatch({ type: 'RESET_GAME' });
   }, []);
 
+  const { status, winner, scores } = gameState;
   useEffect(() => {
-    if (gameState.winner) {
-      if (gameState.winner === 'draw') {
-        alert({
-          title: 'ひきわけ',
-          message: `プレイヤー1もプレイヤー2も ${gameState.scores.player1}個のボックスをとったよ！`,
-        }).then(() => {
-          resetGame();
-        });
+    if (status === 'ended' && winner) {
+      let title;
+      let message;
+      if (winner === 'draw') {
+        title = 'ひきわけ！';
+        message = `てにいれた かず: ${scores.player1}`;
       } else {
-        const winnerText = getPlayerDisplayName(gameState.winner);
-        alert({
-          title: `${winnerText}のかち`,
-          message: `プレイヤー1が${gameState.scores.player1}個、プレイヤー2が${gameState.scores.player2}個のボックスをとったよ！`,
-        }).then(() => {
-          resetGame();
-        });
+        const winnerName = getPlayerDisplayName(winner);
+        title = `${winnerName}のかち！`;
+        message = `プレイヤー1: ${scores.player1}, プレイヤー2: ${scores.player2}`;
       }
+      alert({ title, message }).then(resetGame);
     }
-  }, [gameState.winner, gameState.scores, alert, resetGame, getPlayerDisplayName]);
+  }, [status, winner, scores, alert, resetGame, getPlayerDisplayName]);
 
   const setDifficulty = useCallback((difficulty: Difficulty) => {
     dispatch({ type: 'START_GAME', payload: { difficulty } });
   }, []);
 
-  const selectLineAction = useCallback(
+  const handleLineSelection = useCallback(
     (r: number, c: number, type: 'h' | 'v') => {
-      dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
-    },
-    []
-  );
+      const line = type === 'h' ? gameState.hLines[r][c] : gameState.vLines[r][c];
+      if (line.owner) return;
 
-  const setHints = useCallback((enabled: boolean) => {
-    dispatch({ type: 'SET_HINTS', payload: { enabled } });
-  }, []);
+      if (!gameState.hintsEnabled) {
+        dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
+        return;
+      }
 
-  const hintState = useMemo(
-    () => ({
-      enabled: !!gameState.hintsEnabled,
-    }),
-    [gameState.hintsEnabled]
-  );
-
-  const setPreview = useCallback(
-    (r: number | null, c: number | null, type: 'h' | 'v' | null) => {
-      if (r === null || c === null || type === null) {
-        dispatch({ type: 'SET_PREVIEW', payload: null });
+      const newPreview = getPreview(gameState, r, c, type);
+      if (preview && preview.line.r === r && preview.line.c === c && preview.line.type === type) {
+        dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
+        setPreview(null);
       } else {
-        dispatch({ type: 'SET_PREVIEW', payload: { r, c, type } });
+        setPreview(newPreview);
+      }
+    },
+    [gameState, preview]
+  );
+
+  const setHints = useCallback(
+    (enabled: boolean) => {
+      dispatch({ type: 'SET_HINTS', payload: { enabled } });
+      if (!enabled) {
+        setPreview(null);
       }
     },
     []
   );
+
+  const hintState = useMemo(() => ({
+    enabled: gameState.hintsEnabled,
+  }), [gameState.hintsEnabled]);
+
+
+  const remainingLinesCounts = useMemo(() => {
+    if (!gameState.hintsEnabled || gameState.status !== 'playing') {
+      return Array(gameState.rows).fill(Array(gameState.cols).fill(0));
+    }
+    return calculateRemainingLinesCounts(gameState);
+  }, [gameState]);
 
   const displayInfo = useMemo((): DisplayInfo => {
     if (gameState.status === 'ended') {
@@ -182,24 +146,21 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     }
     const playerName = getPlayerDisplayName(gameState.currentPlayer);
     return { statusText: `「${playerName}」のばん` };
-  }, [
-    gameState.status,
-    gameState.winner,
-    gameState.currentPlayer,
-    getPlayerDisplayName,
-  ]);
+  }, [gameState.status, gameState.winner, gameState.currentPlayer, getPlayerDisplayName]);
+
 
   return {
     gameState,
     dispatch,
     resetGame,
-    isTurnOnly: false,
-    displayInfo,
     setDifficulty,
-    selectLine: selectLineAction,
+    selectLine: handleLineSelection,
     setHints,
     hintState,
-    setPreview,
     getPlayerDisplayName,
+    remainingLinesCounts,
+    preview,
+    displayInfo,
+    isTurnOnly: true,
   };
 };
