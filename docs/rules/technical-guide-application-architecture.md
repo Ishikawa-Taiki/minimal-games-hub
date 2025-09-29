@@ -6,35 +6,44 @@
 
 新しいゲームを追加する際は、以下の手順に従ってください。
 
-1.  プロジェクトルートの `games/` ディレクトリに、ゲーム用の新しいディレクトリ（例: `games/new-game`）を作成します。
-2.  作成したディレクトリ内に、ゲームの実装（Reactコンポーネントなど）と、以下の必須ファイルを配置します。
+1.  ゲームの実装コードを格納するため、 `src/games/` ディレクトリに、ゲーム用の新しいディレクトリ（例: `src/games/new-game`）を作成します。
+2.  ゲームのメタデータや公開アセットを格納するため、 `public/games/` ディレクトリにも、同様に新しいディレクトリ（例: `public/games/new-game`）を作成します。
 
 ### 1.1. ディレクトリ構成
 
-各ゲームディレクトリ (`games/[slug]/`) には、最低限以下のファイルを含める必要があります。
+#### 1.1.1. ゲーム実装 (`src/games/[slug]/`)
+各ゲームの実装ディレクトリには、最低限以下のファイルを含める必要があります。
 
 ```
-/games/[slug]/
+/src/games/[slug]/
 ├── core.ts             # ゲームのコアロジック (UI非依存)
 ├── index.tsx           # ゲームのUIコンポーネント
-├── manifest.json       # ゲームのメタデータ
 ├── spec-rules.md       # ゲームのルール (ユーザー向け)
 ├── spec-action.md      # システム動作仕様書
 ├── spec-display.md     # システム表示仕様書
 └── spec-hint.md        # ヒント機能仕様書
 ```
 
+#### 1.1.2. 公開アセット (`public/games/[slug]/`)
+ゲームのメタデータを定義する `manifest.json` は、こちらに配置します。
+
+```
+/public/games/[slug]/
+└── manifest.json       # ゲームのメタデータ
+```
+
 ### 1.2. manifest.json の仕様
 
-`manifest.json` は、ゲームのメタデータを定義するファイルです。`types/game.ts` で定義された `GameManifest` 型に準拠する必要があります。
+`manifest.json` は、ゲームのメタデータを定義するファイルで、**`public/games/[slug]/manifest.json`** として配置する必要があります。
+このファイルは `types/game.ts` で定義された `GameManifest` 型に準拠する必要があります。
 
 -   `name` (string): ゲームの正式名称（内部的な識別子、英語表記を推奨）。
 -   `displayName` (string): ユーザーインターフェースに表示するゲーム名。子供でも読みやすいように、**漢字を避け、ひらがな・カタカナ・記号（○×など）を基本とする**（例: はさみしょうぎ, リバーシ, ○×ゲーム）。
 -   `shortDescription` (string): トップページなどで表示する、ゲームの簡潔な説明文。
 -   `path` (string): ゲームページへのパス (例: `/games/tictactoe`)。
--   `rulesFile` (string): `spec-rules.md` へのパス。
--   `specActionFile` (string): `spec-action.md` へのパス。
--   `specDisplayFile` (string): `spec-display.md` へのパス。
+-   `rulesFile` (string): `spec-rules.md` へのパス。**プロジェクトルートからの絶対パス形式で指定します** (例: `/src/games/tictactoe/spec-rules.md`)。
+-   `specActionFile` (string): `spec-action.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
+-   `specDisplayFile` (string): `spec-display.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
 -   `specHintFile` (string, optional): `spec-hint.md` へのパス。本ファイルはヒント機能を持つゲームにのみ必須です。
 
 ## 2. ゲーム実装の原則
