@@ -146,8 +146,8 @@ describe('Dots and Boxes Core Logic', () => {
 
     it('should preview no completed boxes if the move does not complete any', () => {
       const preview = getPreview(state, 0, 0, 'h');
-      expect(preview.boxes).toEqual([]);
-      expect(preview.line).toEqual({ r: 0, c: 0, type: 'h' });
+      expect(preview.completedBoxes).toEqual([]);
+      expect(preview.adjacentBoxes.length).toBe(1);
     });
 
     it('should preview one completed box', () => {
@@ -157,25 +157,26 @@ describe('Dots and Boxes Core Logic', () => {
       s = selectLine(s, 1, 0, 'h');
       // The next move on v(0,1) will complete box (0,0)
       const preview = getPreview(s, 0, 1, 'v');
-      expect(preview.boxes).toEqual([{ r: 0, c: 0 }]);
+      expect(preview.completedBoxes).toEqual([{ r: 0, c: 0 }]);
     });
 
     it('should preview two completed boxes', () => {
       let s = state;
-      s = selectLine(s, 0, 0, 'h'); // p1
-      s = selectLine(s, 0, 1, 'h'); // p2
-      s = selectLine(s, 1, 0, 'h'); // p1
-      s = selectLine(s, 1, 1, 'h'); // p2
-      s = selectLine(s, 0, 0, 'v'); // p1
-      s = selectLine(s, 0, 2, 'v'); // p2
-      s = selectLine(s, 1, 0, 'v'); // p1
-      s = selectLine(s, 1, 2, 'v'); // p2
-      // p1 to play. Selecting v(0,1) will complete box(0,0) and box(0,1)
-      const preview = getPreview(s, 0, 1, 'v');
-      // The order might vary, so we check for content and length
-      expect(preview.boxes.length).toBe(2);
-      expect(preview.boxes).toContainEqual({ r: 0, c: 0 });
-      expect(preview.boxes).toContainEqual({ r: 0, c: 1 });
+      s = selectLine(s, 0, 0, 'h');
+      s = selectLine(s, 0, 1, 'h');
+      s = selectLine(s, 2, 0, 'h');
+      s = selectLine(s, 2, 1, 'h');
+      s = selectLine(s, 0, 0, 'v');
+      s = selectLine(s, 1, 0, 'v');
+      s = selectLine(s, 0, 2, 'v');
+      s = selectLine(s, 1, 2, 'v');
+      s = selectLine(s, 0, 1, 'v');
+      s = selectLine(s, 1, 1, 'v');
+      // P1 to play h[1][0], completing two boxes (0,0) and (1,0)
+      const preview = getPreview(s, 1, 0, 'h');
+      expect(preview.completedBoxes.length).toBe(2);
+      expect(preview.completedBoxes).toContainEqual({ r: 0, c: 0 });
+      expect(preview.completedBoxes).toContainEqual({ r: 1, c: 0 });
     });
   });
 });

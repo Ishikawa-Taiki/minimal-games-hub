@@ -2,7 +2,6 @@ import React, { memo, useState, useMemo } from 'react';
 import { useDotsAndBoxes, type DotsAndBoxesController } from './useDotsAndBoxes';
 import { styles } from './styles';
 import { Button } from '@/app/components/ui/Button';
-import { GameStateDisplay } from '@/app/components/GameStateDisplay';
 import type { Player, Preview } from './core';
 
 // --- Prop Types ---
@@ -87,7 +86,7 @@ const Line = memo(function Line({
   const isPreview = isPreviewLine(r, c, type, preview);
 
   const lineStyle = useMemo(() => {
-    let style = {
+    let style: React.CSSProperties = {
       ...styles.line,
       gridRow: type === 'h' ? 2 * r + 1 : 2 * r + 2,
       gridColumn: type === 'h' ? 2 * c + 2 : 2 * c + 1,
@@ -174,8 +173,16 @@ const Box = memo(function Box({
   const displayCount = isAdjacent ? remainingCount - 1 : remainingCount;
 
   return (
-    <div style={boxStyle} data-testid={`box-${r}-${c}`}>
-      {displayCount > 0 && <div style={hintStyle}>{displayCount}</div>}
+    <div
+      style={boxStyle}
+      data-testid={`box-${r}-${c}`}
+      data-preview={isAdjacent || isCompleted}
+    >
+      {displayCount > 0 && (
+        <div style={hintStyle} data-testid={`remaining-lines-${r}-${c}`}>
+          {displayCount}
+        </div>
+      )}
     </div>
   );
 });
@@ -295,7 +302,6 @@ const DotsAndBoxesGame: React.FC<DotsAndBoxesGameProps> = ({
 
   return (
     <div style={styles.gameContainer}>
-      <GameStateDisplay gameController={controller} />
       <ScoreBoard
         scores={controller.gameState.scores}
         getPlayerDisplayName={controller.getPlayerDisplayName}

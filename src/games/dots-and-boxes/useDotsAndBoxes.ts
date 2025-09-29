@@ -11,9 +11,10 @@ import {
 } from './core';
 import type {
   HintableGameController,
-  ScoreInfo,
 } from '@/core/types/game';
 import { useDialog } from '@/app/components/ui/DialogProvider';
+
+import { DisplayInfo } from '@/core/types/game';
 
 export type DotsAndBoxesController = HintableGameController<GameState, Action> & {
   setDifficulty: (difficulty: Difficulty) => void;
@@ -21,6 +22,7 @@ export type DotsAndBoxesController = HintableGameController<GameState, Action> &
   getPlayerDisplayName: (player: Player) => string;
   remainingLinesCounts: number[][];
   preview: Preview | null;
+  displayInfo: DisplayInfo;
 };
 
 type Action =
@@ -131,19 +133,19 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     return calculateRemainingLinesCounts(gameState);
   }, [gameState]);
 
-  const getDisplayStatus = useCallback(() => {
-     if (gameState.status === 'ended') {
+  const displayInfo = useMemo((): DisplayInfo => {
+    if (gameState.status === 'ended') {
       if (gameState.winner === 'draw') {
-        return 'ひきわけ';
+        return { statusText: 'ひきわけ' };
       }
       const winnerName = getPlayerDisplayName(gameState.winner as Player);
-      return `${winnerName}のかち！`;
+      return { statusText: `${winnerName}のかち！` };
     }
     if (gameState.status === 'waiting') {
-      return 'むずかしさをえらんでね';
+      return { statusText: 'むずかしさをえらんでね' };
     }
     const playerName = getPlayerDisplayName(gameState.currentPlayer);
-    return `「${playerName}」のばん`;
+    return { statusText: `「${playerName}」のばん` };
   }, [gameState.status, gameState.winner, gameState.currentPlayer, getPlayerDisplayName]);
 
 
@@ -154,10 +156,10 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     setDifficulty,
     selectLine: handleLineSelection,
     setHints,
-    hintState, // <--- この行を追加！
+    hintState,
     getPlayerDisplayName,
     remainingLinesCounts,
     preview,
-    getDisplayStatus,
+    displayInfo,
   };
 };
