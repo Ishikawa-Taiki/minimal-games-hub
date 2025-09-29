@@ -34,7 +34,7 @@ const useDebouncedCallback = (callback: () => void, delay: number) => {
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
 export type ButtonSize = 'small' | 'medium' | 'large';
 
-export interface BaseButtonProps {
+export interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
@@ -56,6 +56,7 @@ export function BaseButton({
   fixedWidth,
   ariaLabel,
   'data-testid': dataTestId,
+  ...rest
 }: BaseButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
 
@@ -88,6 +89,7 @@ export function BaseButton({
       aria-label={ariaLabel}
       data-testid={dataTestId}
       type="button"
+      {...rest}
     >
       <span style={styles.contentWrapper}>{children}</span>
     </button>
