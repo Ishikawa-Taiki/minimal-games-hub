@@ -41,11 +41,13 @@
 - **モバイルレイアウト**: FAB（フローティングアクションボタン）+ ボトムシート
 
 #### 2.3.2. 統一されたコントロール機能
-- ゲームリセット機能
-- ルール表示リンク
-- ホームページへの戻りリンク
-- ヒント機能（対応ゲームのみ）
-- 履歴機能（対応ゲームのみ）
+- **「ルールを見る」**: ゲームの基本的なルールを表示します (`spec-rules.md`)。
+- **「説明書を見る」**: ゲームの操作方法や画面の見方など、より詳細な説明を表示します (`spec-action.md`, `spec-display.md`)。
+- **「おしえて！機能について」**: ヒント機能自体の仕様や、どのようなヒントが表示されるかを説明します (`spec-hint.md`)。
+- **「おしえて！」**: ゲームプレイを補助するヒント機能のON/OFFを切り替えます（対応ゲームのみ）。
+- **「リセット」**: 現在のゲームを初期状態に戻します。
+- **「ホームにもどる」**: ゲームを中断してトップページに戻ります。
+- **履歴機能**: 手を戻したり進めたりする機能です（対応ゲームのみ）。
 
 ### 2.4. 使用方法
 
@@ -56,7 +58,7 @@
 import GameLayout from '@/app/components/GameLayout';
 import YourGame, { useYourGameController } from '@/games/your-game';
 
-const YourGameWithLayout = memo(function YourGameWithLayout({ manifest, slug }: GameClientPageProps) {
+const YourGameWithLayout = memo(function YourGameWithLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useYourGameController();
   
   return (
@@ -64,6 +66,9 @@ const YourGameWithLayout = memo(function YourGameWithLayout({ manifest, slug }: 
       gameName={manifest.displayName} 
       slug={slug}
       gameController={controller}
+      rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <YourGame controller={controller} />
     </GameLayout>
@@ -77,6 +82,9 @@ const YourGameWithLayout = memo(function YourGameWithLayout({ manifest, slug }: 
 - `slug`: ゲームのスラッグ（URLパス用）
 - `gameController`: GameControllerインターフェースに準拠したコントローラー
 - `children`: ゲーム本体のコンポーネント
+- `rulesContent`: ルール説明のマークダウン文字列
+- `manualContent`: 説明書のマークダウン文字列
+- `hintSpecContent`: ヒント機能仕様のマークダウン文字列
 
 #### 2.4.3. GameControllerインターフェース要件
 

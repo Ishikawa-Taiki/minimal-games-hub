@@ -41,9 +41,9 @@
 -   `displayName` (string): ユーザーインターフェースに表示するゲーム名。子供でも読みやすいように、**漢字を避け、ひらがな・カタカナ・記号（○×など）を基本とする**（例: はさみしょうぎ, リバーシ, ○×ゲーム）。
 -   `shortDescription` (string): トップページなどで表示する、ゲームの簡潔な説明文。
 -   `path` (string): ゲームページへのパス (例: `/games/tictactoe`)。
--   `rulesFile` (string): `spec-rules.md` へのパス。**プロジェクトルートからの絶対パス形式で指定します** (例: `/src/games/tictactoe/spec-rules.md`)。
--   `specActionFile` (string): `spec-action.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
--   `specDisplayFile` (string): `spec-display.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
+-   `rulesFile` (string, 必須): `spec-rules.md` へのパス。**プロジェクトルートからの絶対パス形式で指定します** (例: `/src/games/tictactoe/spec-rules.md`)。
+-   `specActionFile` (string, 必須): `spec-action.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
+-   `specDisplayFile` (string, 必須): `spec-display.md` へのパス。`rulesFile` と同様に、プロジェクトルートからの絶対パス形式で指定します。
 -   `specHintFile` (string, optional): `spec-hint.md` へのパス。本ファイルはヒント機能を持つゲームにのみ必須です。
 
 ## 2. ゲーム実装の原則

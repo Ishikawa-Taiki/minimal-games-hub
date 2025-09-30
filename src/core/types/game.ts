@@ -3,9 +3,9 @@ export type GameManifest = {
   displayName: string;
   shortDescription: string;
   path: string;
-  rulesFile?: string;
-  specActionFile?: string;
-  specDisplayFile?: string;
+  rulesFile: string;
+  specActionFile: string;
+  specDisplayFile: string;
   specHintFile?: string;
 };
 
