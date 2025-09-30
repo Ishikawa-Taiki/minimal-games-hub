@@ -2,7 +2,6 @@
 
 import React, { CSSProperties, useState, useEffect, useRef } from 'react';
 import {
-  MoveInfo,
   Piece,
   PieceType,
   Player,
@@ -97,25 +96,31 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
     const { piece, from, to } = gameState.lastMove;
 
-    const getElementRect = (pos: MoveInfo['from'] | MoveInfo['to']): DOMRect | undefined => {
-      if ('player' in pos) {
-        // This is a drop from a captured pieces box
-        const player = pos.player;
-        const capturedBoxRef = player === OKASHI_TEAM ? p1CapturedBoxRef : p2CapturedBoxRef;
-        // Find the last piece in the captured box as the source
-        const pieces = capturedBoxRef.current?.querySelectorAll('[data-testid^="captured-piece-"]');
-        if (pieces && pieces.length > 0) {
-          return pieces[pieces.length - 1].getBoundingClientRect();
-        }
-        return capturedBoxRef.current?.getBoundingClientRect();
-      }
-      // This is a move from a cell on the board
+    const getCellRect = (pos: { row: number, col: number }): DOMRect | undefined => {
       const cellElement = boardRef.current?.querySelector(`[data-testid="cell-${pos.row}-${pos.col}"]`);
       return cellElement?.getBoundingClientRect();
     };
 
-    const fromRect = getElementRect(from);
-    const toRect = getElementRect(to);
+    const toRect = getCellRect(to);
+
+    const getFromRect = (): DOMRect | undefined => {
+      if ('player' in from) {
+        // Drop from captured pieces box
+        const capturedBoxRef = from.player === OKASHI_TEAM ? p1CapturedBoxRef : p2CapturedBoxRef;
+        const boxRect = capturedBoxRef.current?.getBoundingClientRect();
+        if (boxRect && toRect) {
+          // Start from the horizontal center of the box, and vertical edge
+          const startX = boxRect.left + (boxRect.width / 2) - (toRect.width / 2);
+          const startY = from.player === OKASHI_TEAM ? boxRect.top : boxRect.bottom - toRect.height;
+          return new DOMRect(startX, startY, toRect.width, toRect.height);
+        }
+        return undefined;
+      }
+      // Move from another cell on the board
+      return getCellRect(from);
+    };
+
+    const fromRect = getFromRect();
 
     if (fromRect && toRect) {
       // 1. Set initial position
@@ -139,10 +144,9 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
       }, 20);
 
       // 3. After animation is complete, hide the animated piece.
-      // The piece will appear in the destination cell via normal state update.
       setTimeout(() => {
         setAnimatingStyle(prev => ({ ...prev, opacity: 0 }));
-      }, 520); // Corresponds to transition duration
+      }, 520);
     }
   }, [gameState.lastMove]);
 
