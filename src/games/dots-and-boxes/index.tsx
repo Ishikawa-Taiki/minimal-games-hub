@@ -147,6 +147,7 @@ const Box = memo(function Box({
   preview,
   currentPlayer,
   remainingCount,
+  isNewlyCompleted,
 }: {
   r: number;
   c: number;
@@ -154,16 +155,22 @@ const Box = memo(function Box({
   preview: Preview | null;
   currentPlayer: Player;
   remainingCount: number;
+  isNewlyCompleted: boolean;
 }) {
   const isAdjacent = isAdjacentPreviewBox(r, c, preview);
   const isCompleted = isCompletedPreviewBox(r, c, preview);
 
   const boxStyle = useMemo(() => {
-    const baseStyle = {
+    const baseStyle: React.CSSProperties = {
       ...styles.box,
       gridRow: 2 * r + 2,
       gridColumn: 2 * c + 2,
     };
+
+    if (isNewlyCompleted) {
+      return { ...baseStyle, ...styles.box_newlyCompleted };
+    }
+
     if (owner) {
       const playerBoxStyle = owner === 'player1' ? styles.box_player1 : styles.box_player2;
       return { ...baseStyle, ...playerBoxStyle };
@@ -176,7 +183,7 @@ const Box = memo(function Box({
       return { ...baseStyle, ...playerPreviewStyle };
     }
     return baseStyle;
-  }, [owner, isCompleted, currentPlayer, r, c]);
+  }, [owner, isCompleted, currentPlayer, r, c, isNewlyCompleted]);
 
   const hintStyle = useMemo(() => {
     if (isAdjacent) { // 数字のプレビューは隣接するすべてのボックス
@@ -211,7 +218,8 @@ const Board = memo(function Board({
 }: {
   controller: DotsAndBoxesController;
 }) {
-  const { gameState, selectLine, remainingLinesCounts, preview } = controller;
+  const { gameState, selectLine, remainingLinesCounts, preview, newlyCompletedBoxes } =
+    controller;
   const { rows, cols, hLines, vLines, boxes, currentPlayer } = gameState;
 
   const boardStyle = useMemo(() => {
@@ -275,21 +283,27 @@ const Board = memo(function Board({
 
       {/* Boxes */}
       {boxes.map((row, r) =>
-        row.map((box, c) => (
-          <Box
-            key={`box-${r}-${c}`}
-            r={r}
-            c={c}
-            owner={box.owner}
-            preview={preview}
-            currentPlayer={currentPlayer}
-            remainingCount={
-              remainingLinesCounts[r]?.[c] > 0
-                ? remainingLinesCounts[r][c]
-                : 0
-            }
-          />
-        ))
+        row.map((box, c) => {
+          const isNewlyCompleted = newlyCompletedBoxes.some(
+            (b) => b.r === r && b.c === c
+          );
+          return (
+            <Box
+              key={`box-${r}-${c}`}
+              r={r}
+              c={c}
+              owner={box.owner}
+              preview={preview}
+              currentPlayer={currentPlayer}
+              remainingCount={
+                remainingLinesCounts[r]?.[c] > 0
+                  ? remainingLinesCounts[r][c]
+                  : 0
+              }
+              isNewlyCompleted={isNewlyCompleted}
+            />
+          );
+        })
       )}
     </div>
   );
