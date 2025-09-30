@@ -22,6 +22,8 @@ interface GameLayoutProps<TState extends BaseGameState, TAction> {
   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
   children: React.ReactNode;
   rulesContent: string;
+  manualContent: string;
+  hintSpecContent: string;
 }
 
 // コントロールパネルコンポーネント
@@ -32,12 +34,16 @@ interface ControlPanelProps<TState extends BaseGameState, TAction> {
   (HintableGameController<TState, TAction> & HistoryGameController<TState, TAction>);
   isVisible?: boolean;
   onShowRules: () => void;
+  onShowManual?: () => void;
+  onShowHintSpec?: () => void;
 }
 
 function ControlPanel<TState extends BaseGameState, TAction>({
   gameController,
   isVisible = true,
   onShowRules,
+  onShowManual,
+  onShowHintSpec,
 }: ControlPanelProps<TState, TAction>) {
   const { resetGame } = gameController;
   const { confirm } = useDialog();
@@ -115,10 +121,20 @@ function ControlPanel<TState extends BaseGameState, TAction>({
         <Button variant="ghost" onClick={onShowRules}>
           ルールを見る
         </Button>
+        {onShowManual && (
+          <Button variant="ghost" onClick={onShowManual}>
+            説明書を見る
+          </Button>
+        )}
+        {onShowHintSpec && (
+          <Button variant="ghost" onClick={onShowHintSpec}>
+            おしえて！機能について
+          </Button>
+        )}
+        {renderHintButton()}
         <NegativeButton onClick={handleReset} data-testid="control-panel-reset-button">
           リセット
         </NegativeButton>
-        {renderHintButton()}
         <Button variant="secondary" onClick={handleGoHome}>
           ホームにもどる
         </Button>
@@ -133,12 +149,16 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
   gameController,
   children,
   rulesContent,
+  manualContent,
+  hintSpecContent,
 }: GameLayoutProps<TState, TAction>) {
   console.log('GameLayout rendered with:', { gameName, slug, gameController: !!gameController });
   const responsiveState = useResponsive();
   console.log('Responsive state:', responsiveState);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isHintSpecModalOpen, setIsHintSpecModalOpen] = useState(false);
 
   // ログ機能
   const logger = useGameStateLogger('GameLayout', gameController?.gameState || {}, {
@@ -215,6 +235,45 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
     </div>
   );
 
+  const ManualModal = () => (
+    <div style={modalStyles.overlay}>
+      <div style={modalStyles.content}>
+        <div style={modalStyles.header}>
+          <h2 style={modalStyles.title}>説明書</h2>
+          <Button variant="ghost" onClick={() => setIsManualModalOpen(false)} aria-label="閉じる">
+            ×
+          </Button>
+        </div>
+        <div style={modalStyles.body}>
+          <MarkdownViewer content={manualContent} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const HintSpecModal = () => (
+    <div style={modalStyles.overlay}>
+      <div style={modalStyles.content}>
+        <div style={modalStyles.header}>
+          <h2 style={modalStyles.title}>おしえて！機能について</h2>
+          <Button variant="ghost" onClick={() => setIsHintSpecModalOpen(false)} aria-label="閉じる">
+            ×
+          </Button>
+        </div>
+        <div style={modalStyles.body}>
+          <MarkdownViewer content={hintSpecContent} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const controlPanelProps = {
+    gameController,
+    onShowRules: () => setIsRulesModalOpen(true),
+    ...(manualContent && { onShowManual: () => setIsManualModalOpen(true) }),
+    ...(hintSpecContent && { onShowHintSpec: () => setIsHintSpecModalOpen(true) }),
+  };
+
   if (isMobile(responsiveState)) {
     console.log('Using mobile layout');
     // モバイルレイアウト: ミニマルレイアウト + FAB + ボトムシート
@@ -248,10 +307,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             onClose={handleBottomSheetClose}
             title="コントロール"
           >
-            <ControlPanel
-              gameController={gameController}
-              onShowRules={() => setIsRulesModalOpen(true)}
-            />
+            <ControlPanel {...controlPanelProps} />
           </BottomSheet>
 
           {/* デバッガー（開発環境でのみ表示） */}
@@ -261,6 +317,8 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
           />
         </div>
         {isRulesModalOpen && <RulesModal />}
+        {isManualModalOpen && <ManualModal />}
+        {isHintSpecModalOpen && <HintSpecModal />}
       </>
     );
   } else {
@@ -274,10 +332,7 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
             <div style={gameLayoutStyles.sidebarHeader}>
               <h1 style={gameLayoutStyles.sidebarTitle}>{gameName}</h1>
             </div>
-            <ControlPanel
-              gameController={gameController}
-              onShowRules={() => setIsRulesModalOpen(true)}
-            />
+            <ControlPanel {...controlPanelProps} />
           </aside>
 
           {/* メインコンテンツ（ゲームボード） */}
@@ -292,6 +347,8 @@ export default function GameLayout<TState extends BaseGameState, TAction>({
           />
         </div>
         {isRulesModalOpen && <RulesModal />}
+        {isManualModalOpen && <ManualModal />}
+        {isHintSpecModalOpen && <HintSpecModal />}
       </>
     );
   }

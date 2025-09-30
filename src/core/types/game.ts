@@ -6,6 +6,7 @@ export type GameManifest = {
   rulesFile: string;
   specActionFile: string;
   specDisplayFile: string;
+  specHintFile?: string;
 };
 
 // ゲームの基本状態
