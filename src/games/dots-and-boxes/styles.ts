@@ -98,13 +98,19 @@ export const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background-color 0.3s ease',
+    transition: 'background-color 0.3s ease, transform 0.3s ease-out',
   },
   box_player1: {
     backgroundColor: `rgba(${player1ColorRgb}, 0.3)`,
   },
   box_player2: {
     backgroundColor: `rgba(${player2ColorRgb}, 0.3)`,
+  },
+  box_newlyCompleted: {
+    transform: 'scale(1.15)',
+    backgroundColor: `rgba(255, 215, 0, 0.6)`,
+    // アニメーション中は背景色のトランジションを無効にし、即座に色が変わるようにする
+    transition: 'transform 0.3s ease-out',
   },
 
   // --- Hint and Preview Styles ---

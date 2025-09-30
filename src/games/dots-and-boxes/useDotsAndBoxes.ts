@@ -1,9 +1,10 @@
-import { useReducer, useCallback, useMemo, useEffect, useState } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import {
   createInitialState,
   selectLine as coreSelectLine,
   calculateRemainingLinesCounts,
   getPreview,
+  type Box,
   type Difficulty,
   type GameState,
   type Player,
@@ -23,6 +24,7 @@ export type DotsAndBoxesController = HintableGameController<GameState, Action> &
   remainingLinesCounts: number[][];
   preview: Preview | null;
   displayInfo: DisplayInfo;
+  newlyCompletedBoxes: { r: number; c: number }[];
 };
 
 type Action =
@@ -60,6 +62,9 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
   });
   const [preview, setPreview] = useState<Preview | null>(null);
   const { alert } = useDialog();
+  const [newlyCompletedBoxes, setNewlyCompletedBoxes] = useState<{ r: number; c: number }[]>([]);
+  const prevBoxesRef = useRef<Box[][]>(gameState.boxes);
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const getPlayerDisplayName = useCallback((player: Player): string => {
     return player === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
@@ -69,7 +74,7 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     dispatch({ type: 'RESET_GAME' });
   }, []);
 
-  const { status, winner, scores } = gameState;
+  const { status, winner, scores, boxes } = gameState;
   useEffect(() => {
     if (status === 'ended' && winner) {
       let title;
@@ -85,6 +90,38 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
       alert({ title, message }).then(resetGame);
     }
   }, [status, winner, scores, alert, resetGame, getPlayerDisplayName]);
+
+  useEffect(() => {
+    // クリーンアップ関数
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const prevBoxes = prevBoxesRef.current;
+    const newBoxes: { r: number; c: number }[] = [];
+    for (let r = 0; r < boxes.length; r++) {
+      for (let c = 0; c < boxes[r].length; c++) {
+        if (boxes[r][c].owner && !prevBoxes[r][c].owner) {
+          newBoxes.push({ r, c });
+        }
+      }
+    }
+    if (newBoxes.length > 0) {
+      setNewlyCompletedBoxes(newBoxes);
+      // アニメーション時間後にハイライトをクリア
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+      animationTimeoutRef.current = setTimeout(() => {
+        setNewlyCompletedBoxes([]);
+      }, 300); // アニメーション時間
+    }
+    prevBoxesRef.current = boxes;
+  }, [boxes]);
 
   const setDifficulty = useCallback((difficulty: Difficulty) => {
     dispatch({ type: 'START_GAME', payload: { difficulty } });
@@ -161,6 +198,7 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
     remainingLinesCounts,
     preview,
     displayInfo,
+    newlyCompletedBoxes,
     isTurnOnly: true,
   };
 };
