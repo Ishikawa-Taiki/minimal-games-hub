@@ -121,7 +121,7 @@ const GameStateDebugger: React.FC<GameStateDebuggerProps> = ({
   };
 
   return (
-    <div style={debuggerStyle}>
+    <div style={debuggerStyle} data-testid="game-debugger">
       <div style={headerStyle}>
         <span>🐛 Game State Debugger</span>
         <button

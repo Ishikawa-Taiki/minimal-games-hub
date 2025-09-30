@@ -15,10 +15,12 @@ interface GameClientPageProps {
   manifest: GameManifest;
   slug: string;
   rulesContent: string;
+  manualContent: string;
+  hintSpecContent: string;
 }
 
 // 三目並べ用の新しいレイアウト対応コンポーネント
-const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useTicTacToe();
   
   return (
@@ -27,6 +29,8 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <TicTacToe controller={controller} />
     </GameLayout>
@@ -34,7 +38,7 @@ const TicTacToeWithNewLayout = memo(function TicTacToeWithNewLayout({ manifest, 
 });
 
 // リバーシ用の新しいレイアウト対応コンポーネント
-const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useReversi();
   
   return (
@@ -43,6 +47,8 @@ const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <Reversi controller={controller} />
     </GameLayout>
@@ -50,7 +56,7 @@ const ReversiWithNewLayout = memo(function ReversiWithNewLayout({ manifest, slug
 });
 
 // 神経衰弱用の新しいレイアウト対応コンポーネント
-const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useConcentration();
   
   return (
@@ -59,6 +65,8 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <Concentration controller={controller} slug={slug} />
     </GameLayout>
@@ -66,7 +74,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
 });
 
 // 棒消しゲーム用の新しいレイアウト対応コンポーネント
-const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPageProps) => {
+const StickTakingWithNewLayout = ({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) => {
   const controller = useStickTaking();
 
   return (
@@ -75,6 +83,8 @@ const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPa
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <StickTaking controller={controller} />
     </GameLayout>
@@ -82,7 +92,7 @@ const StickTakingWithNewLayout = ({ manifest, slug, rulesContent }: GameClientPa
 };
 
 // アニマルチェス用の新しいレイアウト対応コンポーネント
-const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useAnimalChess();
 
   return (
@@ -91,6 +101,8 @@ const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manife
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <AnimalChess controller={controller} />
     </GameLayout>
@@ -98,7 +110,7 @@ const AnimalChessWithNewLayout = memo(function AnimalChessWithNewLayout({ manife
 });
 
 // はさみ将棋用の新しいレイアウト対応コンポーネント
-const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useHasamiShogi();
 
   return (
@@ -107,6 +119,8 @@ const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manife
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <HasamiShogi controller={controller} />
     </GameLayout>
@@ -114,7 +128,7 @@ const HasamiShogiWithNewLayout = memo(function HasamiShogiWithNewLayout({ manife
 });
 
 // ドット＆ボックス用の新しいレイアウト対応コンポーネント
-const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ manifest, slug, rulesContent }: GameClientPageProps) {
+const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
   const controller = useDotsAndBoxes();
 
   return (
@@ -123,43 +137,46 @@ const DotsAndBoxesWithNewLayout = memo(function DotsAndBoxesWithNewLayout({ mani
       slug={slug}
       gameController={controller}
       rulesContent={rulesContent}
+      manualContent={manualContent}
+      hintSpecContent={hintSpecContent}
     >
       <DotsAndBoxes controller={controller} />
     </GameLayout>
   );
 });
 
-const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesContent }: GameClientPageProps) {
+const GameClientPage = memo(function GameClientPage({ manifest, slug, rulesContent, manualContent, hintSpecContent }: GameClientPageProps) {
+  const props = { manifest, slug, rulesContent, manualContent, hintSpecContent };
   // 棒消しゲームの場合は新しいレイアウトを使用
   if (slug === 'stick-taking') {
-    return <StickTakingWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <StickTakingWithNewLayout {...props} />;
   }
 
   // 三目並べの場合は新しいレイアウトを使用
   if (slug === 'tictactoe') {
-    return <TicTacToeWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <TicTacToeWithNewLayout {...props} />;
   }
   
   // リバーシの場合は新しいレイアウトを使用
   if (slug === 'reversi') {
-    return <ReversiWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <ReversiWithNewLayout {...props} />;
   }
   
   // 神経衰弱の場合は新しいレイアウトを使用
   if (slug === 'concentration') {
-    return <ConcentrationWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <ConcentrationWithNewLayout {...props} />;
   }
 
   if (slug === 'animal-chess') {
-    return <AnimalChessWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <AnimalChessWithNewLayout {...props} />;
   }
 
   if (slug === 'hasami-shogi') {
-    return <HasamiShogiWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <HasamiShogiWithNewLayout {...props} />;
   }
 
   if (slug === 'dots-and-boxes') {
-    return <DotsAndBoxesWithNewLayout manifest={manifest} slug={slug} rulesContent={rulesContent} />;
+    return <DotsAndBoxesWithNewLayout {...props} />;
   }
   
   // Fallback for any other case, though generateStaticParams should prevent this.
