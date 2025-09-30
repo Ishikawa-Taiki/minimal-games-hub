@@ -27,6 +27,7 @@ interface AnimalChessGameState extends BaseGameState {
   selectedCaptureIndex: GameState['selectedCaptureIndex'];
   winReason: 'catch' | 'try' | null;
   winner: Player | null;
+  lastMove: GameState['lastMove'];
   // ヒント関連
   hintsEnabled: boolean;
 }
@@ -35,6 +36,7 @@ type AnimalChessAction =
   | { type: 'CELL_CLICK'; row: number; col: number }
   | { type: 'CAPTURE_CLICK'; player: Player; index: number }
   | { type: 'RESET_GAME' }
+  | { type: 'CLEAR_LAST_MOVE' }
   | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
   | { type: 'SET_GAME_STATE_FOR_TEST'; state: AnimalChessGameState };
 
@@ -47,6 +49,7 @@ function createInitialAnimalChessState(): AnimalChessGameState {
     selectedCell: coreState.selectedCell,
     selectedCaptureIndex: coreState.selectedCaptureIndex,
     winReason: null,
+    lastMove: null,
     // BaseGameState required fields
     status: 'playing' as GameStatus,
     winner: coreState.status === 'okashi_win' ? OKASHI_TEAM :
@@ -69,6 +72,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
         winReason: state.winReason,
+        lastMove: state.lastMove,
       };
       
       const newCoreState = handleCellClickCore(coreState, action.row, action.col);
@@ -81,6 +85,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
         winReason: newCoreState.winReason,
+        lastMove: newCoreState.lastMove,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'okashi_win' || newCoreState.status === 'ohana_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'okashi_win' ? OKASHI_TEAM :
@@ -99,6 +104,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCell: state.selectedCell,
         selectedCaptureIndex: state.selectedCaptureIndex,
         winReason: state.winReason,
+        lastMove: state.lastMove,
       };
       
       const newCoreState = handleCaptureClickCore(coreState, action.player, action.index);
@@ -111,6 +117,7 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
         selectedCell: newCoreState.selectedCell,
         selectedCaptureIndex: newCoreState.selectedCaptureIndex,
         winReason: newCoreState.winReason,
+        lastMove: newCoreState.lastMove,
         // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'okashi_win' || newCoreState.status === 'ohana_win' ? 'ended' : 'playing',
         winner: newCoreState.status === 'okashi_win' ? OKASHI_TEAM :
@@ -120,6 +127,12 @@ function animalChessReducer(state: AnimalChessGameState, action: AnimalChessActi
     
     case 'RESET_GAME':
       return createInitialAnimalChessState();
+
+    case 'CLEAR_LAST_MOVE':
+      return {
+        ...state,
+        lastMove: null,
+      };
     
     case 'SET_HINTS_ENABLED':
       return {
@@ -189,6 +202,16 @@ export function useAnimalChess(): AnimalChessController {
     }
   }, [gameState.winner, gameState.winReason, alert, resetGame]);
 
+  // アニメーション用にlastMoveを少し遅れてクリアする
+  useEffect(() => {
+    if (gameState.lastMove) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'CLEAR_LAST_MOVE' });
+      }, 500); // アニメーション時間
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.lastMove]);
+
   const handleCellClick = useCallback((row: number, col: number) => {
     logger.log('CELL_CLICK_CALLED', { 
       row, 
@@ -221,6 +244,7 @@ export function useAnimalChess(): AnimalChessController {
       selectedCell: gameState.selectedCell,
       selectedCaptureIndex: gameState.selectedCaptureIndex,
       winReason: gameState.winReason,
+      lastMove: gameState.lastMove,
     };
 
     const validMoveColor = '#f9fafb'; // Same as selectableCell

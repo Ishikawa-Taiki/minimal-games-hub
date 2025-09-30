@@ -1,6 +1,6 @@
 "use client";
 
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useState, useEffect, useRef } from 'react';
 import {
   Piece,
   PieceType,
@@ -71,12 +71,84 @@ interface AnimalChessProps {
   controller?: AnimalChessController;
 }
 
+type AnimationState = {
+  piece: Piece;
+  to: { row: number, col: number };
+} | null;
+
 const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = {}) => {
   const internalController = useAnimalChess();
   const gameController = externalController || internalController;
   const { gameState, handleCellClick, handleCaptureClick, hintState } = gameController;
+  const [animation, setAnimation] = useState<AnimationState>(null);
+  const [animatingStyle, setAnimatingStyle] = useState<CSSProperties>({});
+  const boardRef = useRef<HTMLDivElement>(null);
+  const p1CapturedBoxRef = useRef<HTMLDivElement>(null);
+  const p2CapturedBoxRef = useRef<HTMLDivElement>(null);
 
   const isGameInProgress = gameState.status === 'playing';
+
+  useEffect(() => {
+    if (!gameState.lastMove) {
+      setAnimation(null);
+      return;
+    }
+
+    const { piece, from, to } = gameState.lastMove;
+
+    const getCellRect = (pos: { row: number, col: number }): DOMRect | undefined => {
+      const cellElement = boardRef.current?.querySelector(`[data-testid="cell-${pos.row}-${pos.col}"]`);
+      return cellElement?.getBoundingClientRect();
+    };
+
+    const toRect = getCellRect(to);
+
+    const getFromRect = (): DOMRect | undefined => {
+      if ('player' in from) {
+        // Drop from captured pieces box
+        const capturedBoxRef = from.player === OKASHI_TEAM ? p1CapturedBoxRef : p2CapturedBoxRef;
+        const boxRect = capturedBoxRef.current?.getBoundingClientRect();
+        if (boxRect && toRect) {
+          // Start from the horizontal center of the box, and vertical edge
+          const startX = boxRect.left + (boxRect.width / 2) - (toRect.width / 2);
+          const startY = from.player === OKASHI_TEAM ? boxRect.top : boxRect.bottom - toRect.height;
+          return new DOMRect(startX, startY, toRect.width, toRect.height);
+        }
+        return undefined;
+      }
+      // Move from another cell on the board
+      return getCellRect(from);
+    };
+
+    const fromRect = getFromRect();
+
+    if (fromRect && toRect) {
+      // 1. Set initial position
+      setAnimatingStyle({
+        ...styles.animatingPiece,
+        top: fromRect.top,
+        left: fromRect.left,
+        width: fromRect.width,
+        height: fromRect.height,
+        opacity: 1,
+      });
+      setAnimation({ piece, to });
+
+      // 2. After a short delay, update to the target position to trigger transition
+      setTimeout(() => {
+        setAnimatingStyle(prev => ({
+          ...prev,
+          top: toRect.top,
+          left: toRect.left,
+        }));
+      }, 20);
+
+      // 3. After animation is complete, hide the animated piece.
+      setTimeout(() => {
+        setAnimatingStyle(prev => ({ ...prev, opacity: 0 }));
+      }, 520);
+    }
+  }, [gameState.lastMove]);
 
   const onCellClick = (row: number, col: number) => {
     if (!isGameInProgress) return;
@@ -117,7 +189,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         {/* Player 2's captured pieces (top) */}
         <div style={styles.capturedPiecesBox}>
           <h3 style={styles.capturedPiecesTitle}>おはなチーム</h3>
-          <div style={styles.capturedPiecesList}>
+          <div ref={p2CapturedBoxRef} style={styles.capturedPiecesList}>
             {gameState.capturedPieces[OHANA_TEAM].map((pieceType, index) => (
               <button
                 key={`gote-${index}`}
@@ -137,12 +209,13 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         </div>
 
         {/* Game Board */}
-        <div style={styles.board} data-testid="animal-chess-board">
+        <div ref={boardRef} style={styles.board} data-testid="animal-chess-board">
           {gameState.board.map((row, rowIndex) => (
             row.map((cell, colIndex) => {
               const isSelected = gameState.selectedCell?.row === rowIndex && gameState.selectedCell?.col === colIndex;
               const isHighlighted = hintState.highlightedCells?.some(h => h.row === rowIndex && h.col === colIndex);
               const showOverlay = !!(gameState.selectedCell && !isSelected && !isHighlighted);
+              const isAnimatingToHere = animation?.to.row === rowIndex && animation?.to.col === colIndex;
 
               return (
                 <button
@@ -157,7 +230,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                   disabled={!isGameInProgress}
                 >
                   {showOverlay && <div style={styles.cellOverlay} />}
-                  {cell && <PieceDisplay piece={cell} showIndicators={true} isGrayedOut={showOverlay} />}
+                  {cell && !isAnimatingToHere && <PieceDisplay piece={cell} showIndicators={true} isGrayedOut={showOverlay} />}
                 </button>
               );
             })
@@ -167,7 +240,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         {/* Player 1's captured pieces (bottom) */}
         <div style={styles.capturedPiecesBox}>
           <h3 style={styles.capturedPiecesTitle}>おかしチーム</h3>
-          <div style={styles.capturedPiecesList}>
+          <div ref={p1CapturedBoxRef} style={styles.capturedPiecesList}>
             {gameState.capturedPieces[OKASHI_TEAM].map((pieceType, index) => (
               <button
                 key={`sente-${index}`}
@@ -186,6 +259,11 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
           </div>
         </div>
       </div>
+      {animation && (
+        <div style={animatingStyle}>
+          <PieceDisplay piece={animation.piece} showIndicators={false} />
+        </div>
+      )}
     </>
   );
 };

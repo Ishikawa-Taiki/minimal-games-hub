@@ -25,6 +25,12 @@ export type Cell = Piece | null;
 export type Board = Cell[][];
 export type CapturedPieces = { [key in Player]: PieceType[] };
 
+export type MoveInfo = {
+  piece: Piece;
+  from: { row: number, col: number } | { player: Player }; // player for drops
+  to: { row: number, col: number };
+};
+
 export interface GameState {
   board: Board;
   currentPlayer: Player;
@@ -33,6 +39,7 @@ export interface GameState {
   selectedCell: { row: number; col: number } | null;
   selectedCaptureIndex: { player: Player; index: number } | null;
   winReason: 'catch' | 'try' | null;
+  lastMove: MoveInfo | null;
 }
 
 // Movement vectors [row, col] relative to the piece owner (OKASHI_TEAM)
@@ -74,6 +81,7 @@ export const createInitialState = (): GameState => {
     selectedCell: null,
     selectedCaptureIndex: null,
     winReason: null,
+    lastMove: null,
   };
 };
 
@@ -220,12 +228,12 @@ function checkWinner(board: Board, mover: Player): WinResult {
 export function movePiece(state: GameState, from: { row: number, col: number }, to: { row: number, col: number }): GameState {
     const pieceToMove = state.board[from.row][from.col];
     if (!pieceToMove || pieceToMove.owner !== state.currentPlayer) {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     const isValidMove = getValidMoves(state, from.row, from.col).some(m => m.row === to.row && m.col === to.col);
     if (!isValidMove) {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     const newBoard = state.board.map(row => [...row]);
@@ -261,28 +269,30 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
         winReason: winResult.reason,
         selectedCell: null,
         selectedCaptureIndex: null,
+        lastMove: { piece: pieceToMove, from, to },
     };
 }
 
 
 export function dropPiece(state: GameState, player: Player, pieceType: PieceType, to: { row: number, col: number }): GameState {
     if (state.board[to.row][to.col] !== null) {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     const captureIndex = state.capturedPieces[player].indexOf(pieceType);
     if (captureIndex === -1) {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     // A chick cannot be dropped in the final rank.
     const finalRank = player === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceType === CHICK && to.row === finalRank) {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     const newBoard = state.board.map(row => [...row]);
-    newBoard[to.row][to.col] = { type: pieceType, owner: player };
+    const droppedPiece: Piece = { type: pieceType, owner: player };
+    newBoard[to.row][to.col] = droppedPiece;
 
     const newCapturedPieces = { ...state.capturedPieces };
     newCapturedPieces[player] = [...newCapturedPieces[player]];
@@ -295,6 +305,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
         capturedPieces: newCapturedPieces,
         selectedCell: null,
         selectedCaptureIndex: null,
+        lastMove: { piece: droppedPiece, from: { player }, to },
     };
 }
 
@@ -307,7 +318,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
 
 export function handleCellClick(state: GameState, row: number, col: number): GameState {
     if (state.status !== 'playing') {
-        return state;
+        return { ...state, lastMove: null };
     }
 
     const { selectedCell, selectedCaptureIndex, currentPlayer } = state;
@@ -322,13 +333,13 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
     if (selectedCell) {
         // Deselect if clicking the same piece
         if (selectedCell.row === row && selectedCell.col === col) {
-            return { ...state, selectedCell: null, selectedCaptureIndex: null };
+            return { ...state, selectedCell: null, selectedCaptureIndex: null, lastMove: null };
         }
 
         const clickedPiece = state.board[row][col];
         // If clicking on another one of current player's pieces, change selection
         if (clickedPiece && clickedPiece.owner === currentPlayer) {
-            return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null };
+            return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
         }
 
         // Try to move
@@ -338,23 +349,26 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
     // 3. If nothing is selected, try to select a piece on the board
     const piece = state.board[row][col];
     if (piece && piece.owner === currentPlayer) {
-        return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null };
+        return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
     }
 
-    return state; // Clicked on empty cell or opponent's piece with nothing selected
+    return { ...state, lastMove: null }; // Clicked on empty cell or opponent's piece with nothing selected
 }
 
 export function handleCaptureClick(state: GameState, player: Player, index: number): GameState {
-    if (state.status !== 'playing' || player !== state.currentPlayer) return state;
+    if (state.status !== 'playing' || player !== state.currentPlayer) {
+        return { ...state, lastMove: null };
+    }
 
     // Deselect if already selected
     if (state.selectedCaptureIndex?.player === player && state.selectedCaptureIndex?.index === index) {
-        return { ...state, selectedCell: null, selectedCaptureIndex: null };
+        return { ...state, selectedCell: null, selectedCaptureIndex: null, lastMove: null };
     }
 
     return {
         ...state,
         selectedCell: null,
         selectedCaptureIndex: { player, index },
+        lastMove: null,
     };
 }
