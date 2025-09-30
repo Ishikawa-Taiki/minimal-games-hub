@@ -195,4 +195,10 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     clipPath: 'polygon(0% 0%, 100% 0%, 0% 100%)',
     top: '3px', left: '3px',
   },
+  animatingPiece: {
+    position: 'fixed',
+    zIndex: 1000,
+    transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out',
+    pointerEvents: 'none', // Prevent interaction during animation
+  },
 });
