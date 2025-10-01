@@ -41,6 +41,7 @@ const Concentration = ({ controller }: ConcentrationProps) => {
     getDifficulty,
     getBoard,
     getHintedIndices,
+    getNewlyMatchedIndices,
     resetGame,
     hintState,
   } = gameController;
@@ -83,43 +84,54 @@ const Concentration = ({ controller }: ConcentrationProps) => {
   const difficulty = getDifficulty();
   const board = getBoard();
   const hintedIndices = getHintedIndices();
+  const newlyMatchedIndices = getNewlyMatchedIndices();
   const showHints = hintState.enabled;
 
-  const CardComponent = ({ card, index }: { card: BoardCard; index: number }) => (
-    <button
-      style={getCardStyle(card, index)}
-      onClick={() => onCardClick(index)}
-      disabled={card.isMatched || card.isFlipped}
-      data-testid={`card-${index}`}
-    >
-      {card.isFlipped && <CardFaceContent suit={card.suit} rank={card.rank} />}
-    </button>
-  );
+  const CardComponent = ({ card, index }: { card: BoardCard; index: number }) => {
+    const isFlipped = card.isFlipped;
+    const isSelected = gameState.flippedIndices.includes(index) && gameState.flippedIndices.length === 1;
+    const isNewlyMatched = newlyMatchedIndices.includes(index);
 
-  const getCardStyle = (card: BoardCard, index: number): CSSProperties => {
-    const style = { ...styles.card };
-    const isFlippedInTurn = gameState.flippedIndices.includes(index);
+    const cardInnerStyle: CSSProperties = {
+      ...styles.cardInner,
+      transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)',
+    };
 
-    if (card.isFlipped) {
-      style.backgroundColor = styles.cardFace.backgroundColor;
-
-      if (gameState.flippedIndices.length === 1 && isFlippedInTurn) {
-        Object.assign(style, styles.cardSelected);
-      }
-    } else if (showHints && hintedIndices.includes(index)) {
-      style.backgroundColor = styles.cardHintStrong.backgroundColor;
-    } else if (showHints && gameState.revealedIndices.includes(index)) {
-      style.backgroundColor = styles.cardHint.backgroundColor;
-    }
-
+    const cardFaceStyle: CSSProperties = { ...styles.cardFace };
     if (card.isMatched) {
-      if (card.matchedBy === 1) {
-        Object.assign(style, styles.cardMatchedPlayer1);
-      } else if (card.matchedBy === 2) {
-        Object.assign(style, styles.cardMatchedPlayer2);
+      if (card.matchedBy === 1) Object.assign(cardFaceStyle, styles.cardMatchedPlayer1);
+      else if (card.matchedBy === 2) Object.assign(cardFaceStyle, styles.cardMatchedPlayer2);
+    }
+
+    const cardBackStyle: CSSProperties = { ...styles.cardBack };
+    if (showHints) {
+      if (hintedIndices.includes(index)) {
+        cardBackStyle.backgroundColor = styles.cardHintStrong.backgroundColor;
+      } else if (gameState.revealedIndices.includes(index)) {
+        cardBackStyle.backgroundColor = styles.cardHint.backgroundColor;
       }
     }
-    return style;
+
+    const cardContainerStyle: CSSProperties = {
+      ...styles.card,
+      ...(isSelected && styles.cardSelected),
+      ...(isNewlyMatched && styles.cardMatchedHighlight),
+    };
+
+    return (
+      <div
+        style={cardContainerStyle}
+        onClick={() => onCardClick(index)}
+        data-testid={`card-${index}`}
+      >
+        <div style={cardInnerStyle}>
+          <div style={cardFaceStyle}>
+            <CardFaceContent suit={card.suit} rank={card.rank} />
+          </div>
+          <div style={cardBackStyle} />
+        </div>
+      </div>
+    );
   };
 
   const getBoardDimensions = () => {
@@ -187,7 +199,7 @@ const Concentration = ({ controller }: ConcentrationProps) => {
     <div style={styles.gameContent}>
       <ScoreBoard />
       <div style={styles.boardContainer}>
-        <div style={boardStyle}>
+        <div style={boardStyle} data-testid="game-board">
           {board.map((card, index) => (
             <CardComponent key={card.id} card={card} index={index} />
           ))}

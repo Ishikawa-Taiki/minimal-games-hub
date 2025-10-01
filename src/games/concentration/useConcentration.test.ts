@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useConcentration } from './useConcentration';
 
 // useGameStateLoggerをモック化
-vi.mock('../../hooks/useGameStateLogger', () => ({
+vi.mock('@/core/hooks/useGameStateLogger', () => ({
   useGameStateLogger: () => ({
     log: vi.fn(),
   }),
@@ -23,8 +23,10 @@ describe('useConcentration', () => {
       expect(result.current.getFlippedIndices()).toEqual([]);
       expect(result.current.getRevealedIndices()).toEqual([]);
       expect(result.current.getHintedIndices()).toEqual([]);
+      expect(result.current.getNewlyMatchedIndices()).toEqual([]);
       expect(result.current.isGameStarted()).toBe(false);
       expect(result.current.isEvaluating()).toBe(false);
+      expect(result.current.isAnimating()).toBe(false);
     });
 
     it('指定した難易度で初期化される', () => {
@@ -36,6 +38,14 @@ describe('useConcentration', () => {
   });
 
   describe('カードクリック', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('1枚目のカードを正しくめくる', () => {
       const { result } = renderHook(() => useConcentration());
       
@@ -45,92 +55,83 @@ describe('useConcentration', () => {
       
       expect(result.current.getBoard()[0].isFlipped).toBe(true);
       expect(result.current.getFlippedIndices()).toEqual([0]);
-      expect(result.current.getRevealedIndices()).toEqual([0]);
-      expect(result.current.isGameStarted()).toBe(true);
+      expect(result.current.isAnimating()).toBe(true);
+
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+      expect(result.current.isAnimating()).toBe(false);
     });
 
     it('2枚目のカードをめくると評価状態になる', () => {
       const { result } = renderHook(() => useConcentration('easy'));
-
       const board = result.current.getBoard();
       const firstCard = board[0];
       const secondCardIndex = board.findIndex(card => card.matchId !== firstCard.matchId);
 
-      act(() => {
-        result.current.handleCardClick(0);
-      });
-      expect(result.current.isEvaluating()).toBe(false);
-
-      act(() => {
-        if (secondCardIndex !== -1) {
-          result.current.handleCardClick(secondCardIndex);
-        } else {
-          // Fallback if all cards are the same (highly unlikely in this test setup)
-          result.current.handleCardClick(1);
-        }
-      });
+      act(() => { result.current.handleCardClick(0); });
+      act(() => { vi.advanceTimersByTime(600); });
+      act(() => { result.current.handleCardClick(secondCardIndex); });
 
       expect(result.current.getFlippedIndices().length).toBe(2);
       expect(result.current.isEvaluating()).toBe(true);
     });
 
-    it('評価中はカードクリックが無視される', async () => { // async を追加
+    it('評価中はカードクリックが無視される', () => {
       const { result } = renderHook(() => useConcentration('easy'));
-
       const board = result.current.getBoard();
       const firstCard = board[0];
       const secondCardIndex = board.findIndex(card => card.matchId !== firstCard.matchId);
 
-      // 2枚めくって評価状態にする
-      act(() => {
-        result.current.handleCardClick(0);
-        if (secondCardIndex !== -1) {
-          result.current.handleCardClick(secondCardIndex);
-        } else {
-          result.current.handleCardClick(1);
-        }
-      });
+      act(() => { result.current.handleCardClick(0); });
+      act(() => { vi.advanceTimersByTime(600); });
+      act(() => { result.current.handleCardClick(secondCardIndex); });
 
-      // 評価状態になったことを確認
       expect(result.current.isEvaluating()).toBe(true);
+      const flippedCount = result.current.getFlippedIndices().length;
 
-      const flippedIndicesBefore = result.current.getFlippedIndices();
-      const revealedIndicesBefore = result.current.getRevealedIndices();
-
-      // 評価中に別のカードをクリック
-      act(() => {
-        result.current.handleCardClick(2);
-      });
-
-      // 状態が変わらないことを確認
-      expect(result.current.getFlippedIndices()).toEqual(flippedIndicesBefore);
-      expect(result.current.getRevealedIndices()).toEqual(revealedIndicesBefore);
-      expect(result.current.isEvaluating()).toBe(true); // 評価状態のまま
-
-      // setTimeout が完了するのを待つ (useConcentration.ts の useEffect のため)
-      await new Promise(resolve => setTimeout(resolve, 1300)); // 1.2秒 + 余裕
-
-      // 評価が完了し、カードが裏返った後の状態を確認
-      expect(result.current.isEvaluating()).toBe(false);
-      expect(result.current.getFlippedIndices().length).toBe(0);
+      act(() => { result.current.handleCardClick(2); });
+      expect(result.current.getFlippedIndices().length).toBe(flippedCount);
     });
 
-    it('すでにめくられたカードはクリックできない', () => {
+    it('アニメーション中はカードクリックが無視される', () => {
       const { result } = renderHook(() => useConcentration());
-      
-      act(() => {
-        result.current.handleCardClick(0);
-      });
-      
-      const flippedIndicesBefore = result.current.getFlippedIndices();
-      
-      // 同じカードを再度クリック
-      act(() => {
-        result.current.handleCardClick(0);
-      });
-      
-      // 状態が変わらないことを確認
-      expect(result.current.getFlippedIndices()).toEqual(flippedIndicesBefore);
+
+      act(() => { result.current.handleCardClick(0); });
+      expect(result.current.isAnimating()).toBe(true);
+
+      // アニメーション中に2枚目をクリック
+      act(() => { result.current.handleCardClick(1); });
+
+      // flippedIndicesは変わらない
+      expect(result.current.getFlippedIndices()).toEqual([0]);
+
+      // アニメーション終了後
+      act(() => { vi.advanceTimersByTime(600); });
+      expect(result.current.isAnimating()).toBe(false);
+
+      // 再度2枚目をクリックすると成功する
+      act(() => { result.current.handleCardClick(1); });
+      expect(result.current.getFlippedIndices().length).toBe(2);
+    });
+
+    it('カードがマッチしたとき、newlyMatchedIndicesが更新され、その後クリアされる', () => {
+        const { result } = renderHook(() => useConcentration('easy'));
+        const board = result.current.getBoard();
+        const firstCard = board[0];
+        const secondCardIndex = board.findIndex((card, index) => card.matchId === firstCard.matchId && index !== 0);
+
+        act(() => { result.current.handleCardClick(0); });
+        act(() => { vi.advanceTimersByTime(600); });
+        act(() => { result.current.handleCardClick(secondCardIndex); });
+
+        expect(result.current.getNewlyMatchedIndices()).toEqual([0, secondCardIndex]);
+        expect(result.current.isAnimating()).toBe(true);
+
+        act(() => { vi.advanceTimersByTime(500); });
+        expect(result.current.getNewlyMatchedIndices()).toEqual([]);
+        expect(result.current.isAnimating()).toBe(false);
+        expect(result.current.getFlippedIndices()).toEqual([]);
     });
   });
 

@@ -15,7 +15,9 @@ test.describe("神経衰弱ゲーム", () => {
     // 難易度を選択
     await page.getByTestId("difficulty-easy").click();
 
-    // ゲームボードが表示されることを確認
+    // 難易度選択画面が非表示になるのを待つ
+    await expect(page.getByTestId("pre-game-screen")).not.toBeVisible();
+    // ゲームボードのカードが20枚になることを確認
     await expect(page.locator('[data-testid^="card-"]')).toHaveCount(20);
   });
 
@@ -27,9 +29,11 @@ test.describe("神経衰弱ゲーム", () => {
 
     // 難易度「むずかしい」を選択
     await page.getByTestId("difficulty-hard").click();
+    await expect(page.getByTestId("pre-game-screen")).not.toBeVisible();
 
     // 最初のカードを取得
     const firstCard = page.locator('[data-testid="card-0"]');
+    await expect(firstCard).toBeVisible();
 
     // カードの初期サイズを取得
     const initialBoundingBox = await firstCard.boundingBox();
@@ -38,15 +42,15 @@ test.describe("神経衰弱ゲーム", () => {
     // カードをクリックして裏返す
     await firstCard.click();
 
-    // アニメーションが完了するのを待つ (0.3s + バッファ)
-    await page.waitForTimeout(500);
+    // アニメーションが完了するのを待つ (0.6s + バッファ)
+    await page.waitForTimeout(800);
 
     // 裏返した後のカードのサイズを取得
     const newBoundingBox = await firstCard.boundingBox();
     expect(newBoundingBox).not.toBeNull();
 
-    // 幅と高さが変わっていないことをアサート
-    expect(newBoundingBox.width).toBe(initialBoundingBox.width);
-    expect(newBoundingBox.height).toBe(initialBoundingBox.height);
+    // 幅と高さが変わっていないことをアサート（小数点以下の誤差を許容）
+    expect(newBoundingBox.width).toBeCloseTo(initialBoundingBox!.width);
+    expect(newBoundingBox.height).toBeCloseTo(initialBoundingBox!.height);
   });
 });
