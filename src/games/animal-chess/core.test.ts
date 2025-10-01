@@ -163,4 +163,22 @@ describe('Animal Chess Core Logic', () => {
     originalState.selectedCell = null;
     expect(state.board).toEqual(originalState.board);
   });
+
+  it('should switch from a captured piece to a board piece when clicking on an own piece', () => {
+    let state = createInitialState();
+    // Add a captured piece to the current player
+    state.capturedPieces[OKASHI_TEAM].push(GIRAFFE);
+
+    // 1. Select the captured GIRAFFE
+    state = handleCaptureClick(state, OKASHI_TEAM, 0);
+    expect(state.selectedCaptureIndex).toEqual({ player: OKASHI_TEAM, index: 0 });
+    expect(state.selectedCell).toBeNull();
+
+    // 2. Click on an own piece on the board (OKASHI_TEAM's LION at 3,1)
+    state = handleCellClick(state, 3, 1);
+
+    // 3. Assert that the selection has switched
+    expect(state.selectedCaptureIndex).toBeNull();
+    expect(state.selectedCell).toEqual({ row: 3, col: 1 });
+  });
 });

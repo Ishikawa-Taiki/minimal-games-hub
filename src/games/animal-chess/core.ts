@@ -323,8 +323,20 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
 
     const { selectedCell, selectedCaptureIndex, currentPlayer } = state;
 
-    // 1. If a captured piece was selected, try to drop it
+    // 1. If a captured piece was selected, try to drop it or change selection
     if (selectedCaptureIndex !== null) {
+        const clickedPiece = state.board[row][col];
+
+        // If clicking on one of current player's pieces, change selection
+        if (clickedPiece && clickedPiece.owner === currentPlayer) {
+            return {
+                ...state,
+                selectedCell: { row, col },
+                selectedCaptureIndex: null,
+                lastMove: null,
+            };
+        }
+
         const pieceType = state.capturedPieces[selectedCaptureIndex.player][selectedCaptureIndex.index];
         return dropPiece(state, currentPlayer, pieceType, { row, col });
     }
