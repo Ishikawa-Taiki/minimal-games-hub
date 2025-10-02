@@ -5,7 +5,8 @@ import { GameManifest } from '@/core/types/game';
 import GameLayout from '@/app/components/GameLayout';
 import TicTacToe, { useTicTacToe } from '@/games/tictactoe/index';
 import Reversi, { useReversi } from '@/games/reversi';
-import Concentration, { useConcentration } from '@/games/concentration/index';
+import Concentration from '@/games/concentration/index';
+import { useConcentration } from '@/games/concentration/useConcentration';
 import StickTaking, { useStickTaking } from '@/games/stick-taking';
 import AnimalChess, { useAnimalChess } from '@/games/animal-chess';
 import HasamiShogi, { useHasamiShogi } from '@/games/hasami-shogi';
@@ -68,7 +69,7 @@ const ConcentrationWithNewLayout = memo(function ConcentrationWithNewLayout({ ma
       manualContent={manualContent}
       hintSpecContent={hintSpecContent}
     >
-      <Concentration controller={controller} slug={slug} />
+      <Concentration controller={controller} />
     </GameLayout>
   );
 });

@@ -87,17 +87,17 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   board: {
     display: 'grid',
     gap: '5px',
+    perspective: '1000px',
     // gridTemplateColumns and other properties will be set dynamically
   },
   card: {
     width: '100%',
     aspectRatio: '2 / 3',
     cursor: 'pointer',
-    transition: 'transform 0.6s, box-shadow 0.3s',
-    transformStyle: 'preserve-3d',
     position: 'relative',
-    border: 'none', // Remove border from the container
+    border: 'none',
     backgroundColor: 'transparent',
+    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   },
   cardInner: {
     position: 'absolute',
@@ -113,6 +113,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     width: '100%',
     height: '100%',
     backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden', // For Safari
     borderRadius: '5px',
     display: 'flex',
     alignItems: 'center',
@@ -126,6 +127,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     width: '100%',
     height: '100%',
     backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden', // For Safari
     borderRadius: '5px',
     backgroundColor: '#4a90e2',
     border: '2px solid #357abd',
@@ -133,11 +135,13 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     transform: 'rotateY(180deg)',
   },
   cardSelected: {
-    boxShadow: '0 0 0 4px #3b82f6',
+    transform: 'scale(1.05)',
+    boxShadow: '0 0 8px 3px rgba(59, 130, 246, 0.8)',
   },
   cardMatchedHighlight: {
-    transform: 'scale(1.1)',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+    animationName: 'pulse',
+    animationDuration: '0.8s',
+    animationTimingFunction: 'ease-in-out',
     zIndex: 10,
   },
   cardMatchedPlayer1: {
