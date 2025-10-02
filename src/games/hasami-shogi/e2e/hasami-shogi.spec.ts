@@ -134,10 +134,86 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       await page.locator('[data-testid="cell-1-1"]').click();
 
       // P2のコマが消えるのを待つ
-      await expect(page.locator('[data-testid^="piece-PLAYER2-"]:visible')).toHaveCount(0, { timeout: 1000 });
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
 
-      // 捕獲スコアが更新されていることを確認
-      await expect(page.locator('[data-testid="score-value-PLAYER1"]')).toHaveText("とったかず: 1");
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
+
+    test("角で相手のコマを囲むと、そのコマを捕獲できる", async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P2が(0,0)に、P1が(0,1)にいる状態で、P1が(1,0)に移動して角のP2を捕獲するシナリオ
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[0][0] = 'PLAYER2';
+        board[0][1] = 'PLAYER1';
+        board[2][0] = 'PLAYER1'; // 移動するコマ
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(2,0)から(1,0)へ移動して角のP2を捕獲
+      await page.locator('[data-testid="cell-2-0"]').click();
+      await page.locator('[data-testid="cell-1-0"]').click();
+
+      // P2のコマが消えるのを待つ
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
+
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
+
+    test("辺で相手のコマを囲むと、そのコマを捕獲できる", async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P1が(1,0)と(3,0)に、P2が(2,0)にいる状態で、P1が(2,1)に移動して囲むシナリオ
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[1][0] = 'PLAYER1';
+        board[3][0] = 'PLAYER1';
+        board[2][0] = 'PLAYER2';
+        board[2][2] = 'PLAYER1'; // 移動するコマ
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(2,2)から(2,1)へ移動してP2を囲む
+      await page.locator('[data-testid="cell-2-2"]').click();
+      await page.locator('[data-testid="cell-2-1"]').click();
+
+      // P2のコマが消えるのを待つ
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
+
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
+
+    test('角の駒が敵駒2つで囲まれていない場合は捕獲されない', async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P2が(0,0)にいる状態で、P1が(8,0)から(1,0)に移動する。
+      // この時点では(0,1)は空なので、P2は捕獲されない。
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[0][0] = 'PLAYER2'; // 角の駒
+        board[8][0] = 'PLAYER1'; // 移動する駒
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(8,0)から(1,0)へ移動
+      await page.locator('[data-testid="cell-8-0"]').click();
+      await page.locator('[data-testid="cell-1-0"]').click();
+      await page.waitForTimeout(1000); // アニメーション待機
+
+      // P2の駒が捕獲されていないことを確認
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(1);
+      // スコアが変わっていないことを確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 0");
     });
   });
 
