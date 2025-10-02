@@ -25,9 +25,11 @@ export interface GameState {
   scores: { player1: number; player2: number };
   flippedIndices: number[];
   revealedIndices: number[];
+  newlyMatchedIndices: number[];
   hintedIndices: number[];
   status: GameStatus;
   winner: Player | 'draw' | null;
+  difficulty: Difficulty | null;
 }
 
 // 2. 定数 (Constants)
@@ -57,69 +59,53 @@ export function calculateHintedIndices(board: BoardCard[], revealedIndices: numb
   });
 
   const potentialPairs = [...revealedAndUnmatched.values()].filter(indices => indices.length >= 2);
-
-  // 候補となるペアが2組以上ある場合のみヒントを出す
-  if (potentialPairs.length >= 2) {
-    return potentialPairs.flat();
-  }
-
-  return [];
+  return potentialPairs.length >= 2 ? potentialPairs.flat() : [];
 }
 
-
 // 4. コアロジック (Core Logic)
-export function createInitialState(difficulty: Difficulty = 'easy'): GameState {
-  const deck: Card[] = [];
-  let uniqueId = 0;
+export function createInitialState(difficulty: Difficulty): GameState {
+  const cardPool: Omit<Card, 'id'>[] = [];
+  SUITS.forEach(suit => {
+    RANKS.forEach(rank => {
+      cardPool.push({ suit, rank, matchId: `${suit}-${rank}` });
+    });
+  });
 
+  let gameCardsSource: Omit<Card, 'id'>[];
   switch (difficulty) {
-    case 'easy': {
-      const suits: Suit[] = ['S', 'H'];
-      const ranks = RANKS.slice(0, 10);
-      for (const suit of suits) {
-        for (const rank of ranks) {
-          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
-        }
-      }
+    case 'easy':
+      gameCardsSource = shuffle(cardPool).slice(0, 10);
       break;
-    }
-    case 'normal': {
-      const ranks = RANKS.slice(0, 10);
-      for (const suit of SUITS) {
-        for (const rank of ranks) {
-          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
-        }
-      }
+    case 'normal':
+      gameCardsSource = shuffle(cardPool).slice(0, 20);
       break;
-    }
     case 'hard':
-    default: {
-      for (const suit of SUITS) {
-        for (const rank of RANKS) {
-          deck.push({ id: uniqueId++, suit, rank, matchId: `r${rank}` });
-        }
-      }
-      deck.push({ id: uniqueId++, suit: 'Joker', rank: 'J', matchId: 'rJ' });
-      deck.push({ id: uniqueId++, suit: 'Joker', rank: 'J', matchId: 'rJ' });
+    default:
+      gameCardsSource = shuffle(cardPool).slice(0, 26);
+      gameCardsSource.push({ suit: 'Joker', rank: 'J', matchId: 'Joker' });
       break;
-    }
   }
 
-  const shuffledDeck = shuffle(deck);
-
-  const board: BoardCard[] = shuffledDeck.map((card) => ({
-    ...card,
-    isFlipped: false,
-    isMatched: false,
-    matchedBy: null,
-  }));
+  const deck: Card[] = [];
+  let uniqueId = 0;
+  gameCardsSource.forEach((cardSource) => {
+    deck.push({ ...cardSource, id: uniqueId++ });
+    deck.push({ ...cardSource, id: uniqueId++ });
+  });
 
   return {
-    board,
+    difficulty,
+    board: shuffle(deck).map((card) => ({
+      ...card,
+      isFlipped: false,
+      isMatched: false,
+      matchedBy: null,
+    })),
     currentPlayer: 1,
     scores: { player1: 0, player2: 0 },
     flippedIndices: [],
     revealedIndices: [],
+    newlyMatchedIndices: [],
     hintedIndices: [],
     status: 'player1_turn',
     winner: null,
@@ -127,7 +113,6 @@ export function createInitialState(difficulty: Difficulty = 'easy'): GameState {
 }
 
 export function handleCardClick(currentState: GameState, cardIndex: number): GameState {
-  // 不正な操作は無視
   if (
     currentState.flippedIndices.length >= 2 ||
     currentState.board[cardIndex].isFlipped ||
@@ -136,75 +121,85 @@ export function handleCardClick(currentState: GameState, cardIndex: number): Gam
     return currentState;
   }
 
-  const newState = JSON.parse(JSON.stringify(currentState)) as GameState;
+  const newBoard = currentState.board.map((card, i) =>
+    i === cardIndex ? { ...card, isFlipped: true } : card
+  );
 
-  // カードを表向きにし、めくった履歴に追加
-  newState.board[cardIndex].isFlipped = true;
-  newState.flippedIndices.push(cardIndex);
-  if (!newState.revealedIndices.includes(cardIndex)) {
-    newState.revealedIndices.push(cardIndex);
-  }
+  const newFlippedIndices = [...currentState.flippedIndices, cardIndex];
+  const newRevealedIndices = currentState.revealedIndices.includes(cardIndex)
+    ? currentState.revealedIndices
+    : [...currentState.revealedIndices, cardIndex];
 
-  // ヒントの状態を更新
-  newState.hintedIndices = calculateHintedIndices(newState.board, newState.revealedIndices);
+  const baseNextState: GameState = {
+    ...currentState,
+    board: newBoard,
+    flippedIndices: newFlippedIndices,
+    revealedIndices: newRevealedIndices,
+    newlyMatchedIndices: [], // Reset on new click
+  };
 
-  // めくったカードが2枚になったら評価
-  if (newState.flippedIndices.length === 2) {
-    newState.status = 'evaluating';
-    const [index1, index2] = newState.flippedIndices;
-    const card1 = newState.board[index1];
-    const card2 = newState.board[index2];
+  if (newFlippedIndices.length === 2) {
+    const [index1, index2] = newFlippedIndices;
+    const card1 = newBoard[index1];
+    const card2 = newBoard[index2];
 
     if (card1.matchId === card2.matchId) {
-      // --- マッチした場合 ---
-      card1.isMatched = true;
-      card2.isMatched = true;
-      card1.matchedBy = newState.currentPlayer;
-      card2.matchedBy = newState.currentPlayer;
-      newState.scores[`player${newState.currentPlayer}`]++;
-      newState.flippedIndices = [];
+      const finalBoard = newBoard.map((card, i) =>
+        i === index1 || i === index2
+          ? { ...card, isMatched: true, matchedBy: currentState.currentPlayer }
+          : card
+      );
+      const newScores = { ...currentState.scores };
+      newScores[`player${currentState.currentPlayer}`]++;
 
-      // マッチしたのでヒントの状態を再更新
-      newState.hintedIndices = calculateHintedIndices(newState.board, newState.revealedIndices);
-
-      // ターンはそのまま
-      newState.status = newState.currentPlayer === 1 ? 'player1_turn' : 'player2_turn';
-
-      // ゲーム終了チェック
-      const allMatched = newState.board.every((card) => card.isMatched);
+      const allMatched = finalBoard.every((card) => card.isMatched);
       if (allMatched) {
-        newState.status = 'game_over';
-        if (newState.scores.player1 > newState.scores.player2) {
-          newState.winner = 1;
-        } else if (newState.scores.player2 > newState.scores.player1) {
-          newState.winner = 2;
-        } else {
-          newState.winner = 'draw';
-        }
+        return {
+          ...baseNextState,
+          board: finalBoard,
+          scores: newScores,
+          status: 'game_over',
+          winner: newScores.player1 > newScores.player2 ? 1 : newScores.player2 > newScores.player1 ? 2 : 'draw',
+          flippedIndices: [],
+          newlyMatchedIndices: [index1, index2],
+        };
       }
+      return {
+        ...baseNextState,
+        board: finalBoard,
+        scores: newScores,
+        status: currentState.currentPlayer === 1 ? 'player1_turn' : 'player2_turn',
+        flippedIndices: [],
+        newlyMatchedIndices: [index1, index2],
+        hintedIndices: calculateHintedIndices(finalBoard, newRevealedIndices),
+      };
+    } else {
+      return { ...baseNextState, status: 'evaluating' };
     }
-    // ミスマッチの場合は、状態を 'evaluating' のまま返し、UI側で遅延処理後に clearNonMatchingFlippedCards を呼ぶ
   }
 
-  return newState;
+  return {
+    ...baseNextState,
+    hintedIndices: calculateHintedIndices(newBoard, newRevealedIndices),
+  };
 }
 
 export function clearNonMatchingFlippedCards(currentState: GameState): GameState {
-  if (currentState.flippedIndices.length !== 2) {
+  if (currentState.flippedIndices.length < 2) {
     return currentState;
   }
 
-  const newState = JSON.parse(JSON.stringify(currentState)) as GameState;
-  const [index1, index2] = newState.flippedIndices;
+  const newBoard = currentState.board.map((card, index) =>
+    currentState.flippedIndices.includes(index) ? { ...card, isFlipped: false } : card
+  );
 
-  // カードを裏向きに戻す
-  newState.board[index1].isFlipped = false;
-  newState.board[index2].isFlipped = false;
+  const newPlayer = currentState.currentPlayer === 1 ? 2 : 1;
 
-  // プレイヤー交代
-  newState.currentPlayer = newState.currentPlayer === 1 ? 2 : 1;
-  newState.status = newState.currentPlayer === 1 ? 'player1_turn' : 'player2_turn';
-  newState.flippedIndices = [];
-
-  return newState;
+  return {
+    ...currentState,
+    board: newBoard,
+    currentPlayer: newPlayer,
+    status: newPlayer === 1 ? 'player1_turn' : 'player2_turn',
+    flippedIndices: [],
+  };
 }

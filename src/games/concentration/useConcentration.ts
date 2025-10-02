@@ -1,361 +1,109 @@
-import { useReducer, useCallback, useMemo, useEffect, useState } from 'react';
-import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position } from '@/core/types/game';
-import { 
-  GameState, 
-  createInitialState, 
-  handleCardClick as handleCardClickCore,
+"use client";
+
+import { useReducer, useEffect, useState, useCallback } from 'react';
+import {
+  createInitialState,
+  handleCardClick,
   clearNonMatchingFlippedCards,
+  GameState,
   Difficulty,
 } from './core';
-import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
+import { GameController, HintableGameController, ScoreInfo } from '@/core/types/game';
 
-// 神経衰弱固有の状態をBaseGameStateに適合させる
-interface ConcentrationGameState extends BaseGameState {
-  board: GameState['board'];
-  currentPlayer: string | null;
-  scores: GameState['scores'];
-  flippedIndices: GameState['flippedIndices'];
-  revealedIndices: GameState['revealedIndices'];
-  hintedIndices: GameState['hintedIndices'];
-  newlyMatchedIndices: number[]; // For match animation
-  gameStatus: GameState['status'];
-  difficulty: Difficulty;
-  // ヒント関連
-  hintsEnabled: boolean;
-}
-
-type ConcentrationAction = 
-  | { type: 'CARD_CLICK'; index: number }
+type ConcentrationAction =
+  | { type: 'FLIP_CARD'; payload: number }
   | { type: 'CLEAR_NON_MATCHING' }
-  | { type: 'RESET_GAME'; difficulty?: Difficulty }
-  | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
-  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
-  | { type: 'CLEAR_NEWLY_MATCHED' };
+  | { type: 'RESET_GAME' }
+  | { type: 'SET_DIFFICULTY'; payload: Difficulty };
 
-function createInitialConcentrationState(difficulty: Difficulty = 'easy'): ConcentrationGameState {
-  const coreState = createInitialState(difficulty);
-  return {
-    board: coreState.board,
-    currentPlayer: 'player1',
-    scores: coreState.scores,
-    flippedIndices: coreState.flippedIndices,
-    revealedIndices: coreState.revealedIndices,
-    hintedIndices: coreState.hintedIndices,
-    newlyMatchedIndices: [],
-    gameStatus: coreState.status,
-    difficulty,
-    // BaseGameState required fields
-    status: 'waiting' as GameStatus,
-    winner: coreState.winner === 'draw' ? 'DRAW' : 
-            coreState.winner === 1 ? 'player1' :
-            coreState.winner === 2 ? 'player2' : null,
-    // ヒント関連
-    hintsEnabled: false,
-  };
-}
-
-function concentrationReducer(state: ConcentrationGameState, action: ConcentrationAction): ConcentrationGameState {
+const reducer = (state: GameState, action: ConcentrationAction): GameState => {
   switch (action.type) {
-    case 'CARD_CLICK': {
-      const coreState: GameState = {
-        board: state.board,
-        currentPlayer: state.currentPlayer === 'player1' ? 1 : 2,
-        scores: state.scores,
-        flippedIndices: state.flippedIndices,
-        revealedIndices: state.revealedIndices,
-        hintedIndices: state.hintedIndices,
-        status: state.gameStatus,
-        winner: state.winner === 'DRAW' ? 'draw' :
-                state.winner === 'player1' ? 1 :
-                state.winner === 'player2' ? 2 : null,
-      };
-      
-      const previousScores = { ...coreState.scores };
-      const newCoreState = handleCardClickCore(coreState, action.index);
-      
-      const currentPlayerId = state.currentPlayer as keyof typeof state.scores;
-      const wasMatched = newCoreState.scores[currentPlayerId] > previousScores[currentPlayerId];
-
-      return {
-        ...state,
-        board: newCoreState.board,
-        currentPlayer: newCoreState.currentPlayer === 1 ? 'player1' : 'player2',
-        scores: newCoreState.scores,
-        flippedIndices: newCoreState.flippedIndices,
-        revealedIndices: newCoreState.revealedIndices,
-        hintedIndices: newCoreState.hintedIndices,
-        newlyMatchedIndices: wasMatched ? state.flippedIndices.concat(action.index) : [],
-        gameStatus: newCoreState.status,
-        status: newCoreState.status === 'game_over' ? 'ended' : 'playing',
-        winner: newCoreState.winner === 'draw' ? 'DRAW' : 
-                newCoreState.winner === 1 ? 'player1' :
-                newCoreState.winner === 2 ? 'player2' : null,
-      };
-    }
-    
-    case 'CLEAR_NON_MATCHING': {
-      const coreState: GameState = {
-        board: state.board,
-        currentPlayer: state.currentPlayer === 'player1' ? 1 : 2,
-        scores: state.scores,
-        flippedIndices: state.flippedIndices,
-        revealedIndices: state.revealedIndices,
-        hintedIndices: state.hintedIndices,
-        status: state.gameStatus,
-        winner: state.winner === 'DRAW' ? 'draw' :
-                state.winner === 'player1' ? 1 :
-                state.winner === 'player2' ? 2 : null,
-      };
-      
-      const newCoreState = clearNonMatchingFlippedCards(coreState);
-      
-      return {
-        ...state,
-        board: newCoreState.board,
-        currentPlayer: newCoreState.currentPlayer === 1 ? 'player1' : 'player2',
-        scores: newCoreState.scores,
-        flippedIndices: newCoreState.flippedIndices,
-        revealedIndices: newCoreState.revealedIndices,
-        hintedIndices: newCoreState.hintedIndices,
-        gameStatus: newCoreState.status,
-        status: newCoreState.status === 'game_over' ? 'ended' : 'playing',
-        winner: newCoreState.winner === 'draw' ? 'DRAW' : 
-                newCoreState.winner === 1 ? 'player1' :
-                newCoreState.winner === 2 ? 'player2' : null,
-      };
-    }
-    
+    case 'FLIP_CARD':
+      return handleCardClick(state, action.payload);
+    case 'CLEAR_NON_MATCHING':
+      return clearNonMatchingFlippedCards(state);
     case 'RESET_GAME':
-      return createInitialConcentrationState(action.difficulty || state.difficulty);
-    
-    case 'SET_HINTS_ENABLED':
-      return {
-        ...state,
-        hintsEnabled: action.enabled,
-      };
-    
-    case 'SET_DIFFICULTY': {
-      const newState = createInitialConcentrationState(action.difficulty);
-      return {
-        ...newState,
-        status: 'playing' as GameStatus,
-      };
-    }
-
-    case 'CLEAR_NEWLY_MATCHED':
-      return {
-        ...state,
-        newlyMatchedIndices: [],
-      };
-    
+      if (!state.difficulty) return createInitialState('easy');
+      return createInitialState(state.difficulty);
+    case 'SET_DIFFICULTY':
+      return createInitialState(action.payload);
     default:
       return state;
   }
-}
+};
 
-export type ConcentrationController = BaseGameController<ConcentrationGameState, ConcentrationAction> & 
-  HintableGameController<ConcentrationGameState, ConcentrationAction> & {
-    // resetGame を上書き
-    resetGame: (difficulty?: Difficulty) => void;
-    // 神経衰弱固有のメソッド
-    handleCardClick: (index: number) => void;
-    clearNonMatchingCards: () => void;
-    setDifficulty: (difficulty: Difficulty) => void;
-    // 状態アクセサー
-    getCurrentPlayer: () => string | null;
-    getScores: () => GameState['scores'];
-    getFlippedIndices: () => number[];
-    getRevealedIndices: () => number[];
-    getHintedIndices: () => number[];
-    getNewlyMatchedIndices: () => number[];
-    getBoard: () => GameState['board'];
-    getDifficulty: () => Difficulty;
-    // ゲーム状態チェック
-    isAnimating: () => boolean;
-    isGameStarted: () => boolean;
-    isEvaluating: () => boolean;
-  };
-
-export function useConcentration(initialDifficulty: Difficulty = 'easy'): ConcentrationController {
-  const [gameState, dispatch] = useReducer(concentrationReducer, createInitialConcentrationState(initialDifficulty));
-  const [isAnimating, setIsAnimating] = useState(false);
-  
-  // ログ機能
-  const logger = useGameStateLogger('useConcentration', gameState, {
-    hintsEnabled: gameState.hintsEnabled,
-    difficulty: gameState.difficulty,
-    flippedCount: gameState.flippedIndices.length,
-    revealedCount: gameState.revealedIndices.length,
-    hintedCount: gameState.hintedIndices.length,
-    scores: gameState.scores
+export const useConcentration = (): GameController & HintableGameController => {
+  const [gameState, dispatch] = useReducer(reducer, {
+    difficulty: null,
+    board: [],
+    currentPlayer: 1,
+    scores: { player1: 0, player2: 0 },
+    flippedIndices: [],
+    revealedIndices: [],
+    newlyMatchedIndices: [],
+    hintedIndices: [],
+    status: 'waiting',
+    winner: null,
   });
+  const [hintState, setHintState] = useState({ enabled: false, type: 'strong' as const });
 
-  // 評価中の自動処理
   useEffect(() => {
-    if (gameState.gameStatus === 'evaluating') {
-      const timeoutId = setTimeout(() => {
-        logger.log('AUTO_CLEAR_NON_MATCHING', { flippedIndices: gameState.flippedIndices });
-        setIsAnimating(true);
-        setTimeout(() => setIsAnimating(false), 600); // フリップバックアニメーションの時間
+    if (gameState.status === 'evaluating') {
+      const timer = setTimeout(() => {
         dispatch({ type: 'CLEAR_NON_MATCHING' });
-      }, 1200); // 1.2秒待ってからカードを裏返す
-      return () => clearTimeout(timeoutId);
+      }, 1200);
+      return () => clearTimeout(timer);
     }
-  }, [gameState.gameStatus, gameState.flippedIndices, logger]);
-
-  // マッチしたカードのハイライトを自動で消す
-  useEffect(() => {
-    if (gameState.newlyMatchedIndices.length > 0) {
-      setIsAnimating(true);
-      const timeoutId = setTimeout(() => {
-        dispatch({ type: 'CLEAR_NEWLY_MATCHED' });
-        setIsAnimating(false);
-      }, 500); // 0.5秒後にハイライトを消す
-      return () => clearTimeout(timeoutId);
-    }
-  }, [gameState.newlyMatchedIndices]);
-
-  const resetGame = useCallback((difficulty?: Difficulty) => {
-    try {
-      logger.log('RESET_GAME_CALLED', { difficulty: difficulty || gameState.difficulty });
-    } catch (error) {
-      console.warn('Logger error:', error);
-    }
-    dispatch({ type: 'RESET_GAME', difficulty });
-  }, [gameState.difficulty, logger]);
-
-  const handleCardClick = useCallback((index: number) => {
-    if (isAnimating || gameState.gameStatus === 'evaluating') {
-      logger.log('CARD_CLICK_IGNORED_ANIMATING', { index, isAnimating, gameStatus: gameState.gameStatus });
-      return;
-    }
-    
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 600); // Flip animation duration
-
-    logger.log('CARD_CLICK_CALLED', {
-      index,
-      currentPlayer: gameState.currentPlayer,
-      hintsEnabled: gameState.hintsEnabled,
-      flippedCount: gameState.flippedIndices.length,
-      isCardFlipped: gameState.board[index]?.isFlipped,
-      isCardMatched: gameState.board[index]?.isMatched
-    });
-    dispatch({ type: 'CARD_CLICK', index });
-  }, [isAnimating, gameState, logger]);
-
-  const clearNonMatchingCards = useCallback(() => {
-    logger.log('CLEAR_NON_MATCHING_CALLED', {});
-    dispatch({ type: 'CLEAR_NON_MATCHING' });
-  }, [logger]);
+  }, [gameState.status]);
 
   const setDifficulty = useCallback((difficulty: Difficulty) => {
-    try {
-      logger.log('SET_DIFFICULTY_CALLED', { difficulty });
-    } catch (error) {
-      console.warn('Logger error:', error);
-    }
-    dispatch({ type: 'SET_DIFFICULTY', difficulty });
-  }, [logger]);
+    dispatch({ type: 'SET_DIFFICULTY', payload: difficulty });
+  }, [dispatch]);
 
-  // ヒント関連
-  const hintState: HintState = useMemo(() => {
-    const highlightedCells: (Position & { color: string })[] = [];
-    
-    // ヒントが有効な場合、ヒント対象のカードをハイライト
-    if (gameState.hintsEnabled) {
-      const hintColor = 'rgba(251, 191, 36, 0.7)'; // Yellow for hints
-      gameState.hintedIndices.forEach(index => {
-        const row = Math.floor(index / getBoardColumns(gameState.difficulty));
-        const col = index % getBoardColumns(gameState.difficulty);
-        highlightedCells.push({ row, col, color: hintColor });
-      });
-    }
+  const resetGame = useCallback(() => {
+    dispatch({ type: 'RESET_GAME' });
+  }, [dispatch]);
 
+  const handleCardClickWithDispatch = useCallback((index: number) => {
+    dispatch({ type: 'FLIP_CARD', payload: index });
+  }, [dispatch]);
+
+  const getDisplayStatus = useCallback(() => {
+    switch (gameState.status) {
+      case 'player1_turn':
+        return 'プレイヤー1の番';
+      case 'player2_turn':
+        return 'プレイヤー2の番';
+      case 'evaluating':
+        return '判定中...';
+      case 'game_over':
+        if (gameState.winner === 'draw') return '引き分け！';
+        return `プレイヤー${gameState.winner}の勝ち！`;
+      default:
+        return '難易度を選択してください';
+    }
+  }, [gameState.status, gameState.winner]);
+
+  const getScoreInfo = useCallback((): ScoreInfo | null => {
+    if (gameState.status === 'waiting') return null;
     return {
-      enabled: gameState.hintsEnabled,
-      highlightedCells,
+      title: '獲得ペア数',
+      items: [
+        { label: 'プレイヤー1', value: `${gameState.scores.player1}個` },
+        { label: 'プレイヤー2', value: `${gameState.scores.player2}個` },
+      ],
     };
-  }, [gameState.hintsEnabled, gameState.hintedIndices, gameState.difficulty]);
-
-  const setHints = useCallback((enabled: boolean) => {
-    logger.log('SET_HINTS_CALLED', { enabled });
-    dispatch({ type: 'SET_HINTS_ENABLED', enabled });
-  }, [logger]);
-
-  // アクセサーメソッド
-  const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
-  const getScores = useCallback(() => gameState.scores, [gameState.scores]);
-  const getFlippedIndices = useCallback(() => gameState.flippedIndices, [gameState.flippedIndices]);
-  const getRevealedIndices = useCallback(() => gameState.revealedIndices, [gameState.revealedIndices]);
-  const getHintedIndices = useCallback(() => gameState.hintedIndices, [gameState.hintedIndices]);
-  const getNewlyMatchedIndices = useCallback(() => gameState.newlyMatchedIndices, [gameState.newlyMatchedIndices]);
-  const getBoard = useCallback(() => gameState.board, [gameState.board]);
-  const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
-
-  const isGameStarted = useCallback(() => {
-    return gameState.flippedIndices.length > 0 || 
-           gameState.revealedIndices.length > 0 || 
-           gameState.scores.player1 > 0 || 
-           gameState.scores.player2 > 0;
-  }, [gameState.flippedIndices.length, gameState.revealedIndices.length, gameState.scores]);
-
-  const isEvaluating = useCallback(() => {
-    return gameState.gameStatus === 'evaluating';
-  }, [gameState.gameStatus]);
-
-  const isAnimatingAccessor = useCallback(() => isAnimating, [isAnimating]);
+  }, [gameState.scores, gameState.status]);
 
   return {
     gameState,
-    dispatch,
-    resetGame,
-    handleCardClick,
-    clearNonMatchingCards,
-    setDifficulty,
-    getCurrentPlayer,
-    getScores,
-    getFlippedIndices,
-    getRevealedIndices,
-    getHintedIndices,
-    getNewlyMatchedIndices,
-    getBoard,
-    getDifficulty,
-    isAnimating: isAnimatingAccessor,
-    isGameStarted,
-    isEvaluating,
-    // HintableGameController
     hintState,
-    setHints,
-    isTurnOnly: useMemo(() => {
-      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
-    }, [gameState.status, gameState.winner]),
-    displayInfo: useMemo(() => {
-      if (gameState.winner) {
-        if (gameState.winner === 'DRAW') {
-          return { statusText: 'ひきわけ' };
-        }
-        const winnerText = gameState.winner === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
-        return { statusText: `${winnerText}のかち` };
-      }
-      if (gameState.gameStatus === 'evaluating') {
-        return { statusText: '...' };
-      }
-      if (gameState.status === 'playing' && gameState.currentPlayer) {
-        const playerText = gameState.currentPlayer === 'player1' ? 'プレイヤー1' : 'プレイヤー2';
-        return { statusText: `「${playerText}」のばん` };
-      }
-      return { statusText: 'ゲーム開始' };
-    }, [gameState.winner, gameState.status, gameState.currentPlayer, gameState.gameStatus]),
+    setHints: setHintState,
+    setDifficulty,
+    resetGame,
+    handleCardClick: handleCardClickWithDispatch,
+    getDisplayStatus,
+    getScoreInfo,
+    dispatch,
   };
-}
-
-// ヘルパー関数：難易度に応じた列数を取得
-function getBoardColumns(difficulty: Difficulty): number {
-  const columns = {
-    easy: 5,
-    normal: 8,
-    hard: 9,
-  };
-  return columns[difficulty];
-}
+};
