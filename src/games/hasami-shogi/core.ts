@@ -138,26 +138,9 @@ function getCapturesAfterMove(
     }
   }
 
-  // Corner captures
-  const corners = [
-    { r: 0, c: 0, adjs: [[0, 1], [1, 0]] },
-    { r: 0, c: 8, adjs: [[0, 7], [1, 8]] },
-    { r: 8, c: 0, adjs: [[7, 0], [8, 1]] },
-    { r: 8, c: 8, adjs: [[7, 8], [8, 7]] },
-  ];
-  for (const corner of corners) {
-    if (board[corner.r][corner.c] === opponent) {
-      const [adj1, adj2] = corner.adjs;
-      if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
-        allCaptures.push([corner.r, corner.c]);
-      }
-    }
-  }
-
   return Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getGroupCaptures(board: Board, player: Player): [number, number][] {
     const opponent = getOpponent(player);
     const capturedGroups: [number, number][] = [];
@@ -203,6 +186,26 @@ function getGroupCaptures(board: Board, player: Player): [number, number][] {
     return capturedGroups;
 }
 
+function getCornerCaptures(board: Board, player: Player): [number, number][] {
+  const opponent = getOpponent(player);
+  const captures: [number, number][] = [];
+  const corners = [
+    { r: 0, c: 0, adjs: [[0, 1], [1, 0]] },
+    { r: 0, c: 8, adjs: [[0, 7], [1, 8]] },
+    { r: 8, c: 0, adjs: [[7, 0], [8, 1]] },
+    { r: 8, c: 8, adjs: [[7, 8], [8, 7]] },
+  ];
+  for (const corner of corners) {
+    if (board[corner.r][corner.c] === opponent) {
+      const [adj1, adj2] = corner.adjs;
+      if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
+        captures.push([corner.r, corner.c]);
+      }
+    }
+  }
+  return captures;
+}
+
 function simulateMove(
   board: Board,
   player: Player,
@@ -220,12 +223,17 @@ function simulateMove(
     tempBoard[r][c] = null;
   });
 
-  // const groupCaptures = getGroupCaptures(tempBoard, player);
-  // groupCaptures.forEach(([r, c]) => {
-  //     tempBoard[r][c] = null;
-  // });
+  const groupCaptures = getGroupCaptures(tempBoard, player);
+  groupCaptures.forEach(([r, c]) => {
+    tempBoard[r][c] = null;
+  });
 
-  const allCaptures = [...moveCaptures]; //, ...groupCaptures];
+  const cornerCaptures = getCornerCaptures(tempBoard, player);
+  cornerCaptures.forEach(([r, c]) => {
+    tempBoard[r][c] = null;
+  });
+
+  const allCaptures = [...moveCaptures, ...groupCaptures, ...cornerCaptures];
   const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
 
   return { newBoard: tempBoard, captured: uniqueCaptures };
