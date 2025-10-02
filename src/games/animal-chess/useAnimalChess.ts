@@ -252,7 +252,7 @@ export function useAnimalChess(): AnimalChessController {
     const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
     const canBeCapturedColor = 'rgba(59, 130, 246, 0.7)'; // Blue for "can be captured"
 
-    // 持ち駒選択時のヒント
+    // 持ちコマ選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
       const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
@@ -269,7 +269,7 @@ export function useAnimalChess(): AnimalChessController {
         highlightedCells.push({ ...drop, color });
       });
     }
-    // 盤上の駒選択時のヒント
+    // 盤上のコマ選択時のヒント
     else if (gameState.selectedCell) {
       const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
       moves.forEach(move => {
@@ -290,7 +290,7 @@ export function useAnimalChess(): AnimalChessController {
         highlightedCells.push({ ...move, color });
       });
     }
-    // 駒未選択時のヒント (取られる可能性がある駒)
+    // コマ未選択時のヒント (取られる可能性があるコマ)
     else if (gameState.hintsEnabled) {
       const opponent = gameState.currentPlayer === OKASHI_TEAM ? OHANA_TEAM : OKASHI_TEAM;
       const threatenedCells = new Set<string>();

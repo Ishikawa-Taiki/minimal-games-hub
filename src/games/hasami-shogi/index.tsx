@@ -1,24 +1,48 @@
 "use client";
 
-import React, { CSSProperties, useEffect } from 'react';
-import {
-  Player,
-  WinCondition,
-} from './core';
+import React, { CSSProperties, useEffect, useState } from 'react';
+import { Player, WinCondition, Board } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
 import { PositiveButton } from '@/app/components/ui';
 import { styles } from './styles';
 import { useDialog } from '@/app/components/ui/DialogProvider';
 
-// Piece component for the game board
-const Piece: React.FC<{ player: Player }> = ({ player }) => {
+const CELL_SIZE = 40;
+const GAP = 2;
+
+const getPosition = (r: number, c: number) => ({
+  top: r * (CELL_SIZE + GAP) + GAP,
+  left: c * (CELL_SIZE + GAP) + GAP,
+});
+
+const PieceView: React.FC<{
+  player: Player;
+  isCaptured: boolean;
+  isMoving: boolean;
+  top: number;
+  left: number;
+  id: string;
+}> = ({ player, isCaptured, isMoving, top, left, id }) => {
   const pieceStyle: CSSProperties = {
     ...styles.piece,
     transform: player === 'PLAYER2' ? 'rotate(180deg)' : 'none',
     color: player === 'PLAYER2' ? '#e53e3e' : '#000000',
   };
+
+  const containerStyle: CSSProperties = {
+    ...styles.pieceContainer,
+    top,
+    left,
+    ...(isCaptured && styles.captured),
+    ...(isMoving && styles.moving),
+  };
+
   const char = player === 'PLAYER1' ? '歩' : 'と';
-  return <div style={pieceStyle}>{char}</div>;
+  return (
+    <div style={containerStyle} data-testid={`piece-${player}-${id}`}>
+      <div style={pieceStyle}>{char}</div>
+    </div>
+  );
 };
 
 const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => void }) => (
@@ -38,17 +62,48 @@ const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => vo
   </div>
 );
 
-
-// プロップスでコントローラーを受け取るバージョン
 interface HasamiShogiProps {
   controller?: HasamiShogiController;
 }
 
+interface PieceState {
+  id: string;
+  player: Player;
+  r: number;
+  c: number;
+  isCaptured: boolean;
+}
+
+const generateInitialPieces = (board: Board): PieceState[] => {
+  const pieces: PieceState[] = [];
+  let player1Id = 0;
+  let player2Id = 0;
+  board.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (cell) {
+        const id = cell === 'PLAYER1' ? `p1-${player1Id++}` : `p2-${player2Id++}`;
+        pieces.push({ id, player: cell, r, c, isCaptured: false });
+      }
+    });
+  });
+  return pieces;
+};
+
 const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) => {
-  // 外部からコントローラーが渡された場合はそれを使用、そうでなければ内部で作成
   const internalController = useHasamiShogi();
   const controller = externalController || internalController;
-  
+
+interface TestWindow extends Window {
+  gameController?: HasamiShogiController;
+}
+
+  // E2Eテストのためにコントローラーをwindowに公開
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      (window as TestWindow).gameController = controller;
+    }
+  }, [controller]);
+
   const {
     gameState,
     makeMove,
@@ -60,8 +115,17 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     resetGame,
   } = controller;
 
-  const hintsEnabled = hintState.enabled;
+  const [pieces, setPieces] = useState<PieceState[]>(() =>
+    generateInitialPieces(gameState.board)
+  );
+
   const { alert } = useDialog();
+
+  useEffect(() => {
+    if (gameState.status === 'waiting') {
+      setPieces(generateInitialPieces(gameState.board));
+    }
+  }, [gameState.status, gameState.board]);
 
   useEffect(() => {
     if (gameState.winner) {
@@ -72,12 +136,68 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
           : gameState.capturedPieces.PLAYER1;
       alert({
         title: `${winnerText}のかち`,
-        message: `${winnerText}が${capturedCount}こ駒をとったよ！`,
+        message: `${winnerText}が${capturedCount}こコマをとったよ！`,
       }).then(() => {
         resetGame();
       });
     }
   }, [gameState.winner, gameState.capturedPieces, alert, resetGame]);
+
+  useEffect(() => {
+    // lastMoveがない場合は、盤面のリセット（初期化、テスト用の盤面設定）と判断し、
+    // pieceの状態を gameState.board と同期させる。
+    if (!gameState.lastMove) {
+      setPieces(generateInitialPieces(gameState.board));
+    }
+  }, [gameState.board, gameState.lastMove]);
+
+  useEffect(() => {
+    const { lastMove, justCapturedPieces } = gameState;
+
+    // lastMoveがある場合（＝コマが移動した場合）のみアニメーションのための状態更新を行う
+    if ((justCapturedPieces && justCapturedPieces.length > 0) || lastMove) {
+      setPieces(prevPieces => {
+        let tempPieces = [...prevPieces];
+        let changed = false;
+
+        if (justCapturedPieces && justCapturedPieces.length > 0) {
+          const capturedPositions = justCapturedPieces.map(p => `${p.r},${p.c}`);
+          const capturedIds = new Set<string>();
+          tempPieces.forEach(p => {
+            if (!p.isCaptured && capturedPositions.includes(`${p.r},${p.c}`)) {
+              capturedIds.add(p.id);
+            }
+          });
+          if (capturedIds.size > 0) {
+            changed = true;
+            tempPieces = tempPieces.map(p =>
+              capturedIds.has(p.id) ? { ...p, isCaptured: true } : p
+            );
+          }
+        }
+
+        if (lastMove) {
+          const { from, to } = lastMove;
+          const movingPieceIndex = tempPieces.findIndex(
+            p => p.r === from.r && p.c === from.c && !p.isCaptured
+          );
+
+          if (movingPieceIndex !== -1) {
+            const newPiece = { ...tempPieces[movingPieceIndex], r: to.r, c: to.c };
+            tempPieces = [
+              ...tempPieces.slice(0, movingPieceIndex),
+              newPiece,
+              ...tempPieces.slice(movingPieceIndex + 1),
+            ];
+            changed = true;
+          }
+        }
+
+        return changed ? tempPieces : prevPieces;
+      });
+    }
+  }, [gameState]);
+
 
   const onCellClick = (r: number, c: number) => {
     if (gameState.gameStatus === 'GAME_OVER') return;
@@ -91,69 +211,65 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
     const potentialCaptures = getPotentialCaptures();
     const moveKey = `${r},${c}`;
 
-    // Style for selected piece
     if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
-      style.backgroundColor = '#f6e05e'; // Yellow
+        style.boxShadow = 'inset 0 0 0 3px gold';
     }
 
-    // Hint-related styling
-    if (hintsEnabled && selectedPiece) {
+    if (hintState.enabled && selectedPiece) {
       const moveData = validMoves.get(moveKey);
       if (moveData) {
-        // Style for valid move destinations
-        style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4'; // Red/Green
+        style.backgroundColor = moveData.isUnsafe ? '#feb2b2' : '#9ae6b4';
       }
-      // Style for pieces that could be captured
       if (potentialCaptures.some(([capR, capC]) => capR === r && capC === c)) {
-        style.backgroundColor = '#a4cafe'; // Light blue
+        style.backgroundColor = '#a4cafe';
       }
     }
 
     return style;
   };
 
-  const winner = gameState.winner;
-
   const gameContent = (
     <>
       <div style={styles.scoreBoard}>
         <div style={styles.scoreItem}>
           <span style={styles.scorePiece}>歩</span>
-          <span style={styles.capturedPiece}>
+          <span style={styles.capturedPiece} data-testid="score-value-PLAYER2">
             とったかず: {gameState.capturedPieces.PLAYER2}
           </span>
         </div>
         <div style={styles.scoreItem}>
           <span style={styles.scorePiece}>と</span>
-          <span style={styles.capturedPiece}>
+          <span style={styles.capturedPiece} data-testid="score-value-PLAYER1">
             とったかず: {gameState.capturedPieces.PLAYER1}
           </span>
         </div>
       </div>
-      <div style={styles.board}>
+      <div style={styles.board} data-testid="board-container">
         {gameState.board.map((row, r) =>
-          row.map((cell, c) => {
-            const selectedPiece = getSelectedPiece();
-            const isSelected = !!(selectedPiece && selectedPiece.r === r && selectedPiece.c === c);
-            return (
-              <div
-                key={`${r}-${c}`}
-                data-testid={`cell-${r}-${c}`}
-                data-selected={isSelected}
-                style={getCellStyle(r, c)}
-                onClick={() => onCellClick(r, c)}
-              >
-                {cell && <Piece player={cell} />}
-                {cell === gameState.currentPlayer && !winner && (
-                  <div style={styles.currentPlayerHighlight} />
-                )}
-              </div>
-            );
-          })
+          row.map((_, c) => (
+            <div
+              key={`${r}-${c}`}
+              data-testid={`cell-${r}-${c}`}
+              style={getCellStyle(r, c)}
+              onClick={() => onCellClick(r, c)}
+            />
+          ))
         )}
+        {pieces.map(p => {
+          const { top, left } = getPosition(p.r, p.c);
+          return (
+            <PieceView
+              key={p.id}
+              id={p.id}
+              player={p.player}
+              isCaptured={p.isCaptured}
+              isMoving={false} // This can be enhanced later
+              top={top}
+              left={left}
+            />
+          );
+        })}
       </div>
-
-
     </>
   );
 
@@ -168,7 +284,5 @@ const HasamiShogi = ({ controller: externalController }: HasamiShogiProps = {}) 
   );
 };
 
-// GameControllerを外部に公開するためのラッパーコンポーネント
 export { useHasamiShogi };
-
 export default HasamiShogi;

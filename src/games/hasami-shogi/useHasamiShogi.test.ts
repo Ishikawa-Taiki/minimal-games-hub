@@ -20,12 +20,12 @@ describe('useHasamiShogi', () => {
       
       const board = result.current.gameState.board;
       
-      // 上段（0行目）はPLAYER2の駒
+      // 上段（0行目）はPLAYER2のコマ
       for (let c = 0; c < 9; c++) {
         expect(board[0][c]).toBe('PLAYER2');
       }
       
-      // 下段（8行目）はPLAYER1の駒
+      // 下段（8行目）はPLAYER1のコマ
       for (let c = 0; c < 9; c++) {
         expect(board[8][c]).toBe('PLAYER1');
       }
@@ -89,7 +89,7 @@ describe('useHasamiShogi', () => {
       expect(result.current.hintState.enabled).toBe(false);
     });
 
-    it('駒を選択するとヒント情報が更新される', () => {
+    it('コマを選択するとヒント情報が更新される', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
       // ヒントをオンにする
@@ -97,7 +97,7 @@ describe('useHasamiShogi', () => {
         result.current.setHints(true);
       });
       
-      // PLAYER1の駒を選択（8行目の任意の駒）
+      // PLAYER1のコマを選択（8行目の任意のコマ）
       act(() => {
         result.current.makeMove(8, 0);
       });
@@ -138,7 +138,7 @@ describe('useHasamiShogi', () => {
     it('有効な移動が実行される', () => {
       const { result } = renderHook(() => useHasamiShogi());
       
-      // PLAYER1の駒を選択
+      // PLAYER1のコマを選択
       act(() => {
         result.current.makeMove(8, 0);
       });
@@ -196,7 +196,7 @@ describe('useHasamiShogi', () => {
       
       // 移動後の状態変化をテスト
       act(() => {
-        result.current.makeMove(8, 0); // 駒を選択
+        result.current.makeMove(8, 0); // コマを選択
       });
       
       act(() => {

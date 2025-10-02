@@ -16,7 +16,7 @@
 - **ファイル**: `games/animal-chess/useAnimalChess.ts`
 - **インターフェース準拠**: `BaseGameController` + `HintableGameController`
 - **主要機能**:
-  - 駒の選択・移動・捕獲の状態管理
+  - コマの選択・移動・捕獲の状態管理
   - ヒント機能の統合
   - ゲーム状態の表示ロジック
   - ログ機能の統合
@@ -36,7 +36,7 @@
 - **テストケース数**: 17
 - **カバレッジ**:
   - 初期状態の検証
-  - 駒の選択・移動・捕獲
+  - コマの選択・移動・捕獲
   - ヒント機能のオン/オフ
   - ゲームリセット機能
   - GameControllerインターフェース準拠の確認
@@ -74,7 +74,7 @@ export interface BaseGameController<TState, TAction> {
 ```typescript
 const getScoreInfo = useCallback((): ScoreInfo | null => {
   return {
-    title: '捕獲駒数',
+    title: '捕獲コマ数',
     items: [
       { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
       { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }

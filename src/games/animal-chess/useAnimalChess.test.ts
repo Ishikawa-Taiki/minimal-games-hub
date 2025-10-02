@@ -42,7 +42,7 @@ describe('useAnimalChess', () => {
       expect(board[2][1]?.owner).toBe(OKASHI_TEAM);
     });
 
-    it('初期の捕獲駒が空である', () => {
+    it('初期の捕獲コマが空である', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       const capturedPieces = result.current.getCapturedPieces();
       
@@ -51,8 +51,8 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('駒の選択', () => {
-    it('自分の駒を選択できる', () => {
+  describe('コマの選択', () => {
+    it('自分のコマを選択できる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(3, 1);
@@ -60,7 +60,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getSelectedCell()).toEqual({ row: 3, col: 1 });
     });
 
-    it('相手の駒は選択できない', () => {
+    it('相手のコマは選択できない', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(0, 1);
@@ -68,7 +68,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getSelectedCell()).toBeNull();
     });
 
-    it('同じ駒を再度クリックすると選択解除される', () => {
+    it('同じコマを再度クリックすると選択解除される', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(3, 1);
@@ -81,7 +81,7 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('駒の移動', () => {
+  describe('コマの移動', () => {
     it('有効な移動ができる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
@@ -112,8 +112,8 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('駒の捕獲', () => {
-    it('相手の駒を捕獲できる', () => {
+  describe('コマの捕獲', () => {
+    it('相手のコマを捕獲できる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
       act(() => {
@@ -131,8 +131,8 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('捕獲駒の使用', () => {
-    it('捕獲駒を選択できる', () => {
+  describe('捕獲コマの使用', () => {
+    it('捕獲コマを選択できる', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       // Manually set up a state with a captured piece
       act(() => {
