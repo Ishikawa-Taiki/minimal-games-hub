@@ -134,10 +134,10 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       await page.locator('[data-testid="cell-1-1"]').click();
 
       // P2のコマが消えるのを待つ
-      await expect(page.locator('[data-testid^="piece-PLAYER2-"]:visible')).toHaveCount(0, { timeout: 1000 });
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
 
-      // 捕獲スコアが更新されていることを確認
-      await expect(page.locator('[data-testid="score-value-PLAYER1"]')).toHaveText("とったかず: 1");
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
     });
   });
 

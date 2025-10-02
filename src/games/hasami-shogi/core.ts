@@ -344,7 +344,7 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
 
       const winner = checkWinCondition(newBoard, newCapturedCount, currentState.winCondition);
 
-      return {
+      const nextState: GameState = {
         ...currentState,
         board: newBoard,
         capturedPieces: newCapturedCount,
@@ -357,6 +357,7 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
         lastMove: { from: selectedPiece, to: { r, c } },
         justCapturedPieces: captured,
       };
+      return nextState;
     }
   }
 

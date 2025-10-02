@@ -9,10 +9,12 @@ import { useDialog } from '@/app/components/ui/DialogProvider';
 
 const CELL_SIZE = 40;
 const GAP = 2;
+const BOARD_PADDING = 10; // board style's padding
+const ANIMATION_DURATION = 300;
 
 const getPosition = (r: number, c: number) => ({
-  top: r * (CELL_SIZE + GAP) + GAP,
-  left: c * (CELL_SIZE + GAP) + GAP,
+  top: BOARD_PADDING + r * (CELL_SIZE + GAP),
+  left: BOARD_PADDING + c * (CELL_SIZE + GAP),
 });
 
 const PieceView: React.FC<{
@@ -76,12 +78,11 @@ interface PieceState {
 
 const generateInitialPieces = (board: Board): PieceState[] => {
   const pieces: PieceState[] = [];
-  let player1Id = 0;
-  let player2Id = 0;
   board.forEach((row, r) => {
     row.forEach((cell, c) => {
       if (cell) {
-        const id = cell === 'PLAYER1' ? `p1-${player1Id++}` : `p2-${player2Id++}`;
+        // Use the initial position as a unique and stable ID
+        const id = `piece-${r}-${c}`;
         pieces.push({ id, player: cell, r, c, isCaptured: false });
       }
     });
@@ -113,11 +114,15 @@ interface TestWindow extends Window {
     getPotentialCaptures,
     hintState,
     resetGame,
+    onAnimationEnd,
   } = controller;
 
   const [pieces, setPieces] = useState<PieceState[]>(() =>
     generateInitialPieces(gameState.board)
   );
+  // アニメーション用useEffectで最新のpiecesにアクセスするためのref
+  const piecesRef = React.useRef(pieces);
+  piecesRef.current = pieces;
 
   const { alert } = useDialog();
 
@@ -144,59 +149,67 @@ interface TestWindow extends Window {
   }, [gameState.winner, gameState.capturedPieces, alert, resetGame]);
 
   useEffect(() => {
-    // lastMoveがない場合は、盤面のリセット（初期化、テスト用の盤面設定）と判断し、
-    // pieceの状態を gameState.board と同期させる。
-    if (!gameState.lastMove) {
-      setPieces(generateInitialPieces(gameState.board));
+    const { lastMove, justCapturedPieces, board } = gameState;
+
+    // lastMoveやjustCapturedPiecesがない場合、ボードリセットやアニメーション完了後の状態同期と判断
+    if (!lastMove && (!justCapturedPieces || justCapturedPieces.length === 0)) {
+      const boardPiecesCount = board.flat().filter(Boolean).length;
+      // UIのコマ数とゲームロジックのコマ数が異なる場合、UIを同期させる
+      if (boardPiecesCount !== piecesRef.current.length) {
+        setPieces(generateInitialPieces(board));
+        return; // 同期した場合は、以降のアニメーションロジックは不要
+      }
     }
-  }, [gameState.board, gameState.lastMove]);
 
-  useEffect(() => {
-    const { lastMove, justCapturedPieces } = gameState;
-
-    // lastMoveがある場合（＝コマが移動した場合）のみアニメーションのための状態更新を行う
+    // アニメーションが必要な場合にのみ実行
     if ((justCapturedPieces && justCapturedPieces.length > 0) || lastMove) {
+      const capturedIds = new Set<string>();
+      if (justCapturedPieces && justCapturedPieces.length > 0) {
+        const capturedPositions = justCapturedPieces.map(p => `${p.r},${p.c}`);
+        piecesRef.current.forEach(p => {
+          if (!p.isCaptured && capturedPositions.includes(`${p.r},${p.c}`)) {
+            capturedIds.add(p.id);
+          }
+        });
+      }
+
+      // アニメーションを開始するためにstateを更新
       setPieces(prevPieces => {
         let tempPieces = [...prevPieces];
         let changed = false;
 
-        if (justCapturedPieces && justCapturedPieces.length > 0) {
-          const capturedPositions = justCapturedPieces.map(p => `${p.r},${p.c}`);
-          const capturedIds = new Set<string>();
-          tempPieces.forEach(p => {
-            if (!p.isCaptured && capturedPositions.includes(`${p.r},${p.c}`)) {
-              capturedIds.add(p.id);
-            }
-          });
-          if (capturedIds.size > 0) {
-            changed = true;
-            tempPieces = tempPieces.map(p =>
-              capturedIds.has(p.id) ? { ...p, isCaptured: true } : p
-            );
-          }
+        if (capturedIds.size > 0) {
+          changed = true;
+          tempPieces = tempPieces.map(p =>
+            capturedIds.has(p.id) ? { ...p, isCaptured: true } : p
+          );
         }
 
         if (lastMove) {
-          const { from, to } = lastMove;
           const movingPieceIndex = tempPieces.findIndex(
-            p => p.r === from.r && p.c === from.c && !p.isCaptured
+            p => p.r === lastMove.from.r && p.c === lastMove.from.c && !p.isCaptured
           );
 
           if (movingPieceIndex !== -1) {
-            const newPiece = { ...tempPieces[movingPieceIndex], r: to.r, c: to.c };
-            tempPieces = [
-              ...tempPieces.slice(0, movingPieceIndex),
-              newPiece,
-              ...tempPieces.slice(movingPieceIndex + 1),
-            ];
+            if (!changed) tempPieces = [...tempPieces];
+            const newPiece = { ...tempPieces[movingPieceIndex], r: lastMove.to.r, c: lastMove.to.c };
+            tempPieces.splice(movingPieceIndex, 1, newPiece);
             changed = true;
           }
         }
-
         return changed ? tempPieces : prevPieces;
       });
+
+      // アニメーション後にクリーンアップ処理を予約
+      setTimeout(() => {
+        if (capturedIds.size > 0) {
+          // isCapturedフラグではなく、IDセットを使ってフィルタリングする方が安全
+          setPieces(currentPieces => currentPieces.filter(p => !capturedIds.has(p.id)));
+        }
+        onAnimationEnd();
+      }, ANIMATION_DURATION);
     }
-  }, [gameState]);
+  }, [gameState, onAnimationEnd]);
 
 
   const onCellClick = (r: number, c: number) => {
