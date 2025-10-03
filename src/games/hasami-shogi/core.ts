@@ -138,26 +138,9 @@ function getCapturesAfterMove(
     }
   }
 
-  // Corner captures
-  const corners = [
-    { r: 0, c: 0, adjs: [[0, 1], [1, 0]] },
-    { r: 0, c: 8, adjs: [[0, 7], [1, 8]] },
-    { r: 8, c: 0, adjs: [[7, 0], [8, 1]] },
-    { r: 8, c: 8, adjs: [[7, 8], [8, 7]] },
-  ];
-  for (const corner of corners) {
-    if (board[corner.r][corner.c] === opponent) {
-      const [adj1, adj2] = corner.adjs;
-      if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
-        allCaptures.push([corner.r, corner.c]);
-      }
-    }
-  }
-
   return Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getGroupCaptures(board: Board, player: Player): [number, number][] {
     const opponent = getOpponent(player);
     const capturedGroups: [number, number][] = [];
@@ -203,6 +186,26 @@ function getGroupCaptures(board: Board, player: Player): [number, number][] {
     return capturedGroups;
 }
 
+function getCornerCaptures(board: Board, player: Player): [number, number][] {
+  const opponent = getOpponent(player);
+  const captures: [number, number][] = [];
+  const corners = [
+    { r: 0, c: 0, adjs: [[0, 1], [1, 0]] },
+    { r: 0, c: 8, adjs: [[0, 7], [1, 8]] },
+    { r: 8, c: 0, adjs: [[7, 0], [8, 1]] },
+    { r: 8, c: 8, adjs: [[7, 8], [8, 7]] },
+  ];
+  for (const corner of corners) {
+    if (board[corner.r][corner.c] === opponent) {
+      const [adj1, adj2] = corner.adjs;
+      if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
+        captures.push([corner.r, corner.c]);
+      }
+    }
+  }
+  return captures;
+}
+
 function simulateMove(
   board: Board,
   player: Player,
@@ -211,24 +214,28 @@ function simulateMove(
   toR: number,
   toC: number,
 ): { newBoard: Board; captured: [number, number][] } {
-  const tempBoard = board.map(row => [...row]);
-  tempBoard[toR][toC] = player;
-  tempBoard[fromR][fromC] = null;
+  // 1. Create the board state after the move.
+  const boardAfterMove = board.map(row => [...row]);
+  boardAfterMove[toR][toC] = player;
+  boardAfterMove[fromR][fromC] = null;
 
-  const moveCaptures = getCapturesAfterMove(tempBoard, player, toR, toC);
-  moveCaptures.forEach(([r, c]) => {
-    tempBoard[r][c] = null;
+  // 2. Calculate all captures based on this new state.
+  const moveCaptures = getCapturesAfterMove(boardAfterMove, player, toR, toC);
+  const groupCaptures = getGroupCaptures(boardAfterMove, player);
+  const cornerCaptures = getCornerCaptures(boardAfterMove, player);
+
+  const allCaptures = [...moveCaptures, ...groupCaptures, ...cornerCaptures];
+  const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s =>
+    s.split(',').map(Number)
+  ) as [number, number][];
+
+  // 3. Create the final board by removing all captured pieces.
+  const finalBoard = boardAfterMove.map(row => [...row]);
+  uniqueCaptures.forEach(([r, c]) => {
+    finalBoard[r][c] = null;
   });
 
-  // const groupCaptures = getGroupCaptures(tempBoard, player);
-  // groupCaptures.forEach(([r, c]) => {
-  //     tempBoard[r][c] = null;
-  // });
-
-  const allCaptures = [...moveCaptures]; //, ...groupCaptures];
-  const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
-
-  return { newBoard: tempBoard, captured: uniqueCaptures };
+  return { newBoard: finalBoard, captured: uniqueCaptures };
 }
 
 function isMoveUnsafe(
@@ -344,7 +351,7 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
 
       const winner = checkWinCondition(newBoard, newCapturedCount, currentState.winCondition);
 
-      return {
+      const nextState: GameState = {
         ...currentState,
         board: newBoard,
         capturedPieces: newCapturedCount,
@@ -357,6 +364,7 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
         lastMove: { from: selectedPiece, to: { r, c } },
         justCapturedPieces: captured,
       };
+      return nextState;
     }
   }
 
