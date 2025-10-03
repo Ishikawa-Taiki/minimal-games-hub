@@ -9,12 +9,9 @@ import {
   Player,
   OKASHI_TEAM,
   OHANA_TEAM,
-  BOARD_ROWS,
-  BOARD_COLS,
   getValidMoves,
   getValidDrops,
   isSquareThreatened,
-  getValidMovesForPiece,
 } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
@@ -250,7 +247,6 @@ export function useAnimalChess(): AnimalChessController {
     const validMoveColor = '#f9fafb'; // Same as selectableCell
     const dangerColor = 'rgba(239, 68, 68, 0.7)'; // Red for danger
     const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
-    const canBeCapturedColor = 'rgba(59, 130, 246, 0.7)'; // Blue for "can be captured"
 
     // 持ちコマ選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
@@ -288,30 +284,6 @@ export function useAnimalChess(): AnimalChessController {
           }
         }
         highlightedCells.push({ ...move, color });
-      });
-    }
-    // コマ未選択時のヒント (取られる可能性があるコマ)
-    else if (gameState.hintsEnabled) {
-      const opponent = gameState.currentPlayer === OKASHI_TEAM ? OHANA_TEAM : OKASHI_TEAM;
-      const threatenedCells = new Set<string>();
-
-      for (let r = 0; r < BOARD_ROWS; r++) {
-        for (let c = 0; c < BOARD_COLS; c++) {
-          const piece = gameState.board[r][c];
-          if (piece && piece.owner === opponent) {
-            const moves = getValidMovesForPiece(coreState.board, opponent, r, c);
-            moves.forEach(move => {
-              const targetPiece = gameState.board[move.row][move.col];
-              if (targetPiece && targetPiece.owner === gameState.currentPlayer) {
-                threatenedCells.add(`${move.row},${move.col}`);
-              }
-            });
-          }
-        }
-      }
-      threatenedCells.forEach(cell => {
-        const [row, col] = cell.split(',').map(Number);
-        highlightedCells.push({ row, col, color: canBeCapturedColor });
       });
     }
 
