@@ -164,14 +164,18 @@ function getGroupCaptures(board: Board, player: Player): [number, number][] {
                         const nr = curR + dr;
                         const nc = curC + dc;
 
-                        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                            if (board[nr][nc] === null) {
-                                hasLiberty = true;
-                                break;
-                            } else if (board[nr][nc] === opponent && !visited[nr][nc]) {
-                                visited[nr][nc] = true;
-                                queue.push([nr, nc]);
-                            }
+                        if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) {
+                            continue;
+                        }
+
+                        if (board[nr][nc] === null) {
+                            hasLiberty = true;
+                            break;
+                        }
+
+                        if (board[nr][nc] === opponent && !visited[nr][nc]) {
+                            visited[nr][nc] = true;
+                            queue.push([nr, nc]);
                         }
                     }
                     if (hasLiberty) break;

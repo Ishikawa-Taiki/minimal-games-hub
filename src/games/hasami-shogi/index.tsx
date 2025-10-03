@@ -165,7 +165,7 @@ interface TestWindow extends Window {
     if ((justCapturedPieces && justCapturedPieces.length > 0) || lastMove) {
       const capturedIds = new Set<string>();
       if (justCapturedPieces && justCapturedPieces.length > 0) {
-        const capturedPositions = justCapturedPieces.map(p => `${p.r},${p.c}`);
+        const capturedPositions = justCapturedPieces.map(p => `${p[0]},${p[1]}`);
         piecesRef.current.forEach(p => {
           if (!p.isCaptured && capturedPositions.includes(`${p.r},${p.c}`)) {
             capturedIds.add(p.id);
@@ -213,7 +213,7 @@ interface TestWindow extends Window {
 
 
   const onCellClick = (r: number, c: number) => {
-    if (gameState.gameStatus === 'GAME_OVER') return;
+    if (gameState.gameStatus === 'GAME_OVER' || gameState.isAnimating) return;
     makeMove(r, c);
   };
 

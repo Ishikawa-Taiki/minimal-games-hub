@@ -16,6 +16,7 @@ interface HasamiShogiGameState extends BaseGameState {
   winCondition: GameState['winCondition'];
   lastMove: GameState['lastMove'];
   justCapturedPieces: GameState['justCapturedPieces'];
+  isAnimating: boolean;
   // ヒント関連
   hintsEnabled: boolean;
 }
@@ -35,6 +36,7 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
     // BaseGameState required fields
     status: 'waiting' as GameStatus,
     winner: null,
+    isAnimating: false,
     // ヒント関連
     hintsEnabled: false,
   };
@@ -43,10 +45,13 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
 function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiAction): HasamiShogiGameState {
   switch (action.type) {
     case 'MAKE_MOVE': {
+      if (state.isAnimating) return state;
       const newCoreState = handleCellClickCore(state, action.row, action.col);
+      const isMoveMade = !!newCoreState.lastMove;
       return {
         ...state,
         ...newCoreState,
+        isAnimating: isMoveMade,
         status: newCoreState.gameStatus === 'GAME_OVER' ? 'ended' : 'playing',
         winner: newCoreState.winner,
       };
@@ -60,6 +65,7 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
         ...state,
         lastMove: null,
         justCapturedPieces: [],
+        isAnimating: false,
       };
     
     case 'SET_HINTS_ENABLED':
