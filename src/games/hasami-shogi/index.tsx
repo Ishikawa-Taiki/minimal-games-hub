@@ -213,7 +213,7 @@ interface TestWindow extends Window {
 
 
   const onCellClick = (r: number, c: number) => {
-    if (gameState.gameStatus === 'GAME_OVER') return;
+    if (gameState.gameStatus === 'GAME_OVER' || gameState.isAnimating) return;
     makeMove(r, c);
   };
 
