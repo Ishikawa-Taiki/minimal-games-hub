@@ -214,29 +214,28 @@ function simulateMove(
   toR: number,
   toC: number,
 ): { newBoard: Board; captured: [number, number][] } {
-  const tempBoard = board.map(row => [...row]);
-  tempBoard[toR][toC] = player;
-  tempBoard[fromR][fromC] = null;
+  // 1. Create the board state after the move.
+  const boardAfterMove = board.map(row => [...row]);
+  boardAfterMove[toR][toC] = player;
+  boardAfterMove[fromR][fromC] = null;
 
-  const moveCaptures = getCapturesAfterMove(tempBoard, player, toR, toC);
-  moveCaptures.forEach(([r, c]) => {
-    tempBoard[r][c] = null;
-  });
-
-  const groupCaptures = getGroupCaptures(tempBoard, player);
-  groupCaptures.forEach(([r, c]) => {
-    tempBoard[r][c] = null;
-  });
-
-  const cornerCaptures = getCornerCaptures(tempBoard, player);
-  cornerCaptures.forEach(([r, c]) => {
-    tempBoard[r][c] = null;
-  });
+  // 2. Calculate all captures based on this new state.
+  const moveCaptures = getCapturesAfterMove(boardAfterMove, player, toR, toC);
+  const groupCaptures = getGroupCaptures(boardAfterMove, player);
+  const cornerCaptures = getCornerCaptures(boardAfterMove, player);
 
   const allCaptures = [...moveCaptures, ...groupCaptures, ...cornerCaptures];
-  const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
+  const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s =>
+    s.split(',').map(Number)
+  ) as [number, number][];
 
-  return { newBoard: tempBoard, captured: uniqueCaptures };
+  // 3. Create the final board by removing all captured pieces.
+  const finalBoard = boardAfterMove.map(row => [...row]);
+  uniqueCaptures.forEach(([r, c]) => {
+    finalBoard[r][c] = null;
+  });
+
+  return { newBoard: finalBoard, captured: uniqueCaptures };
 }
 
 function isMoveUnsafe(

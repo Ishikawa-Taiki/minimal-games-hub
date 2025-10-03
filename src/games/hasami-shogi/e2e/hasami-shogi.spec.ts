@@ -190,6 +190,31 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       // P1がP2のコマを1つ捕獲したことをスコアで確認
       await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
     });
+
+    test('角の駒が敵駒2つで囲まれていない場合は捕獲されない', async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P2が(0,0)にいる状態で、P1が(8,0)から(1,0)に移動する。
+      // この時点では(0,1)は空なので、P2は捕獲されない。
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[0][0] = 'PLAYER2'; // 角の駒
+        board[8][0] = 'PLAYER1'; // 移動する駒
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(8,0)から(1,0)へ移動
+      await page.locator('[data-testid="cell-8-0"]').click();
+      await page.locator('[data-testid="cell-1-0"]').click();
+      await page.waitForTimeout(1000); // アニメーション待機
+
+      // P2の駒が捕獲されていないことを確認
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(1);
+      // スコアが変わっていないことを確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 0");
+    });
   });
 
   // TODO: ダイアログ表示がテスト環境で不安定なため、一時的にスキップ。要調査。
