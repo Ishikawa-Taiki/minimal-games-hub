@@ -257,7 +257,11 @@ interface TestWindow extends Window {
           </span>
         </div>
       </div>
-      <div style={styles.board} data-testid="board-container">
+      <div
+        style={styles.board}
+        data-testid="board-container"
+        data-is-animating={String(gameState.isAnimating)}
+      >
         {gameState.board.map((row, r) =>
           row.map((_, c) => (
             <div

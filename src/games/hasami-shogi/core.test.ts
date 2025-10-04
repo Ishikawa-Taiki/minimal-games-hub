@@ -37,7 +37,7 @@ describe('はさみ将棋コアロジック', () => {
     expect(gameState.board[8].filter(p => p === 'PLAYER1').length).toBe(9); // P1 at bottom
     expect(gameState.board[0].filter(p => p === 'PLAYER2').length).toBe(9); // P2 at top
     expect(gameState.currentPlayer).toBe('PLAYER1');
-    expect(gameState.gameStatus).toBe('PLAYING');
+    expect(gameState.gameStatus).toBe('READY');
   });
 
   it('コマの選択で有効な手が計算されること', () => {
@@ -385,5 +385,31 @@ describe('はさみ将棋コアロジック', () => {
     expect(nextState.board[1][2]).toBe('PLAYER1');
     expect(nextState.capturedPieces.PLAYER1).toBe(0);
     expect(nextState.currentPlayer).toBe('PLAYER1');
+  });
+
+  describe('不具合報告の再現テスト', () => {
+    it('P1が左端のコマを前進させ、次にP2が右端のコマを前進させた際に、無関係なP1のコマが不正にキャプチャされないこと', () => {
+      // 手順1: プレイヤー1が一番左のコマ(8,0)を一番上(1,0)に動かす
+      let state = handleCellClick(gameState, 8, 0);
+      state = handleCellClick(state, 1, 0);
+
+      // 検証1: P1の移動が正しく反映され、ターンがP2に移っていることを確認
+      expect(state.board[8][0]).toBeNull();
+      expect(state.board[1][0]).toBe('PLAYER1');
+      expect(state.currentPlayer).toBe('PLAYER2');
+
+      // 手順2: プレイヤー2が一番右のコマ(0,8)を一番下(7,8)に動かす
+      state = handleCellClick(state, 0, 8);
+      state = handleCellClick(state, 7, 8);
+
+      // 検証2: P1の右端のコマ(8,8)が不正にキャプチャされていないことを確認
+      expect(state.board[8][8], 'P1の(8,8)のコマがキャプチャされてはならない').toBe('PLAYER1');
+
+      // 検証3: P2によってP1のコマがキャプチャされていないことを確認
+      expect(state.capturedPieces.PLAYER1, 'P2のキャプチャ数は0であるべき').toBe(0);
+
+      // 検証4: ターンがP1に戻っていることを確認
+      expect(state.currentPlayer).toBe('PLAYER1');
+    });
   });
 });

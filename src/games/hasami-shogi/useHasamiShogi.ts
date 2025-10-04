@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo } from 'react';
 import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
-import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Move, Board } from './core';
+import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Board } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
 // はさみ将棋固有の状態をBaseGameStateに適合させる
@@ -112,7 +112,7 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     onAnimationEnd: () => void;
     setWinCondition: (winCondition: WinCondition) => void;
     // 状態アクセサー
-    getValidMoves: () => Map<string, Move>;
+    getValidMoves: () => GameState['validMoves'];
     getCurrentPlayer: () => Player;
     getCapturedPieces: () => { PLAYER1: number; PLAYER2: number };
     getWinCondition: () => WinCondition;
