@@ -67,6 +67,9 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       await page.locator('[data-testid="cell-8-0"]').click();
       await page.locator('[data-testid="cell-7-0"]').click();
 
+      // アニメーションの完了を待つ
+      await expect(page.locator('[data-testid="board-container"]')).toHaveAttribute('data-is-animating', 'false');
+
       // P2のターンになっていることを確認
       await expect(page.locator('[data-testid="game-state-display"]')).toContainText("「と」のばん");
 

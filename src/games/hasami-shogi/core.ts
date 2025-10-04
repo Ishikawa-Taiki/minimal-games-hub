@@ -1,25 +1,16 @@
 export type Player = 'PLAYER1' | 'PLAYER2';
-export type CellState = Player | null;
-export type Board = CellState[][];
+export type Board = (Player | null)[][];
 export type WinCondition = 'standard' | 'five_captures' | 'total_capture';
-
-export interface Move {
-  captures: [number, number][];
-  isUnsafe: boolean;
-}
 
 export interface GameState {
   board: Board;
   currentPlayer: Player;
-  gameStatus: 'PLAYING' | 'GAME_OVER';
+  gameStatus: 'READY' | 'PLAYING' | 'GAME_OVER';
   winner: Player | null;
   selectedPiece: { r: number; c: number } | null;
-  validMoves: Map<string, Move>;
+  validMoves: Map<string, { captured: [number, number][]; isUnsafe: boolean }>;
   potentialCaptures: [number, number][];
-  capturedPieces: {
-    PLAYER1: number;
-    PLAYER2: number;
-  };
+  capturedPieces: { [key in Player]: number };
   winCondition: WinCondition;
   lastMove: { from: { r: number; c: number }; to: { r: number; c: number } } | null;
   justCapturedPieces: [number, number][];
@@ -40,7 +31,7 @@ export function createInitialState(): GameState {
   return {
     board,
     currentPlayer: 'PLAYER1',
-    gameStatus: 'PLAYING',
+    gameStatus: 'READY',
     winner: null,
     selectedPiece: null,
     validMoves: new Map(),
@@ -53,9 +44,12 @@ export function createInitialState(): GameState {
 }
 
 export function setWinCondition(currentState: GameState, winCondition: WinCondition): GameState {
-  const initialBoard = createInitialState().board;
   const isBoardInitial = currentState.board.every((row, r) =>
-    row.every((cell, c) => cell === initialBoard[r][c])
+    row.every(cell => {
+      if (r === 0) return cell === 'PLAYER2';
+      if (r === BOARD_SIZE - 1) return cell === 'PLAYER1';
+      return cell === null;
+    })
   );
 
   if (currentState.capturedPieces.PLAYER1 > 0 || currentState.capturedPieces.PLAYER2 > 0 || !isBoardInitial) {
@@ -68,17 +62,23 @@ function getOpponent(player: Player): Player {
   return player === 'PLAYER1' ? 'PLAYER2' : 'PLAYER1';
 }
 
-function isPathClear(board: Board, fromR: number, fromC: number, toR: number, toC: number): boolean {
+export function isPathClear(board: Board, fromR: number, fromC: number, toR: number, toC: number): boolean {
+  if (fromR !== toR && fromC !== toC) return false;
   if (board[toR][toC] !== null) return false;
+
   if (fromR === toR) {
-    const step = toC > fromC ? 1 : -1;
-    for (let c = fromC + step; c !== toC; c += step) {
+    const start = Math.min(fromC, toC);
+    const end = Math.max(fromC, toC);
+    for (let c = start + 1; c < end; c++) {
       if (board[fromR][c] !== null) return false;
     }
     return true;
-  } else if (fromC === toC) {
-    const step = toR > fromR ? 1 : -1;
-    for (let r = fromR + step; r !== toR; r += step) {
+  }
+
+  if (fromC === toC) {
+    const start = Math.min(fromR, toR);
+    const end = Math.max(fromR, toR);
+    for (let r = start + 1; r < end; r++) {
       if (board[r][fromC] !== null) return false;
     }
     return true;
@@ -86,111 +86,87 @@ function isPathClear(board: Board, fromR: number, fromC: number, toR: number, to
   return false;
 }
 
-function getCapturesAfterMove(
-  board: Board,
-  player: Player,
-  toR: number,
-  toC: number,
-): [number, number][] {
+function getSandwichCapturesByMove(board: Board, player: Player, toR: number, toC: number): [number, number][] {
   const opponent = getOpponent(player);
-  const allCaptures: [number, number][] = [];
-  const axes = [
-    { r: 1, c: 0 }, // Vertical
-    { r: 0, c: 1 }, // Horizontal
+  const captured: [number, number][] = [];
+  const directions = [
+    { r: 0, c: 1 }, { r: 0, c: -1 }, { r: 1, c: 0 }, { r: -1, c: 0 }
   ];
 
-  for (const axis of axes) {
-    const line: (CellState | null)[] = [];
-    let start;
+  for (const dir of directions) {
+    const potentialCaptures: [number, number][] = [];
+    let r = toR + dir.r;
+    let c = toC + dir.c;
 
-    if (axis.r === 1) { // Vertical check
-      for (let i = 0; i < BOARD_SIZE; i++) line.push(board[i][toC]);
-      start = toR;
-    } else { // Horizontal check
-      for (let i = 0; i < BOARD_SIZE; i++) line.push(board[toR][i]);
-      start = toC;
-    }
-
-    // Scan forward
-    const forwardCaptures: [number, number][] = [];
-    for (let i = start + 1; i < BOARD_SIZE; i++) {
-      if (line[i] === opponent) {
-        forwardCaptures.push(axis.r === 1 ? [i, toC] : [toR, i]);
-      } else if (line[i] === player) {
-        allCaptures.push(...forwardCaptures);
-        break;
-      } else {
+    while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+      const currentPiece = board[r][c];
+      if (currentPiece === null) break;
+      if (currentPiece === player) {
+        captured.push(...potentialCaptures);
         break;
       }
-    }
-
-    // Scan backward
-    const backwardCaptures: [number, number][] = [];
-    for (let i = start - 1; i >= 0; i--) {
-      if (line[i] === opponent) {
-        backwardCaptures.push(axis.r === 1 ? [i, toC] : [toR, i]);
-      } else if (line[i] === player) {
-        allCaptures.push(...backwardCaptures);
-        break;
-      } else {
-        break;
+      if (currentPiece === opponent) {
+        potentialCaptures.push([r, c]);
       }
+      r += dir.r;
+      c += dir.c;
     }
   }
-
-  return Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s => s.split(',').map(Number) as [number, number]);
+  return captured;
 }
 
-function getGroupCaptures(board: Board, player: Player): [number, number][] {
+function getSurroundCapturesByMove(board: Board, player: Player, toR: number, toC: number): [number, number][] {
     const opponent = getOpponent(player);
     const capturedGroups: [number, number][] = [];
-    const visited: boolean[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(false));
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    const checkedGroups: Set<string> = new Set();
 
-    for (let r = 0; r < BOARD_SIZE; r++) {
-        for (let c = 0; c < BOARD_SIZE; c++) {
-            if (board[r][c] === opponent && !visited[r][c]) {
-                const group: [number, number][] = [];
-                const queue: [number, number][] = [[r, c]];
-                visited[r][c] = true;
-                let hasLiberty = false;
+    for (const [dr, dc] of directions) {
+        const nr = toR + dr;
+        const nc = toC + dc;
+        const startNode = `${nr},${nc}`;
 
-                let head = 0;
-                while(head < queue.length) {
-                    const [curR, curC] = queue[head++];
-                    group.push([curR, curC]);
+        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && board[nr][nc] === opponent && !checkedGroups.has(startNode)) {
+            const group: [number, number][] = [];
+            const queue: [number, number][] = [[nr, nc]];
+            const visitedInGroup: boolean[][] = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(false));
+            visitedInGroup[nr][nc] = true;
+            let hasLiberty = false;
+            let head = 0;
 
-                    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-                    for (const [dr, dc] of directions) {
-                        const nr = curR + dr;
-                        const nc = curC + dc;
+            while (head < queue.length) {
+                const [curR, curC] = queue[head++];
+                group.push([curR, curC]);
+                checkedGroups.add(`${curR},${curC}`);
 
-                        if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) {
-                            continue;
-                        }
+                for (const [gr, gc] of directions) {
+                    const nnr = curR + gr;
+                    const nnc = curC + gc;
 
-                        if (board[nr][nc] === null) {
-                            hasLiberty = true;
-                            break;
-                        }
+                    if (nnr < 0 || nnr >= BOARD_SIZE || nnc < 0 || nnc >= BOARD_SIZE) continue;
 
-                        if (board[nr][nc] === opponent && !visited[nr][nc]) {
-                            visited[nr][nc] = true;
-                            queue.push([nr, nc]);
-                        }
+                    if (board[nnr][nnc] === null) {
+                        hasLiberty = true;
+                        break;
                     }
-                    if (hasLiberty) break;
-                }
 
-                if (!hasLiberty) {
-                    capturedGroups.push(...group);
+                    if (board[nnr][nnc] === opponent && !visitedInGroup[nnr][nnc]) {
+                        visitedInGroup[nnr][nnc] = true;
+                        queue.push([nnr, nnc]);
+                    }
                 }
+                if (hasLiberty) break;
+            }
+
+            if (!hasLiberty) {
+                capturedGroups.push(...group);
             }
         }
     }
     return capturedGroups;
 }
 
-function getCornerCaptures(board: Board, player: Player): [number, number][] {
+function getCornerCapturesByMove(board: Board, player: Player, toR: number, toC: number): [number, number][] {
   const opponent = getOpponent(player);
   const captures: [number, number][] = [];
   const corners = [
@@ -199,12 +175,16 @@ function getCornerCaptures(board: Board, player: Player): [number, number][] {
     { r: 8, c: 0, adjs: [[7, 0], [8, 1]] },
     { r: 8, c: 8, adjs: [[7, 8], [8, 7]] },
   ];
+
   for (const corner of corners) {
-    if (board[corner.r][corner.c] === opponent) {
-      const [adj1, adj2] = corner.adjs;
-      if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
-        captures.push([corner.r, corner.c]);
-      }
+    if (board[corner.r][corner.c] !== opponent) continue;
+
+    const isAdjacentToCorner = corner.adjs.some(([ar, ac]) => ar === toR && ac === toC);
+    if (!isAdjacentToCorner) continue;
+
+    const [adj1, adj2] = corner.adjs;
+    if (board[adj1[0]][adj1[1]] === player && board[adj2[0]][adj2[1]] === player) {
+      captures.push([corner.r, corner.c]);
     }
   }
   return captures;
@@ -218,22 +198,19 @@ function simulateMove(
   toR: number,
   toC: number,
 ): { newBoard: Board; captured: [number, number][] } {
-  // 1. Create the board state after the move.
   const boardAfterMove = board.map(row => [...row]);
   boardAfterMove[toR][toC] = player;
   boardAfterMove[fromR][fromC] = null;
 
-  // 2. Calculate all captures based on this new state.
-  const moveCaptures = getCapturesAfterMove(boardAfterMove, player, toR, toC);
-  const groupCaptures = getGroupCaptures(boardAfterMove, player);
-  const cornerCaptures = getCornerCaptures(boardAfterMove, player);
+  const sandwichCaptures = getSandwichCapturesByMove(boardAfterMove, player, toR, toC);
+  const surroundCaptures = getSurroundCapturesByMove(boardAfterMove, player, toR, toC);
+  const cornerCaptures = getCornerCapturesByMove(boardAfterMove, player, toR, toC);
 
-  const allCaptures = [...moveCaptures, ...groupCaptures, ...cornerCaptures];
+  const allCaptures = [...sandwichCaptures, ...surroundCaptures, ...cornerCaptures];
   const uniqueCaptures = Array.from(new Set(allCaptures.map(p => `${p[0]},${p[1]}`))).map(s =>
     s.split(',').map(Number)
   ) as [number, number][];
 
-  // 3. Create the final board by removing all captured pieces.
   const finalBoard = boardAfterMove.map(row => [...row]);
   uniqueCaptures.forEach(([r, c]) => {
     finalBoard[r][c] = null;
@@ -318,16 +295,17 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
   }
 
   if (board[r][c] === currentPlayer) {
-    const validMoves = new Map<string, Move>();
+    const validMoves = new Map<string, { captured: [number, number][]; isUnsafe: boolean }>();
     const captureSet = new Set<string>();
-
-    for (let toR = 0; toR < BOARD_SIZE; toR++) {
-      for (let toC = 0; toC < BOARD_SIZE; toC++) {
-        if (isPathClear(board, r, c, toR, toC)) {
-          const { captured } = simulateMove(board, currentPlayer, r, c, toR, toC);
-          const unsafe = isMoveUnsafe(board, currentPlayer, r, c, toR, toC);
-          validMoves.set(`${toR},${toC}`, { captures: captured, isUnsafe: unsafe });
-          captured.forEach(cap => captureSet.add(`${cap[0]},${cap[1]}`));
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        if (isPathClear(board, r, c, i, j)) {
+          const isUnsafeMove = isMoveUnsafe(board, currentPlayer, r, c, i, j);
+          const { captured } = simulateMove(board, currentPlayer, r, c, i, j);
+          validMoves.set(`${i},${j}`, { captured, isUnsafe: isUnsafeMove });
+          if (!isUnsafeMove) {
+            captured.forEach(p => captureSet.add(`${p[0]},${p[1]}`));
+          }
         }
       }
     }
