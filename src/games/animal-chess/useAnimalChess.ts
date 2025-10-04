@@ -248,7 +248,7 @@ export function useAnimalChess(): AnimalChessController {
     const dangerColor = 'rgba(239, 68, 68, 0.7)'; // Red for danger
     const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
 
-    // 持ち駒選択時のヒント
+    // 持ちコマ選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
       const pieceType = gameState.capturedPieces[gameState.currentPlayer][gameState.selectedCaptureIndex.index];
       const drops = getValidDrops(coreState, gameState.currentPlayer, pieceType);
@@ -265,7 +265,7 @@ export function useAnimalChess(): AnimalChessController {
         highlightedCells.push({ ...drop, color });
       });
     }
-    // 盤上の駒選択時のヒント
+    // 盤上のコマ選択時のヒント
     else if (gameState.selectedCell) {
       const moves = getValidMoves(coreState, gameState.selectedCell.row, gameState.selectedCell.col);
       moves.forEach(move => {

@@ -1,5 +1,12 @@
 import { test, expect } from "@playwright/test";
 
+interface TestWindow extends Window {
+  gameController: {
+    getInitialBoard: () => (string | null)[][];
+    resetGameWithBoard: (board: (string | null)[][]) => void;
+  };
+}
+
 test.describe("はさみ将棋ゲームのE2Eテスト", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/games/hasami-shogi");
@@ -14,122 +21,202 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       expect(cells.length).toBe(81);
 
       // 先手（歩）の駒が9個存在することを確認
-      const playerPieces = await page
-        .locator('[data-testid^="cell-"] >> div:has-text("歩")')
-        .all();
+      const playerPieces = await page.locator('[data-testid^="piece-PLAYER1-"]').all();
       expect(playerPieces.length).toBe(9);
 
       // 後手（と）の駒が9個存在することを確認
-      const opponentPieces = await page
-        .locator('[data-testid^="cell-"] >> div:has-text("と")')
-        .all();
+      const opponentPieces = await page.locator('[data-testid^="piece-PLAYER2-"]').all();
       expect(opponentPieces.length).toBe(9);
     });
   });
 
-  test.describe("駒の移動と選択", () => {
-    test("駒を選択すると選択状態になり、再度クリックすると選択が解除される", async ({
+  test.describe("コマの移動と選択", () => {
+    test("コマを選択すると選択状態になり、再度クリックすると選択が解除される", async ({
       page,
     }) => {
       await page.getByTestId("win-cond-standard").click();
-      const piece = page.locator('[data-testid="cell-8-0"]');
+      const cell = page.locator('[data-testid="cell-8-0"]');
 
-      // 最初は選択されていない
-      await expect(piece).toHaveAttribute("data-selected", "false");
-
-      // 1回目のクリックで選択される
-      await piece.click();
-      await expect(piece).toHaveAttribute("data-selected", "true");
-
+      // 1回目のクリックで選択状態になる
+      await cell.click();
+      await expect(cell).toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
       // 2回目のクリックで選択が解除される
-      await piece.click();
-      await expect(piece).toHaveAttribute("data-selected", "false");
+      await cell.click();
+      await expect(cell).not.toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
     });
 
-    test("駒を選択した後に別の自分の駒を選択すると、選択が切り替わる", async ({
+    test("コマを選択した後に別の自分のコマを選択すると、選択が切り替わる", async ({
       page,
     }) => {
       await page.getByTestId("win-cond-standard").click();
-      const piece1 = page.locator('[data-testid="cell-8-0"]');
-      const piece2 = page.locator('[data-testid="cell-8-1"]');
+      const cell1 = page.locator('[data-testid="cell-8-0"]');
+      const cell2 = page.locator('[data-testid="cell-8-1"]');
 
-      // piece1を選択
-      await piece1.click();
-      await expect(piece1).toHaveAttribute("data-selected", "true");
-      await expect(piece2).toHaveAttribute("data-selected", "false");
+      await cell1.click();
+      await expect(cell1).toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
+      await expect(cell2).not.toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
 
-      // piece2を選択
-      await piece2.click();
-      await expect(piece1).toHaveAttribute("data-selected", "false");
-      await expect(piece2).toHaveAttribute("data-selected", "true");
+      await cell2.click();
+      await expect(cell1).not.toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
+      await expect(cell2).toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
     });
 
-    test("駒を移動させると、ターンが相手に切り替わる", async ({ page }) => {
+    test("コマを移動させると、ターンが相手に切り替わる", async ({ page }) => {
       await page.getByTestId("win-cond-standard").click();
-      const piece = page.locator('[data-testid="cell-8-0"]');
-      const destination = page.locator('[data-testid="cell-7-0"]');
-
-      // 駒を移動
-      await piece.click();
-      await destination.click();
-
-      // ターン表示が「と」の番に切り替わるのを待つ
-      await expect(
-        page.getByTestId("game-state-display").locator("p"),
-      ).toHaveText("「と」のばん");
-
-      // ターンが切り替わったので、相手（後手）の駒を選択できる
-      const opponentPiece = page.locator('[data-testid="cell-0-0"]');
-      await opponentPiece.click();
-
-      // 相手の駒が選択されていることを確認
-      await expect(opponentPiece).toHaveAttribute("data-selected", "true");
-    });
-
-    test("他の駒を飛び越えて移動することはできない", async ({ page }) => {
-      await page.getByTestId("win-cond-standard").click();
-      // 8-0 の駒を 8-2 の前に移動させる
+      // P1が(8,0) -> (7,0)へ移動
       await page.locator('[data-testid="cell-8-0"]').click();
       await page.locator('[data-testid="cell-7-0"]').click();
-      await page.locator('[data-testid="cell-0-0"]').click();
-      await page.locator('[data-testid="cell-1-0"]').click();
 
-      // 8-1 の駒を選択
+      // アニメーションの完了を待つ
+      await expect(page.locator('[data-testid="board-container"]')).toHaveAttribute('data-is-animating', 'false');
+
+      // P2のターンになっていることを確認
+      await expect(page.locator('[data-testid="game-state-display"]')).toContainText("「と」のばん");
+
+      // P2がコマを選択できることを確認
+      const opponentCell = page.locator('[data-testid="cell-0-0"]');
+      await opponentCell.click();
+      await expect(opponentCell).toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
+    });
+
+    test("他のコマを飛び越えて移動することはできない", async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // (8,1)にP1、(7,1)にP2のコマを配置
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        board[7][1] = 'PLAYER2';
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(8,1)を選択
       await page.locator('[data-testid="cell-8-1"]').click();
 
-      // 8-1 の駒は 7-0 の駒を飛び越えられないので、移動先に 6-0 は表示されない
-      const invalidMove = page.locator('[data-testid="cell-6-0"]');
-      await expect(invalidMove).not.toHaveCSS("background-color", /#9ae6b4/); // Green
-      await expect(invalidMove).not.toHaveCSS("background-color", /#feb2b2/); // Red
+      // 移動前の駒の位置を取得
+      const initialPiecePositions = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('[data-testid^="piece-"]')).map(p => ({
+          id: p.getAttribute('data-testid'),
+          style: (p as HTMLElement).style.cssText
+        }));
+      });
+
+      // P2のコマがある(7,1)を飛び越えた(6,1)はクリックしても何も起きない
+      await page.locator('[data-testid="cell-6-1"]').click();
+
+      // 移動後の駒の位置を取得
+      const newPiecePositions = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('[data-testid^="piece-"]')).map(p => ({
+          id: p.getAttribute('data-testid'),
+          style: (p as HTMLElement).style.cssText
+        }));
+      });
+
+      // セルの選択状態によるスタイルの違いは無視し、駒の位置が変わっていないことを確認
+      // styleにはtransformも含まれるため、topとleftだけを比較するのは不十分
+      expect(newPiecePositions).toEqual(initialPiecePositions);
     });
   });
 
-  test.describe("駒の捕獲", () => {
-    test("相手の駒を挟むと、その駒を捕獲できる", async ({ page }) => {
+  test.describe("コマの捕獲", () => {
+    test("相手のコマを挟むと、そのコマを捕獲できる", async ({ page }) => {
       await page.getByTestId("win-cond-standard").click();
-      // 捕獲のセットアップ
-      // 1. 先手: (8,1) -> (1,1)
-      await page.locator('[data-testid="cell-8-1"]').click();
+      // P1: (1,3), P2: (1,2), P1: (1,0) が (1,1) に移動するシナリオ
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[1][3] = 'PLAYER1';
+        board[1][2] = 'PLAYER2';
+        board[1][0] = 'PLAYER1';
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(1,0)から(1,1)へ移動してP2を挟む
+      await page.locator('[data-testid="cell-1-0"]').click();
       await page.locator('[data-testid="cell-1-1"]').click();
-      // 2. 後手: (0,2) -> (1,2)
-      await page.locator('[data-testid="cell-0-2"]').click();
-      await page.locator('[data-testid="cell-1-2"]').click();
 
-      // 3. 先手: (8,3) -> (1,3) で (1,2) の駒を捕獲
-      await page.locator('[data-testid="cell-8-3"]').click();
-      await page.locator('[data-testid="cell-1-3"]').click();
+      // P2のコマが消えるのを待つ
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
 
-      // --- 捕獲後の状態を検証 ---
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
 
-      // 捕獲された駒が盤面から消えていることを確認
-      const capturedPiece = page.locator('[data-testid="cell-1-2"]');
-      await expect(capturedPiece).toBeEmpty();
+    test("角で相手のコマを囲むと、そのコマを捕獲できる", async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P2が(0,0)に、P1が(0,1)にいる状態で、P1が(1,0)に移動して角のP2を捕獲するシナリオ
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[0][0] = 'PLAYER2';
+        board[0][1] = 'PLAYER1';
+        board[2][0] = 'PLAYER1'; // 移動するコマ
+        controller.resetGameWithBoard(board);
+      });
 
-      // 相手の盤面の駒が8個になっていることを確認
-      const opponentPieces = await page
-        .locator('[data-testid^="cell-"] >> div:has-text("と")')
-        .all();
-      expect(opponentPieces.length).toBe(8);
+      // P1が(2,0)から(1,0)へ移動して角のP2を捕獲
+      await page.locator('[data-testid="cell-2-0"]').click();
+      await page.locator('[data-testid="cell-1-0"]').click();
+
+      // P2のコマが消えるのを待つ
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
+
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
+
+    test("辺で相手のコマを囲むと、そのコマを捕獲できる", async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P1が(1,0)と(3,0)に、P2が(2,0)にいる状態で、P1が(2,1)に移動して囲むシナリオ
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[1][0] = 'PLAYER1';
+        board[3][0] = 'PLAYER1';
+        board[2][0] = 'PLAYER2';
+        board[2][2] = 'PLAYER1'; // 移動するコマ
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(2,2)から(2,1)へ移動してP2を囲む
+      await page.locator('[data-testid="cell-2-2"]').click();
+      await page.locator('[data-testid="cell-2-1"]').click();
+
+      // P2のコマが消えるのを待つ
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(0, { timeout: 1000 });
+
+      // P1がP2のコマを1つ捕獲したことをスコアで確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 1");
+    });
+
+    test('角の駒が敵駒2つで囲まれていない場合は捕獲されない', async ({ page }) => {
+      await page.getByTestId("win-cond-standard").click();
+      // P2が(0,0)にいる状態で、P1が(8,0)から(1,0)に移動する。
+      // この時点では(0,1)は空なので、P2は捕獲されない。
+      await page.evaluate(() => {
+        const controller = (window as TestWindow).gameController;
+        const board = controller.getInitialBoard();
+        // ボードをクリア
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) board[r][c] = null;
+        board[0][0] = 'PLAYER2'; // 角の駒
+        board[8][0] = 'PLAYER1'; // 移動する駒
+        controller.resetGameWithBoard(board);
+      });
+
+      // P1が(8,0)から(1,0)へ移動
+      await page.locator('[data-testid="cell-8-0"]').click();
+      await page.locator('[data-testid="cell-1-0"]').click();
+      await page.waitForTimeout(1000); // アニメーション待機
+
+      // P2の駒が捕獲されていないことを確認
+      await expect(page.locator('[data-testid^="piece-PLAYER2-"]')).toHaveCount(1);
+      // スコアが変わっていないことを確認
+      await expect(page.locator('[data-testid="score-value-PLAYER2"]')).toHaveText("とったかず: 0");
     });
   });
 

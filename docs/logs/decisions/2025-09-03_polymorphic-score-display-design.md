@@ -66,7 +66,7 @@ getScoreInfo: () => ({
 
 // アニマルチェスの場合
 getScoreInfo: () => ({
-  title: '捕獲駒数',
+  title: '捕獲コマ数',
   items: [
     { label: 'プレイヤー1', value: `${gameState.capturedPieces.SENTE.length}個` },
     { label: 'プレイヤー2', value: `${gameState.capturedPieces.GOTE.length}個` }

@@ -33,7 +33,7 @@ const expectCurrentPlayer = async (
   await expect(locator).toHaveText(`「${player}」のばん`);
 };
 
-test("初期盤面と駒が正しく表示される", async ({ page }) => {
+test("初期盤面とコマが正しく表示される", async ({ page }) => {
   await expectPiece(page, "cell-3-1", "p1", "lion");
   await expectPiece(page, "cell-0-1", "p2", "lion");
   await expectCurrentPlayer(page, "おかしチーム");
@@ -53,7 +53,7 @@ test("リセットボタンが機能すること", async ({ page }) => {
   await expectPiece(page, "cell-2-1", "p1", "chick");
 });
 
-test("選択した駒を有効なマスに移動できること", async ({ page }) => {
+test("選択したコマを有効なマスに移動できること", async ({ page }) => {
   await page.locator('[data-testid="cell-2-1"]').click();
   await page.locator('[data-testid="cell-1-1"]').click();
   await expectPiece(page, "cell-1-1", "p1", "chick");
@@ -76,7 +76,7 @@ test("「おしえて！」機能が正しく動作すること", async ({ page 
   );
 });
 
-test("持ち駒を配置できること", async ({ page }) => {
+test("持ちコマを配置できること", async ({ page }) => {
   await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
   await page.locator('[data-testid="cell-1-1"]').click(); // P1 Chick moves & captures P2 Chick
 

@@ -74,7 +74,7 @@ describe('Tic-Tac-Toe Core Logic', () => {
     expect(newGameState.winner).toBe(null);
   });
 
-  it('既に駒が置かれているマスには移動できないことを確認', () => {
+  it('既にコマが置かれているマスには移動できないことを確認', () => {
     let state: GameState | null = handleCellClick(gameState, 0, 0);
     expect(state).not.toBeNull();
     if (!state) return;

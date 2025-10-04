@@ -82,6 +82,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   board: {
     display: 'grid',
+    position: 'relative',
     gridTemplateColumns: 'repeat(9, 40px)',
     gridTemplateRows: 'repeat(9, 40px)',
     gap: '2px',
@@ -107,6 +108,23 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pieceContainer: {
+    position: 'absolute',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    transition: 'top 0.3s ease-in-out, left 0.3s ease-in-out, opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
+    pointerEvents: 'none',
+  },
+  captured: {
+    opacity: 0,
+    transform: 'scale(0.5)',
+  },
+  moving: {
+    transition: 'top 0.3s ease-in-out, left 0.3s ease-in-out',
   },
   buttonGroup: {
     display: 'flex',

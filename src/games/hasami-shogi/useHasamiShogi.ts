@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo } from 'react';
 import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
-import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Move } from './core';
+import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Board } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 
 // はさみ将棋固有の状態をBaseGameStateに適合させる
@@ -14,15 +14,20 @@ interface HasamiShogiGameState extends BaseGameState {
   potentialCaptures: GameState['potentialCaptures'];
   capturedPieces: GameState['capturedPieces'];
   winCondition: GameState['winCondition'];
+  lastMove: GameState['lastMove'];
+  justCapturedPieces: GameState['justCapturedPieces'];
+  isAnimating: boolean;
   // ヒント関連
   hintsEnabled: boolean;
 }
 
-type HasamiShogiAction = 
+type HasamiShogiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
+  | { type: 'ANIMATION_END' }
   | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
-  | { type: 'SET_WIN_CONDITION'; winCondition: WinCondition };
+  | { type: 'SET_WIN_CONDITION'; winCondition: WinCondition }
+  | { type: 'RESET_WITH_BOARD'; board: Board };
 
 function createInitialHasamiShogiState(): HasamiShogiGameState {
   const coreState = createInitialState();
@@ -31,6 +36,7 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
     // BaseGameState required fields
     status: 'waiting' as GameStatus,
     winner: null,
+    isAnimating: false,
     // ヒント関連
     hintsEnabled: false,
   };
@@ -39,32 +45,28 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
 function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiAction): HasamiShogiGameState {
   switch (action.type) {
     case 'MAKE_MOVE': {
-      const coreState: GameState = {
-        board: state.board,
-        currentPlayer: state.currentPlayer,
-        gameStatus: state.gameStatus,
-        winner: state.winner,
-        selectedPiece: state.selectedPiece,
-        validMoves: state.validMoves,
-        potentialCaptures: state.potentialCaptures,
-        capturedPieces: state.capturedPieces,
-        winCondition: state.winCondition,
-      };
-      
-      const newCoreState = handleCellClickCore(coreState, action.row, action.col);
-      
+      if (state.isAnimating) return state;
+      const newCoreState = handleCellClickCore(state, action.row, action.col);
+      const isMoveMade = !!newCoreState.lastMove;
       return {
         ...state,
         ...newCoreState,
-        // BaseGameState必須フィールドを明示的に更新
+        isAnimating: isMoveMade,
         status: newCoreState.gameStatus === 'GAME_OVER' ? 'ended' : 'playing',
-        currentPlayer: newCoreState.currentPlayer,
         winner: newCoreState.winner,
       };
     }
     
     case 'RESET_GAME':
       return createInitialHasamiShogiState();
+
+    case 'ANIMATION_END':
+      return {
+        ...state,
+        lastMove: null,
+        justCapturedPieces: [],
+        isAnimating: false,
+      };
     
     case 'SET_HINTS_ENABLED':
       return {
@@ -73,27 +75,28 @@ function hasamiShogiReducer(state: HasamiShogiGameState, action: HasamiShogiActi
       };
     
     case 'SET_WIN_CONDITION': {
-      const coreState: GameState = {
-        board: state.board,
-        currentPlayer: state.currentPlayer,
-        gameStatus: state.gameStatus,
-        winner: state.winner,
-        selectedPiece: state.selectedPiece,
-        validMoves: state.validMoves,
-        potentialCaptures: state.potentialCaptures,
-        capturedPieces: state.capturedPieces,
-        winCondition: state.winCondition,
-      };
-      
-      const newCoreState = setWinCondition(coreState, action.winCondition);
-      
+      const newCoreState = setWinCondition(state, action.winCondition);
       return {
         ...state,
         ...newCoreState,
         status: 'playing',
-        // BaseGameState必須フィールドを明示的に更新
-        currentPlayer: newCoreState.currentPlayer,
         winner: newCoreState.winner,
+      };
+    }
+
+    case 'RESET_WITH_BOARD': {
+      const coreState = createInitialState();
+      return {
+        ...state,
+        ...coreState,
+        board: action.board,
+        status: 'playing',
+        winner: null,
+        selectedPiece: null,
+        validMoves: new Map(),
+        potentialCaptures: [],
+        lastMove: null,
+        justCapturedPieces: [],
       };
     }
     
@@ -106,26 +109,31 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
   HintableGameController<HasamiShogiGameState, HasamiShogiAction> & {
     // はさみ将棋固有のメソッド
     makeMove: (row: number, col: number) => void;
+    onAnimationEnd: () => void;
     setWinCondition: (winCondition: WinCondition) => void;
     // 状態アクセサー
-    getValidMoves: () => Map<string, Move>;
+    getValidMoves: () => GameState['validMoves'];
     getCurrentPlayer: () => Player;
     getCapturedPieces: () => { PLAYER1: number; PLAYER2: number };
     getWinCondition: () => WinCondition;
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
     isGameStarted: () => boolean;
+    // Test helpers
+    getInitialBoard: () => Board;
+    resetGameWithBoard: (board: Board) => void;
   };
 
 export function useHasamiShogi(): HasamiShogiController {
   const [gameState, dispatch] = useReducer(hasamiShogiReducer, createInitialHasamiShogiState());
   
-  // ログ機能
   const logger = useGameStateLogger('useHasamiShogi', gameState, {
     hintsEnabled: gameState.hintsEnabled,
     validMovesCount: gameState.validMoves.size,
     capturedPieces: gameState.capturedPieces,
     winCondition: gameState.winCondition,
+    lastMove: gameState.lastMove,
+    justCapturedPieces: gameState.justCapturedPieces,
   });
 
   const resetGame = useCallback(() => {
@@ -134,32 +142,30 @@ export function useHasamiShogi(): HasamiShogiController {
   }, [logger]);
 
   const makeMove = useCallback((row: number, col: number) => {
-    logger.log('MAKE_MOVE_CALLED', { 
-      row, 
-      col, 
-      currentPlayer: gameState.currentPlayer, 
-      hintsEnabled: gameState.hintsEnabled,
-      hasSelectedPiece: !!gameState.selectedPiece
-    });
+    logger.log('MAKE_MOVE_CALLED', { row, col });
     dispatch({ type: 'MAKE_MOVE', row, col });
-  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.selectedPiece, logger]);
+  }, [logger]);
+
+  const onAnimationEnd = useCallback(() => {
+    logger.log('ANIMATION_END_CALLED', {});
+    dispatch({ type: 'ANIMATION_END' });
+  }, [logger]);
 
   const setWinCondition = useCallback((winCondition: WinCondition) => {
     logger.log('SET_WIN_CONDITION_CALLED', { winCondition });
     dispatch({ type: 'SET_WIN_CONDITION', winCondition });
   }, [logger]);
 
-  // ヒント関連
   const hintState: HintState = useMemo(() => ({
     enabled: gameState.hintsEnabled,
     highlightedCells: gameState.selectedPiece ? Array.from(gameState.validMoves.keys()).map(key => {
       const [row, col] = key.split(',').map(Number);
-      const isCapture = (gameState.validMoves.get(key)?.captures.length ?? 0) > 0;
-      const color = isCapture ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)'; // Red for capture, Green for move
+      const moveData = gameState.validMoves.get(key);
+      const isUnsafe = moveData?.isUnsafe ?? false;
+      const color = isUnsafe ? '#feb2b2' : '#9ae6b4';
       return { row, col, color };
     }) : [],
-    selectedCell: gameState.selectedPiece ? 
-      { row: gameState.selectedPiece.r, col: gameState.selectedPiece.c } : null
+    selectedCell: gameState.selectedPiece ? { row: gameState.selectedPiece.r, col: gameState.selectedPiece.c } : null
   }), [gameState.hintsEnabled, gameState.validMoves, gameState.selectedPiece]);
 
   const setHints = useCallback((enabled: boolean) => {
@@ -167,7 +173,6 @@ export function useHasamiShogi(): HasamiShogiController {
     dispatch({ type: 'SET_HINTS_ENABLED', enabled });
   }, [logger]);
 
-  // アクセサーメソッド
   const getValidMoves = useCallback(() => gameState.validMoves, [gameState.validMoves]);
   const getCurrentPlayer = useCallback(() => gameState.currentPlayer, [gameState.currentPlayer]);
   const getCapturedPieces = useCallback(() => gameState.capturedPieces, [gameState.capturedPieces]);
@@ -182,11 +187,22 @@ export function useHasamiShogi(): HasamiShogiController {
            gameState.capturedPieces.PLAYER2 > 0;
   }, [gameState.board, gameState.capturedPieces]);
 
+  // E2Eテスト用のヘルパー
+  const getInitialBoard = useCallback(() => {
+    return createInitialState().board;
+  }, []);
+
+  const resetGameWithBoard = useCallback((board: Board) => {
+    logger.log('RESET_GAME_WITH_BOARD_CALLED', { board });
+    dispatch({ type: 'RESET_WITH_BOARD', board });
+  }, [logger]);
+
   return {
     gameState,
     dispatch,
     resetGame,
     makeMove,
+    onAnimationEnd,
     setWinCondition,
     getValidMoves,
     getCurrentPlayer,
@@ -195,31 +211,18 @@ export function useHasamiShogi(): HasamiShogiController {
     getSelectedPiece,
     getPotentialCaptures,
     isGameStarted,
-    // HintableGameController
     hintState,
     setHints,
-    isTurnOnly: useMemo(() => {
-      return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
-    }, [gameState.status, gameState.winner]),
+    getInitialBoard,
+    resetGameWithBoard,
+    isTurnOnly: useMemo(() => (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner, [gameState.status, gameState.winner]),
     displayInfo: useMemo(() => {
       if (gameState.winner) {
-        if (gameState.winner === 'PLAYER1') {
-          return { statusText: '勝者: 「歩」' };
-        } else if (gameState.winner === 'PLAYER2') {
-          return { statusText: '勝者: 「と」' };
-        }
-        return { statusText: 'ゲーム終了' }; // その他の勝者の場合
-      } else if (gameState.gameStatus === 'GAME_OVER') {
-        return { statusText: 'ゲーム終了' };
-      } else if (gameState.gameStatus === 'PLAYING' && gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
-      } else if (gameState.status === 'ended') {
-        return { statusText: 'ゲーム終了' };
-      } else if ((gameState.status === 'playing' || gameState.status === 'waiting') && gameState.currentPlayer) {
-        return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
-      } else {
-        return { statusText: 'ゲーム開始' };
+        return { statusText: `勝者: 「${gameState.winner === 'PLAYER1' ? '歩' : 'と'}」` };
       }
-    }, [gameState]),
+      if (gameState.status === 'ended') return { statusText: 'ゲーム終了' };
+      if (gameState.currentPlayer) return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
+      return { statusText: 'ゲーム開始' };
+    }, [gameState.winner, gameState.status, gameState.currentPlayer]),
   };
 }

@@ -15,7 +15,7 @@ test.describe("リバーシゲームのE2Eテスト", () => {
   });
 
   test("初期状態の盤面が正しく表示される", async ({ page }) => {
-    // 初期配置の駒を確認
+    // 初期配置のコマを確認
     await expect(
       page.locator('[data-testid="cell-3-3"] > div').first(),
     ).toBeVisible();
@@ -57,7 +57,7 @@ test.describe("リバーシゲームのE2Eテスト", () => {
     );
   });
 
-  test("駒を置いて相手の駒が正しく裏返る", async ({ page }) => {
+  test("コマを置いて相手のコマが正しく裏返る", async ({ page }) => {
     // 黒が(2,3)に置く
     await page.locator('[data-testid="cell-2-3"]').waitFor();
     await page.locator('[data-testid="cell-2-3"]').click();
@@ -65,7 +65,7 @@ test.describe("リバーシゲームのE2Eテスト", () => {
     // 少し待機して、アニメーションと状態更新を待つ
     await page.waitForTimeout(1000);
 
-    // 駒が正しく置かれているか
+    // コマが正しく置かれているか
     await expect(
       page.locator('[data-testid="cell-2-3"] > div').first(),
     ).toBeVisible();
@@ -73,7 +73,7 @@ test.describe("リバーシゲームのE2Eテスト", () => {
       page.locator('[data-testid="cell-2-3"] > div').first(),
     ).toHaveCSS("background-color", "rgb(0, 0, 0)");
 
-    // 駒が裏返っているか
+    // コマが裏返っているか
     await expect(page.locator('[data-testid="cell-3-3"] > div')).toHaveCSS(
       "background-color",
       "rgb(0, 0, 0)",
