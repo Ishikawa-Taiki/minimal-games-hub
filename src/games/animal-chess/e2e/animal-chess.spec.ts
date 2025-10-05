@@ -5,6 +5,19 @@ test.beforeEach(async ({ page }) => {
   await expect(page).toHaveTitle(/アニマルチェス/);
 });
 
+const teamNameMap = {
+  p1: "おかしチーム",
+  p2: "おはなチーム",
+};
+
+const pieceNameMap: { [key: string]: string } = {
+  lion: 'ライオン',
+  giraffe: 'キリン',
+  elephant: 'ゾウ',
+  chick: 'ひよこ',
+  rooster: 'にわとり',
+};
+
 // Helper functions
 const expectPiece = async (
   page: Page,
@@ -15,9 +28,9 @@ const expectPiece = async (
   const cell = page.locator(`[data-testid="${cellTestId}"]`);
   const image = cell.locator("img");
   await expect(image).toBeVisible();
-  const owner = pieceOwner === "p1" ? "OKASHI" : "OHANA";
-  const type = pieceName.toUpperCase().replace("CHICKEN", "ROOSTER");
-  await expect(image).toHaveAttribute("alt", `${owner} ${type}`);
+  const ownerName = teamNameMap[pieceOwner];
+  const typeName = pieceNameMap[pieceName.toLowerCase()];
+  await expect(image).toHaveAttribute("alt", `${ownerName}の${typeName}`);
 };
 
 const expectEmpty = async (page: Page, cellTestId: string) => {

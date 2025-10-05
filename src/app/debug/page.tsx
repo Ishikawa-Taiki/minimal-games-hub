@@ -60,7 +60,7 @@ export default function DebugPage() {
       title: 'アラート',
       message: 'これはアラートダイアログです。',
     });
-    setDialogResult('Alert dialog confirmed.');
+    setDialogResult('アラートダイアログが確認されました。');
   };
 
   const handleConfirm = async () => {
@@ -69,27 +69,27 @@ export default function DebugPage() {
       title: '確認',
       message: 'この操作を実行しますか？',
     });
-    setDialogResult(`Confirmation result: ${result}`);
+    setDialogResult(`確認ダイアログの結果: ${result}`);
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.h1}>UI Component Debug Page</h1>
+      <h1 style={styles.h1}>UIコンポーネント デバッグページ</h1>
 
-      {/* --- Buttons Section --- */}
+      {/* --- ボタンセクション --- */}
       <section style={styles.section}>
-        <h2 style={styles.h2}>Buttons</h2>
+        <h2 style={styles.h2}>ボタン</h2>
         <div style={styles.controls}>
           <label style={styles.label}>
-            Size:
+            サイズ:
             <select
               style={styles.select}
               value={buttonSize}
               onChange={(e) => setButtonSize(e.target.value as ButtonSize)}
             >
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
+              <option value="small">小</option>
+              <option value="medium">中</option>
+              <option value="large">大</option>
             </select>
           </label>
           <label style={styles.label}>
@@ -98,15 +98,15 @@ export default function DebugPage() {
               checked={isDisabled}
               onChange={(e) => setIsDisabled(e.target.checked)}
             />
-            Disabled
+            無効
           </label>
         </div>
         <div style={styles.buttonGroup}>
           <PositiveButton size={buttonSize} disabled={isDisabled} onClick={() => {}}>
-            Positive
+            ポジティブ
           </PositiveButton>
           <NegativeButton size={buttonSize} disabled={isDisabled} onClick={() => {}}>
-            Negative
+            ネガティブ
           </NegativeButton>
           <SelectableButton
             size={buttonSize}
@@ -114,28 +114,28 @@ export default function DebugPage() {
             isSelected={isSelectable}
             onStateChange={setIsSelectable}
           >
-            Selectable
+            選択可能
           </SelectableButton>
         </div>
         <div style={styles.output}>
-          SelectableButton isSelected: {isSelectable.toString()}
+          SelectableButtonの選択状態: {isSelectable.toString()}
         </div>
       </section>
 
-      {/* --- Dialogs Section --- */}
+      {/* --- ダイアログセクション --- */}
       <section style={styles.section}>
-        <h2 style={styles.h2}>Dialogs</h2>
+        <h2 style={styles.h2}>ダイアログ</h2>
         <div style={styles.buttonGroup}>
           <PositiveButton onClick={handleAlert}>
-            Show Alert
+            アラート表示
           </PositiveButton>
           <PositiveButton onClick={handleConfirm}>
-            Show Confirm
+            確認ダイアログ表示
           </PositiveButton>
         </div>
         {dialogResult && (
           <div style={styles.output}>
-            Last dialog result: {dialogResult}
+            最後のダイアログ結果: {dialogResult}
           </div>
         )}
       </section>

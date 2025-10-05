@@ -34,6 +34,19 @@ const moveVectorToIndicatorMap: { [key: string]: React.CSSProperties } = {
   '[-1,-1]': styles.indicatorNW,
 };
 
+const teamNameMap: { [key in Player]: string } = {
+  OKASHI: 'おかしチーム',
+  OHANA: 'おはなチーム',
+};
+
+const pieceNameMap: { [key in PieceType]: string } = {
+  LION: 'ライオン',
+  GIRAFFE: 'キリン',
+  ELEPHANT: 'ゾウ',
+  CHICK: 'ひよこ',
+  ROOSTER: 'にわとり',
+};
+
 const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isGrayedOut?: boolean }> = ({ piece, showIndicators, isGrayedOut }) => {
   const playerPrefix = piece.owner === OKASHI_TEAM ? 'p1_' : 'p2_';
   const imageName = pieceImageMap[piece.type];
@@ -51,7 +64,7 @@ const PieceDisplay: React.FC<{ piece: Piece; showIndicators: boolean, isGrayedOu
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Image src={imagePath} alt={`${piece.owner} ${piece.type}`} fill style={imageStyle} />
+      <Image src={imagePath} alt={`${teamNameMap[piece.owner]}の${pieceNameMap[piece.type]}`} fill style={imageStyle} />
       {showIndicators && ownerMoves.map(move => {
         const key = JSON.stringify(move);
         const indicatorStyle = moveVectorToIndicatorMap[key];
@@ -105,25 +118,25 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
 
     const getFromRect = (): DOMRect | undefined => {
       if ('player' in from) {
-        // Drop from captured pieces box
+        // 持ち駒エリアから駒を打つ場合
         const capturedBoxRef = from.player === OKASHI_TEAM ? p1CapturedBoxRef : p2CapturedBoxRef;
         const boxRect = capturedBoxRef.current?.getBoundingClientRect();
         if (boxRect && toRect) {
-          // Start from the horizontal center of the box, and vertical edge
+          // 持ち駒エリアの水平中央、垂直方向の端からアニメーションを開始
           const startX = boxRect.left + (boxRect.width / 2) - (toRect.width / 2);
           const startY = from.player === OKASHI_TEAM ? boxRect.top : boxRect.bottom - toRect.height;
           return new DOMRect(startX, startY, toRect.width, toRect.height);
         }
         return undefined;
       }
-      // Move from another cell on the board
+      // 盤上の別のマスから移動する場合
       return getCellRect(from);
     };
 
     const fromRect = getFromRect();
 
     if (fromRect && toRect) {
-      // 1. Set initial position
+      // 1. 初期位置を設定
       setAnimatingStyle({
         ...styles.animatingPiece,
         top: fromRect.top,
@@ -134,7 +147,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
       });
       setAnimation({ piece, to });
 
-      // 2. After a short delay, update to the target position to trigger transition
+      // 2. 少し遅延させた後、目標位置に更新してCSSトランジションを発火させる
       setTimeout(() => {
         setAnimatingStyle(prev => ({
           ...prev,
@@ -143,7 +156,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
         }));
       }, 20);
 
-      // 3. After animation is complete, hide the animated piece.
+      // 3. アニメーション完了後、アニメーション用の駒を非表示にする
       setTimeout(() => {
         setAnimatingStyle(prev => ({ ...prev, opacity: 0 }));
       }, 520);
@@ -165,7 +178,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
     const isSelectable = !!(cell && cell.owner === gameState.currentPlayer && isGameInProgress);
     const cellStyle: CSSProperties = {};
 
-    // Apply selectable cell style if the piece can be moved and no piece is currently selected.
+    // 駒が選択されておらず、現在のプレイヤーが操作可能な駒である場合に選択可能スタイルを適用
     if (isSelectable && !gameState.selectedCell) {
       cellStyle.backgroundColor = styles.selectableCell.backgroundColor;
     }
@@ -175,7 +188,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
       cellStyle.backgroundColor = highlightedCell.color;
     }
 
-    // The currently selected piece's highlight should have the highest priority
+    // 現在選択中の駒のハイライトを最優先で適用
     if (gameState.selectedCell?.row === row && gameState.selectedCell?.col === col) {
       cellStyle.backgroundColor = styles.selectedCell.backgroundColor;
     }
@@ -186,7 +199,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   return (
     <>
       <div style={styles.gameArea}>
-        {/* Player 2's captured pieces (top) */}
+        {/* おはなチーム（上側）の持ち駒エリア */}
         <div style={styles.capturedPiecesBox}>
           <h3 style={styles.capturedPiecesTitle}>おはなチーム</h3>
           <div ref={p2CapturedBoxRef} style={styles.capturedPiecesList}>
@@ -208,7 +221,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
           </div>
         </div>
 
-        {/* Game Board */}
+        {/* ゲーム盤 */}
         <div ref={boardRef} style={styles.board} data-testid="animal-chess-board">
           {gameState.board.map((row, rowIndex) => (
             row.map((cell, colIndex) => {
@@ -238,7 +251,7 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
           ))}
         </div>
 
-        {/* Player 1's captured pieces (bottom) */}
+        {/* おかしチーム（下側）の持ち駒エリア */}
         <div style={styles.capturedPiecesBox}>
           <h3 style={styles.capturedPiecesTitle}>おかしチーム</h3>
           <div ref={p1CapturedBoxRef} style={styles.capturedPiecesList}>

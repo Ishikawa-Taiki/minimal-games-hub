@@ -4,11 +4,11 @@ import { DialogProvider } from '@/app/components/ui/DialogProvider';
 import { useAnimalChess } from './useAnimalChess';
 import { OKASHI_TEAM, OHANA_TEAM, CHICK, ELEPHANT } from './core';
 
-describe('useAnimalChess', () => {
+describe('useAnimalChess フック', () => {
   const wrapper = DialogProvider;
 
   describe('初期状態', () => {
-    it('初期状態が正しく設定される', () => {
+    it('初期状態が正しく設定されるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       
       expect(result.current.gameState.status).toBe('playing');
@@ -19,7 +19,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getSelectedCaptureIndex()).toBeNull();
     });
 
-    it('初期盤面が正しく設定される', () => {
+    it('初期盤面が正しく設定されるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       const board = result.current.getBoard();
       
@@ -42,7 +42,7 @@ describe('useAnimalChess', () => {
       expect(board[2][1]?.owner).toBe(OKASHI_TEAM);
     });
 
-    it('初期の捕獲コマが空である', () => {
+    it('初期の持ち駒が空であるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       const capturedPieces = result.current.getCapturedPieces();
       
@@ -51,8 +51,8 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('コマの選択', () => {
-    it('自分のコマを選択できる', () => {
+  describe('駒の選択', () => {
+    it('自分の駒を選択できるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(3, 1);
@@ -60,7 +60,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getSelectedCell()).toEqual({ row: 3, col: 1 });
     });
 
-    it('相手のコマは選択できない', () => {
+    it('相手の駒は選択できないべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(0, 1);
@@ -68,7 +68,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getSelectedCell()).toBeNull();
     });
 
-    it('同じコマを再度クリックすると選択解除される', () => {
+    it('同じ駒を再度クリックすると選択解除されるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(3, 1);
@@ -81,8 +81,8 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('コマの移動', () => {
-    it('有効な移動ができる', () => {
+  describe('駒の移動', () => {
+    it('有効な移動を許可するべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(2, 1);
@@ -97,7 +97,7 @@ describe('useAnimalChess', () => {
       expect(result.current.getCurrentPlayer()).toBe(OHANA_TEAM);
     });
 
-    it('無効な移動は実行されない', () => {
+    it('無効な移動は実行されないべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(2, 1);
@@ -112,15 +112,15 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('コマの捕獲', () => {
-    it('相手のコマを捕獲できる', () => {
+  describe('駒の捕獲', () => {
+    it('相手の駒を捕獲できるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
-      // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
+      // おかしチームがひよこを(2,1)から(1,1)へ移動
       act(() => {
         result.current.handleCellClick(2, 1); // select
         result.current.handleCellClick(1, 1); // move
       });
-      // OHANA_TEAM moves ELEPHANT from (0,0) to (1,1) to capture CHICK
+      // おはなチームがぞうを(0,0)から(1,1)へ移動してひよこを捕獲
       act(() => {
         result.current.handleCellClick(0, 0); // select
         result.current.handleCellClick(1, 1); // move and capture
@@ -131,10 +131,10 @@ describe('useAnimalChess', () => {
     });
   });
 
-  describe('捕獲コマの使用', () => {
-    it('捕獲コマを選択できる', () => {
+  describe('持ち駒の使用', () => {
+    it('持ち駒を選択できるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
-      // Manually set up a state with a captured piece
+      // 手動で持ち駒がある状態を作成
       act(() => {
         const initialGameState = result.current.gameState;
         const newGameState = {
@@ -156,7 +156,7 @@ describe('useAnimalChess', () => {
   });
 
   describe('「おしえて！」機能', () => {
-    it('ON/OFFを切り替えられる', () => {
+    it('ヒント機能のON/OFFを切り替えられるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       expect(result.current.gameState.hintsEnabled).toBe(false);
       act(() => {
@@ -169,7 +169,7 @@ describe('useAnimalChess', () => {
       expect(result.current.gameState.hintsEnabled).toBe(false);
     });
 
-    it('ヒント状態が正しく更新される', () => {
+    it('ヒントの状態が正しく更新されるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.setHints(true);
@@ -184,7 +184,7 @@ describe('useAnimalChess', () => {
   });
 
   describe('ゲームリセット', () => {
-    it('ゲームをリセットできる', () => {
+    it('ゲームをリセットできるべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       act(() => {
         result.current.handleCellClick(2, 1);
@@ -200,7 +200,7 @@ describe('useAnimalChess', () => {
   });
 
   describe('状態表示', () => {
-    it('現在のプレイヤーを正しく表示する', () => {
+    it('現在のプレイヤーを正しく表示するべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       expect(result.current.gameState.currentPlayer).toBe('OKASHI');
       act(() => {
@@ -212,7 +212,7 @@ describe('useAnimalChess', () => {
   });
 
   describe('BaseGameController インターフェース準拠', () => {
-    it('必要なプロパティとメソッドが存在する', () => {
+    it('必要なプロパティとメソッドが存在するべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       expect(result.current.gameState).toBeDefined();
       expect(result.current.dispatch).toBeDefined();
@@ -221,7 +221,7 @@ describe('useAnimalChess', () => {
       expect(result.current.setHints).toBeDefined();
     });
 
-    it('gameState が BaseGameState インターフェースに準拠している', () => {
+    it('gameStateがBaseGameStateインターフェースに準拠しているべき', () => {
       const { result } = renderHook(() => useAnimalChess(), { wrapper });
       const { gameState } = result.current;
       expect(gameState.status).toBeDefined();

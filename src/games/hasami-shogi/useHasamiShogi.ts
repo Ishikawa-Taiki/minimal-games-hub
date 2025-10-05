@@ -33,7 +33,7 @@ function createInitialHasamiShogiState(): HasamiShogiGameState {
   const coreState = createInitialState();
   return {
     ...coreState,
-    // BaseGameState required fields
+    // BaseGameStateの必須フィールド
     status: 'waiting' as GameStatus,
     winner: null,
     isAnimating: false,
@@ -119,7 +119,7 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
     getSelectedPiece: () => { r: number; c: number } | null;
     getPotentialCaptures: () => [number, number][];
     isGameStarted: () => boolean;
-    // Test helpers
+    // テスト用ヘルパー
     getInitialBoard: () => Board;
     resetGameWithBoard: (board: Board) => void;
   };
@@ -218,10 +218,14 @@ export function useHasamiShogi(): HasamiShogiController {
     isTurnOnly: useMemo(() => (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner, [gameState.status, gameState.winner]),
     displayInfo: useMemo(() => {
       if (gameState.winner) {
-        return { statusText: `勝者: 「${gameState.winner === 'PLAYER1' ? '歩' : 'と'}」` };
+        const winnerText = gameState.winner === 'PLAYER1' ? '「歩」チーム' : '「と」チーム';
+        return { statusText: `${winnerText}のかち！` };
       }
       if (gameState.status === 'ended') return { statusText: 'ゲーム終了' };
-      if (gameState.currentPlayer) return { statusText: `「${gameState.currentPlayer === 'PLAYER1' ? '歩' : 'と'}」のばん` };
+      if (gameState.currentPlayer) {
+        const playerText = gameState.currentPlayer === 'PLAYER1' ? '「歩」チーム' : '「と」チーム';
+        return { statusText: `${playerText}のばん` };
+      }
       return { statusText: 'ゲーム開始' };
     }, [gameState.winner, gameState.status, gameState.currentPlayer]),
   };

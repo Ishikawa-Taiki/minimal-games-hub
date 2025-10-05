@@ -134,13 +134,13 @@ interface TestWindow extends Window {
 
   useEffect(() => {
     if (gameState.winner) {
-      const winnerText = gameState.winner === 'PLAYER1' ? 'プレイヤー1' : 'プレイヤー2';
+      const winnerText = gameState.winner === 'PLAYER1' ? '「歩」チーム' : '「と」チーム';
       const capturedCount =
         gameState.winner === 'PLAYER1'
           ? gameState.capturedPieces.PLAYER2
           : gameState.capturedPieces.PLAYER1;
       alert({
-        title: `${winnerText}のかち`,
+        title: `${winnerText}のかち！`,
         message: `${winnerText}が${capturedCount}こコマをとったよ！`,
       }).then(() => {
         resetGame();
@@ -151,17 +151,17 @@ interface TestWindow extends Window {
   useEffect(() => {
     const { lastMove, justCapturedPieces, board } = gameState;
 
-    // lastMoveやjustCapturedPiecesがない場合、ボードリセットやアニメーション完了後の状態同期と判断
+    // ボードリセットやアニメーション完了後の状態同期
     if (!lastMove && (!justCapturedPieces || justCapturedPieces.length === 0)) {
       const boardPiecesCount = board.flat().filter(Boolean).length;
-      // UIのコマ数とゲームロジックのコマ数が異なる場合、UIを同期させる
+      // UIとロジックのコマ数が異なる場合、UIを同期
       if (boardPiecesCount !== piecesRef.current.length) {
         setPieces(generateInitialPieces(board));
-        return; // 同期した場合は、以降のアニメーションロジックは不要
+        return; // 同期後はアニメーション不要
       }
     }
 
-    // アニメーションが必要な場合にのみ実行
+    // キャプチャまたは移動アニメーションの実行
     if ((justCapturedPieces && justCapturedPieces.length > 0) || lastMove) {
       const capturedIds = new Set<string>();
       if (justCapturedPieces && justCapturedPieces.length > 0) {
@@ -173,7 +173,7 @@ interface TestWindow extends Window {
         });
       }
 
-      // アニメーションを開始するためにstateを更新
+      // アニメーション用のstate更新
       setPieces(prevPieces => {
         let tempPieces = [...prevPieces];
         let changed = false;
@@ -200,10 +200,10 @@ interface TestWindow extends Window {
         return changed ? tempPieces : prevPieces;
       });
 
-      // アニメーション後にクリーンアップ処理を予約
+      // アニメーション完了後のクリーンアップ
       setTimeout(() => {
         if (capturedIds.size > 0) {
-          // isCapturedフラグではなく、IDセットを使ってフィルタリングする方が安全
+          // isCapturedフラグよりIDでのフィルタリングが安全
           setPieces(currentPieces => currentPieces.filter(p => !capturedIds.has(p.id)));
         }
         onAnimationEnd();
@@ -280,7 +280,7 @@ interface TestWindow extends Window {
               id={p.id}
               player={p.player}
               isCaptured={p.isCaptured}
-              isMoving={false} // This can be enhanced later
+              isMoving={false} // TODO: 将来的に移動中アニメーションを強化する
               top={top}
               left={left}
             />
