@@ -1,5 +1,5 @@
 // =============================================================================
-// Constants and Types
+// 定数と型定義
 // =============================================================================
 
 export const BOARD_ROWS = 4;
@@ -42,7 +42,7 @@ export interface GameState {
   lastMove: MoveInfo | null;
 }
 
-// Movement vectors [row, col] relative to the piece owner (OKASHI_TEAM)
+// 駒の移動定義 [行, 列]。おかしチーム（下側）を基準とする。
 export const MOVES: { [key in PieceType]: [number, number][] } = {
   [LION]:    [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]],
   [GIRAFFE]: [[-1, 0], [1, 0], [0, -1], [0, 1]],
@@ -52,19 +52,19 @@ export const MOVES: { [key in PieceType]: [number, number][] } = {
 };
 
 // =============================================================================
-// Initial State
+// 初期状態
 // =============================================================================
 
 export const createInitialState = (): GameState => {
   const board: (Piece | null)[][] = Array(BOARD_ROWS).fill(null).map(() => Array(BOARD_COLS).fill(null));
 
-  // OKASHI_TEAM pieces
+  // おかしチームの駒
   board[3][0] = { type: GIRAFFE, owner: OKASHI_TEAM };
   board[3][1] = { type: LION,    owner: OKASHI_TEAM };
   board[3][2] = { type: ELEPHANT,owner: OKASHI_TEAM };
   board[2][1] = { type: CHICK,   owner: OKASHI_TEAM };
 
-  // OHANA_TEAM pieces
+  // おはなチームの駒
   board[0][0] = { type: ELEPHANT, owner: OHANA_TEAM };
   board[0][1] = { type: LION,     owner: OHANA_TEAM };
   board[0][2] = { type: GIRAFFE,  owner: OHANA_TEAM };
@@ -86,7 +86,7 @@ export const createInitialState = (): GameState => {
 };
 
 // =============================================================================
-// Helper Functions
+// ヘルパー関数
 // =============================================================================
 
 function isOutOfBounds(row: number, col: number): boolean {
@@ -100,7 +100,7 @@ function getOpponent(player: Player): Player {
 function getPieceMoves(piece: Piece): [number, number][] {
     const moves = MOVES[piece.type];
     if (piece.owner === OHANA_TEAM) {
-        // Invert row direction for GOTE player
+        // おはなチーム（上側）の場合、行の向きを反転させる
         return moves.map(([r, c]) => [-r, c]);
     }
     return moves;
@@ -150,7 +150,7 @@ export function isSquareThreatened(board: Board, row: number, col: number, playe
 }
 
 // =============================================================================
-// Core Logic Functions
+// コアロジック関数
 // =============================================================================
 
 export function getValidMoves(state: GameState, fromRow: number, fromCol: number): { row: number, col: number }[] {
@@ -186,7 +186,7 @@ interface WinResult {
 function checkWinner(board: Board, mover: Player): WinResult {
     const opponent = getOpponent(mover);
 
-    // 1. Check for "Try" (Lion in the final rank)
+    // 1. 「トライ」の確認（ライオンが相手の最終段に到達）
     for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
             const piece = board[r][c];
@@ -202,7 +202,7 @@ function checkWinner(board: Board, mover: Player): WinResult {
         }
     }
 
-    // 2. Check for Lion capture
+    // 2. ライオンの捕獲を確認
     let opponentLionOnBoard = false;
     for (let r = 0; r < BOARD_ROWS; r++) {
         for (let c = 0; c < BOARD_COLS; c++) {
@@ -244,7 +244,7 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
 
     const captured = newBoard[to.row][to.col];
     if (captured) {
-        // Demote rooster back to chick if captured
+        // 捕獲した駒が「にわとり」なら「ひよこ」に戻す
         const capturedType = captured.type === ROOSTER ? CHICK : captured.type;
         newCapturedPieces[state.currentPlayer].push(capturedType);
     }
@@ -252,7 +252,7 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
     newBoard[to.row][to.col] = pieceToMove;
     newBoard[from.row][from.col] = null;
 
-    // Promotion
+    // 「成り」の処理
     const promotionRow = state.currentPlayer === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceToMove.type === CHICK && to.row === promotionRow) {
         newBoard[to.row][to.col] = { ...pieceToMove, type: ROOSTER };
@@ -284,7 +284,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
         return { ...state, lastMove: null };
     }
 
-    // A chick cannot be dropped in the final rank.
+    // ひよこは相手の最終段に置くことはできない。
     const finalRank = player === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceType === CHICK && to.row === finalRank) {
         return { ...state, lastMove: null };
@@ -313,7 +313,7 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
 
 
 // =============================================================================
-// Main Handler
+// メインハンドラー
 // =============================================================================
 
 export function handleCellClick(state: GameState, row: number, col: number): GameState {
@@ -323,11 +323,11 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
 
     const { selectedCell, selectedCaptureIndex, currentPlayer } = state;
 
-    // 1. If a captured piece was selected, try to drop it or change selection
+    // 1. 持ち駒を選択中の場合：駒を盤面に置くか、選択を変更する
     if (selectedCaptureIndex !== null) {
         const clickedPiece = state.board[row][col];
 
-        // If clicking on one of current player's pieces, change selection
+        // 自分の駒をクリックした場合、選択対象をそちらに変更する
         if (clickedPiece && clickedPiece.owner === currentPlayer) {
             return {
                 ...state,
@@ -341,30 +341,31 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
         return dropPiece(state, currentPlayer, pieceType, { row, col });
     }
 
-    // 2. If a board piece was selected, try to move it or change selection
+    // 2. 盤上の駒を選択中の場合：駒を移動させるか、選択を変更する
     if (selectedCell) {
-        // Deselect if clicking the same piece
+        // 同じ駒を再度クリックした場合は選択を解除する
         if (selectedCell.row === row && selectedCell.col === col) {
             return { ...state, selectedCell: null, selectedCaptureIndex: null, lastMove: null };
         }
 
         const clickedPiece = state.board[row][col];
-        // If clicking on another one of current player's pieces, change selection
+        // 別の自分の駒をクリックした場合、選択対象をそちらに変更する
         if (clickedPiece && clickedPiece.owner === currentPlayer) {
             return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
         }
 
-        // Try to move
+        // 駒の移動を試みる
         return movePiece(state, selectedCell, { row, col });
     }
 
-    // 3. If nothing is selected, try to select a piece on the board
+    // 3. 何も選択していない場合：盤上の駒を選択する
     const piece = state.board[row][col];
     if (piece && piece.owner === currentPlayer) {
         return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
     }
 
-    return { ...state, lastMove: null }; // Clicked on empty cell or opponent's piece with nothing selected
+    // 何も選択していない状態で、空のマスか相手の駒をクリックした場合
+    return { ...state, lastMove: null };
 }
 
 export function handleCaptureClick(state: GameState, player: Player, index: number): GameState {
@@ -372,7 +373,7 @@ export function handleCaptureClick(state: GameState, player: Player, index: numb
         return { ...state, lastMove: null };
     }
 
-    // Deselect if already selected
+    // すでに選択されている持ち駒を再度クリックした場合は選択を解除する
     if (state.selectedCaptureIndex?.player === player && state.selectedCaptureIndex?.index === index) {
         return { ...state, selectedCell: null, selectedCaptureIndex: null, lastMove: null };
     }

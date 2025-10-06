@@ -28,7 +28,7 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     boxSizing: 'border-box',
   },
   controlSection: {
-    // Sections within the control panel
+    // コントロールパネル内のセクション
   },
   controlTitle: {
     margin: '0 0 0.5rem 0',
@@ -247,6 +247,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
   },
   capturedPiece: {
     fontSize: '1rem',
-    color: '#718096', // gray-500
+    color: '#718096', // Tailwind CSSのgray-500に相当
   },
 });

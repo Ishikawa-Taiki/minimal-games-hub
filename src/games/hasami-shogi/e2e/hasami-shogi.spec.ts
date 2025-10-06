@@ -71,7 +71,7 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       await expect(page.locator('[data-testid="board-container"]')).toHaveAttribute('data-is-animating', 'false');
 
       // P2のターンになっていることを確認
-      await expect(page.locator('[data-testid="game-state-display"]')).toContainText("「と」のばん");
+      await expect(page.locator('[data-testid="game-state-display"]')).toContainText("「と」チームのばん");
 
       // P2がコマを選択できることを確認
       const opponentCell = page.locator('[data-testid="cell-0-0"]');

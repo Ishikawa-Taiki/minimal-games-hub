@@ -1,31 +1,32 @@
 import { test } from '@playwright/test';
 
-test('Debug layout structure', async ({ page }) => {
-  // デスクトップサイズに設定
+test('レイアウト構造のデバッグ', async ({ page }) => {
+  // 1. デスクトップサイズに設定
   await page.setViewportSize({ width: 1200, height: 800 });
   
+  // 2. リバーシのページに移動
   await page.goto('/games/reversi');
   await page.waitForLoadState('networkidle');
   
-  // ページの構造をログ出力
+  // 3. ページの構造をログに出力
   const bodyContent = await page.locator('body').innerHTML();
-  console.log('Page body content:', bodyContent.substring(0, 2000));
+  console.log('Page body content (first 2000 chars):', bodyContent.substring(0, 2000));
   
-  // h1要素の数を確認
+  // 4. h1要素の数を確認
   const h1Count = await page.locator('h1').count();
-  console.log('Number of h1 elements:', h1Count);
+  console.log('h1要素の数:', h1Count);
   
-  // すべてのヘッダー要素を確認
+  // 5. すべてのヘッダー要素のテキストを取得して出力
   const headers = await page.locator('h1, h2, h3, h4, h5, h6').allTextContents();
-  console.log('All header elements:', headers);
+  console.log('すべてのヘッダー要素:', headers);
   
-  // サイドバーとメインコンテンツの存在を確認
+  // 6. サイドバーとメインコンテンツの存在を確認
   const sidebarCount = await page.locator('[style*="display: flex"][style*="flex-direction: row"]').count();
   const mainCount = await page.locator('main').count();
-  console.log('Sidebar count:', sidebarCount);
-  console.log('Main content count:', mainCount);
+  console.log('サイドバーの数:', sidebarCount);
+  console.log('メインコンテンツの数:', mainCount);
   
-  // レスポンシブ状態を確認するためのスタイルを確認
+  // 7. レスポンシブ状態を確認するためのスタイル情報を取得
   const containerStyles = await page.locator('body > div').first().getAttribute('style');
-  console.log('Container styles:', containerStyles);
+  console.log('コンテナのスタイル:', containerStyles);
 });

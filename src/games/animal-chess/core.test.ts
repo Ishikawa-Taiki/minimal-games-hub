@@ -14,8 +14,8 @@ import {
   ROOSTER,
 } from './core';
 
-describe('Animal Chess Core Logic', () => {
-  it('should create a valid initial state', () => {
+describe('アニマルチェス コアロジック', () => {
+  it('有効な初期状態を作成するべき', () => {
     const state = createInitialState();
     expect(state.board.length).toBe(4);
     expect(state.board[0].length).toBe(3);
@@ -25,9 +25,9 @@ describe('Animal Chess Core Logic', () => {
     expect(state.board[0][1]?.type).toBe(LION);
   });
 
-  it('should allow a valid move', () => {
+  it('有効な手を許可するべき', () => {
     let state = createInitialState();
-    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
+    // おかしチームがひよこを(2,1)から(1,1)へ移動
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
     expect(state.board[2][1]).toBeNull();
@@ -36,12 +36,12 @@ describe('Animal Chess Core Logic', () => {
     expect(state.currentPlayer).toBe(OHANA_TEAM);
   });
 
-  it('should capture an opponent piece', () => {
+  it('相手の駒を捕獲するべき', () => {
     let state = createInitialState();
-    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
+    // おかしチームがひよこを(2,1)から(1,1)へ移動
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
-    // OHANA_TEAM moves ELEPHANT from (0,0) to (1,1)
+    // おはなチームがぞうを(0,0)から(1,1)へ移動
     state = handleCellClick(state, 0, 0);
     state = handleCellClick(state, 1, 1);
 
@@ -51,17 +51,17 @@ describe('Animal Chess Core Logic', () => {
     expect(state.currentPlayer).toBe(OKASHI_TEAM);
   });
 
-  it('should promote a CHICK to a ROOSTER', () => {
+  it('ひよこをにわとりに成らせるべき', () => {
     let state = createInitialState();
-    // Move pieces out of the way
+    // 道を空ける
     state.board[1][1] = null;
-    // OKASHI_TEAM moves CHICK from (2,1) to (1,1)
+    // おかしチームがひよこを(2,1)から(1,1)へ移動
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
-    // OHANA_TEAM does some move
+    // おはなチームが適当な手を指す
     state = handleCellClick(state, 0, 1);
     state = handleCellClick(state, 1, 0);
-    // OKASHI_TEAM moves CHICK from (1,1) to (0,1) -> promotion
+    // おかしチームがひよこを(1,1)から(0,1)へ移動して成る
     state = handleCellClick(state, 1, 1);
     state = handleCellClick(state, 0, 1);
 
@@ -69,15 +69,15 @@ describe('Animal Chess Core Logic', () => {
     expect(state.board[0][1]?.owner).toBe(OKASHI_TEAM);
   });
 
-  it('should allow dropping a captured piece', () => {
+  it('持ち駒を打つことを許可するべき', () => {
     let state = createInitialState();
     state.capturedPieces[OKASHI_TEAM] = [GIRAFFE];
 
-    // Select the captured GIRAFFE
+    // 持ち駒のキリンを選択
     state = handleCaptureClick(state, OKASHI_TEAM, 0);
     expect(state.selectedCaptureIndex).toEqual({ player: OKASHI_TEAM, index: 0 });
 
-    // Drop it on an empty cell (2,2)
+    // 空のマス(2,2)に打つ
     state = handleCellClick(state, 2, 2);
     expect(state.board[2][2]?.type).toBe(GIRAFFE);
     expect(state.board[2][2]?.owner).toBe(OKASHI_TEAM);
@@ -85,26 +85,26 @@ describe('Animal Chess Core Logic', () => {
     expect(state.currentPlayer).toBe(OHANA_TEAM);
   });
 
-  it('should declare a winner when LION is captured', () => {
+  it('ライオンが捕獲された時に勝者を宣言するべき', () => {
     let state = createInitialState();
-    state.board[0][1] = null; // Remove OHANA_TEAM's LION for testing
-    state.board[1][1] = { type: LION, owner: OHANA_TEAM }; // Place it in a vulnerable spot
+    state.board[0][1] = null; // テストのためにおはなチームのライオンを消す
+    state.board[1][1] = { type: LION, owner: OHANA_TEAM }; // 捕獲しやすい位置に配置
 
-    // OKASHI_TEAM moves CHICK to capture LION
+    // おかしチームがひよこでライオンを捕獲
     state = handleCellClick(state, 2, 1);
     state = handleCellClick(state, 1, 1);
 
     expect(state.status).toBe('okashi_win');
   });
 
-  it('should declare a winner on LION reaching final rank (Try)', () => {
+  it('ライオンが最終ランクに到達した時（トライ）に勝者を宣言するべき', () => {
     let state = createInitialState();
-    // Clear path for OKASHI_TEAM LION
+    // おかしチームのライオンの道を開ける
     state.board[2][1] = null;
     state.board[1][1] = null;
     state.board[0][1] = null;
 
-    // Move LION forward
+    // ライオンを前に進める
     state = handleCellClick(state, 3, 1); // select
     state = handleCellClick(state, 2, 1); // move
     state = handleCellClick(state, 0, 0); // gote move
@@ -119,65 +119,65 @@ describe('Animal Chess Core Logic', () => {
     expect(state.status).toBe('okashi_win');
   });
 
-  it('should return valid moves for a piece', () => {
+  it('駒の有効な移動先を返すべき', () => {
     const state = createInitialState();
-    const moves = getValidMoves(state, 3, 1); // OKASHI_TEAM LION
-    expect(moves.length).toBe(2); // Blocked by own pieces
+    const moves = getValidMoves(state, 3, 1); // おかしチームのライオン
+    expect(moves.length).toBe(2); // 自分の駒にブロックされている
   });
 
-  it('should return valid drop locations', () => {
+  it('有効な駒の配置場所を返すべき', () => {
     const state = createInitialState();
     state.capturedPieces[OKASHI_TEAM] = [CHICK];
     const drops = getValidDrops(state, OKASHI_TEAM, CHICK);
-    // Initial board has 12 total cells, 8 are occupied -> 4 empty cells
-    // The final rank for OKASHI_TEAM is row 0, which is occupied, so no restrictions apply initially.
+    // 初期盤面は12マスのうち8マスが埋まっているので、空きマスは4つ
+    // おかしチームの最終ランク（0段目）は埋まっているので、特に制限はかからない
     expect(drops.length).toBe(4);
   });
 
-  it('should not allow dropping a CHICK on the final rank', () => {
+  it('ひよこを最終ランクに配置することを許可しないべき', () => {
     const state = createInitialState();
     state.capturedPieces[OKASHI_TEAM] = [CHICK];
-    // Clear the final rank to test the drop restriction
+    // 配置制限をテストするために最終ランクを空ける
     state.board[0] = [null, null, null];
 
     const drops = getValidDrops(state, OKASHI_TEAM, CHICK);
 
-    // The final rank (row 0) should not be included in valid drops
+    // 最終ランク（0段目）は有効な配置場所に含まれていないはず
     const hasFinalRankDrop = drops.some(d => d.row === 0);
     expect(hasFinalRankDrop).toBe(false);
-    // There are 3 empty spots on row 1 and 1 on row 2 = 4 valid spots
+    // 1段目に3つ、2段目に1つの空きマスがあるので、合計4箇所が有効
     expect(drops.length).toBe(4);
   });
 
-  it('should not allow moving into check (not implemented, just placeholder)', () => {
-    // This is a placeholder for a more complex rule that isn't part of the core requirements.
-    // For now, we just confirm the basic move validation works.
+  it('王手（チェック）になるような移動を許可しないべき（未実装、プレースホルダー）', () => {
+    // これはコア要件には含まれていない、より複雑なルールのためのプレースホルダーです。
+    // 現状では、基本的な移動検証が機能することを確認します。
     let state = createInitialState();
     const originalState = JSON.parse(JSON.stringify(state));
-    // Try an invalid move (e.g., GIRAFFE moving diagonally)
+    // 無効な移動を試す（例：キリンが斜めに動く）
     state = handleCellClick(state, 3, 0); // select
-    state = handleCellClick(state, 2, 1); // try to move to where CHICK is
-    state = handleCellClick(state, 2, 0); // try to move diagonally
-    // The state should not have changed from the original selection attempt
-    state.selectedCell = null; // reset selection for comparison
+    state = handleCellClick(state, 2, 1); // ひよこのいる場所に移動しようとする
+    state = handleCellClick(state, 2, 0); // 斜めに移動しようとする
+    // 状態は最初の選択試行から変わっていないはず
+    state.selectedCell = null; // 比較のために選択をリセット
     originalState.selectedCell = null;
     expect(state.board).toEqual(originalState.board);
   });
 
-  it('should switch from a captured piece to a board piece when clicking on an own piece', () => {
+  it('持ち駒選択中に自分の盤上の駒をクリックした場合、選択を切り替えるべき', () => {
     let state = createInitialState();
-    // Add a captured piece to the current player
+    // 現プレイヤーに持ち駒を追加
     state.capturedPieces[OKASHI_TEAM].push(GIRAFFE);
 
-    // 1. Select the captured GIRAFFE
+    // 1. 持ち駒のキリンを選択
     state = handleCaptureClick(state, OKASHI_TEAM, 0);
     expect(state.selectedCaptureIndex).toEqual({ player: OKASHI_TEAM, index: 0 });
     expect(state.selectedCell).toBeNull();
 
-    // 2. Click on an own piece on the board (OKASHI_TEAM's LION at 3,1)
+    // 2. 盤上の自分の駒（おかしチームのライオン at 3,1）をクリック
     state = handleCellClick(state, 3, 1);
 
-    // 3. Assert that the selection has switched
+    // 3. 選択が切り替わったことを確認
     expect(state.selectedCaptureIndex).toBeNull();
     expect(state.selectedCell).toEqual({ row: 3, col: 1 });
   });

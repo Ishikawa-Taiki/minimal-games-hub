@@ -47,7 +47,7 @@ function createInitialAnimalChessState(): AnimalChessGameState {
     selectedCaptureIndex: coreState.selectedCaptureIndex,
     winReason: null,
     lastMove: null,
-    // BaseGameState required fields
+    // BaseGameStateの必須フィールド
     status: 'playing' as GameStatus,
     winner: coreState.status === 'okashi_win' ? OKASHI_TEAM :
             coreState.status === 'ohana_win' ? OHANA_TEAM : null,
@@ -179,7 +179,7 @@ export function useAnimalChess(): AnimalChessController {
   });
 
   const resetGame = useCallback(() => {
-    // logger is not included in dependencies as it's for debugging and changes on every render.
+    // loggerはデバッグ用であり、毎回のレンダリングで変更されるため、依存配列には含めません。
     logger.log('RESET_GAME_CALLED', {});
     dispatch({ type: 'RESET_GAME' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,12 +199,12 @@ export function useAnimalChess(): AnimalChessController {
     }
   }, [gameState.winner, gameState.winReason, alert, resetGame]);
 
-  // アニメーション用にlastMoveを少し遅れてクリアする
+  // 駒の移動アニメーションが終わった後にlastMoveをクリアする
   useEffect(() => {
     if (gameState.lastMove) {
       const timer = setTimeout(() => {
         dispatch({ type: 'CLEAR_LAST_MOVE' });
-      }, 500); // アニメーション時間
+      }, 500); // アニメーション時間（index.tsxの遷移時間と合わせる）
       return () => clearTimeout(timer);
     }
   }, [gameState.lastMove]);
@@ -244,9 +244,9 @@ export function useAnimalChess(): AnimalChessController {
       lastMove: gameState.lastMove,
     };
 
-    const validMoveColor = '#f9fafb'; // Same as selectableCell
-    const dangerColor = 'rgba(239, 68, 68, 0.7)'; // Red for danger
-    const captureColor = 'rgba(196, 181, 253, 0.7)'; // Light purple for capture
+    const validMoveColor = '#f9fafb'; // 選択可能なマスと同じ色
+    const dangerColor = 'rgba(239, 68, 68, 0.7)'; // 危険なマスを示す赤色
+    const captureColor = 'rgba(196, 181, 253, 0.7)'; // 駒を捕獲できるマスを示す薄紫色
 
     // 持ちコマ選択時のヒント
     if (gameState.selectedCaptureIndex !== null) {
@@ -306,18 +306,6 @@ export function useAnimalChess(): AnimalChessController {
   const getSelectedCaptureIndex = useCallback(() => gameState.selectedCaptureIndex, [gameState.selectedCaptureIndex]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
 
-  const displayInfo = useMemo(() => {
-    if (gameState.winner) {
-      return { statusText: `${TEAM_NAMES[gameState.winner]}のかち` };
-    } else if (gameState.status === 'ended') {
-      return { statusText: 'ゲーム終了' };
-    } else if (gameState.status === 'playing' && gameState.currentPlayer) {
-      return { statusText: `「${TEAM_NAMES[gameState.currentPlayer]}」のばん` };
-    } else {
-      return { statusText: 'ゲーム開始' };
-    }
-  }, [gameState.winner, gameState.status, gameState.currentPlayer]);
-
   return {
     gameState,
     dispatch,
@@ -329,12 +317,22 @@ export function useAnimalChess(): AnimalChessController {
     getSelectedCell,
     getSelectedCaptureIndex,
     getBoard,
-    // HintableGameController
+    // HintableGameController の実装
     hintState,
     setHints,
     isTurnOnly: useMemo(() => {
       return (gameState.status === 'playing' || gameState.status === 'waiting') && !gameState.winner;
     }, [gameState.status, gameState.winner]),
-    displayInfo,
+    displayInfo: useMemo(() => {
+      if (gameState.winner) {
+        return { statusText: `${TEAM_NAMES[gameState.winner]}のかち！` };
+      } else if (gameState.status === 'ended') {
+        return { statusText: 'ゲーム終了' };
+      } else if (gameState.status === 'playing' && gameState.currentPlayer) {
+        return { statusText: `「${TEAM_NAMES[gameState.currentPlayer]}」のばん` };
+      } else {
+        return { statusText: 'ゲーム開始' };
+      }
+    }, [gameState.winner, gameState.status, gameState.currentPlayer]),
   };
 }

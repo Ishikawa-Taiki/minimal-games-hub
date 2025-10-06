@@ -199,6 +199,6 @@ export const styles: { [key: string]: CSSProperties } = StyleSheet.create({
     position: 'fixed',
     zIndex: 1000,
     transition: 'top 0.5s ease-in-out, left 0.5s ease-in-out',
-    pointerEvents: 'none', // Prevent interaction during animation
+    pointerEvents: 'none', // アニメーション中の操作を無効化
   },
 });
