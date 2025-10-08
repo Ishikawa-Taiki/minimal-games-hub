@@ -263,7 +263,7 @@ describe('はさみ将棋コアロジック', () => {
     });
   });
 
-  it.skip('グループキャプチャ（囲み取り）が正しく行われること', () => {
+  it('グループキャプチャ（囲み取り）が正しく行われること', () => {
     const board: Board = Array(9).fill(null).map(() => Array(9).fill(null));
     // Setup a group of 2 opponent pieces
     board[0][1] = 'PLAYER2';
@@ -271,7 +271,9 @@ describe('はさみ将棋コアロジック', () => {
     // Surround them, leaving one liberty at (1,2)
     board[0][0] = 'PLAYER1';
     board[0][3] = 'PLAYER1';
+    board[1][0] = 'PLAYER1'; // Close liberty
     board[1][1] = 'PLAYER1';
+    board[1][3] = 'PLAYER1'; // Close liberty
     // board[1][2] is the last liberty
     board[8][2] = 'PLAYER1'; // Moving piece
     let state: GameState | null = { ...createInitialState(), board, currentPlayer: 'PLAYER1' };
