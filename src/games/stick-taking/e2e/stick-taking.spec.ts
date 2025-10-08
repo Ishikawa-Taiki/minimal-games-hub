@@ -1,4 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
+
+const expectCurrentPlayer = async (page: Page, player: "プレイヤー1" | "プレイヤー2") => {
+  const locator = page.getByTestId("game-state-display").locator("p");
+  await expect(locator).toHaveText(`「${player}」のばん`);
+};
 
 test.describe("棒消しゲーム", () => {
   test.beforeEach(async ({ page }) => {
@@ -29,14 +34,49 @@ test.describe("棒消しゲーム", () => {
       .locator('[data-testid^="stick-"]')
       .nth(0)
       .click();
+    await expect(page.getByRole('button', { name: 'えらんだぼうをとる' })).toBeEnabled();
     await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
     await expect(
       page.getByTestId("game-state-display").locator("p"),
     ).toHaveText("「プレイヤー2」のばん");
   });
 
-  test.skip("ゲーム終了時に結果ダイアログが表示され、もう一度遊べること", async () => {
-    // TODO: ダイアログ表示がテスト環境で不安定なため、一時的にスキップ。要調査。
+  test("ゲーム終了時に結果ダイアログが表示され、もう一度遊べること", async ({ page }) => {
+    await page.getByRole("button", { name: "かんたん (3だん)" }).click();
+
+    // Play until the game ends.
+    // Turn 1: P1 takes 1 stick from row 0
+    await page.locator('[data-testid="row-0"] [data-testid^="stick-"]').nth(0).click();
+    await expect(page.getByRole('button', { name: 'えらんだぼうをとる' })).toBeEnabled();
+    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
+    await expectCurrentPlayer(page, "プレイヤー2");
+
+    // Turn 2: P2 takes 2 sticks from row 1
+    await page.locator('[data-testid="row-1"] [data-testid^="stick-"]').nth(0).click();
+    await page.locator('[data-testid="row-1"] [data-testid^="stick-"]').nth(1).click();
+    await expect(page.getByRole('button', { name: 'えらんだぼうをとる' })).toBeEnabled();
+    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
+    await expectCurrentPlayer(page, "プレイヤー1");
+
+    // Turn 3: P1 takes all 3 sticks from row 2
+    await page.locator('[data-testid="row-2"] [data-testid^="stick-"]').nth(0).click();
+    await page.locator('[data-testid="row-2"] [data-testid^="stick-"]').nth(1).click();
+    await page.locator('[data-testid="row-2"] [data-testid^="stick-"]').nth(2).click();
+    await expect(page.getByRole('button', { name: 'えらんだぼうをとる' })).toBeEnabled();
+    await page.getByRole('button', { name: 'えらんだぼうをとる' }).click();
+
+    // P1 took the last stick, so P2 wins.
+    const dialog = page.getByRole("dialog", { name: "プレイヤー2のかち！" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("プレイヤー1がさいごの1本をとったよ！");
+
+    // Click "OK"
+    await dialog.getByRole("button", { name: "OK" }).click();
+
+    // Should be back to the difficulty selection screen.
+    await expect(
+      page.getByRole("heading", { name: "むずかしさをえらんでね" }),
+    ).toBeVisible();
   });
 
   test("ヒント機能が正しく表示・非表示され、内容も更新されること", async ({
