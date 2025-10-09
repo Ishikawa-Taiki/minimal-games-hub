@@ -444,97 +444,27 @@ describe('Game Logic Test', () => {
 });
 ```
 
-### 3. GameDebugger での活用
-
-```typescript
-// GameDebugger での使用例
-function GameDebugger<TState, TAction>({ 
-  gameEngine 
-}: { 
-  gameEngine: GameEngine<TState, TAction> 
-}) {
-  const debugUtils = useMemo(() => 
-    new GameEngineDebugUtils(gameEngine), [gameEngine]
-  );
-  
-  const [selectedIndex, setSelectedIndex] = useState(gameEngine.actions.length);
-  
-  const currentDisplayState = useMemo(() => {
-    return debugUtils.computeStateAtIndex(selectedIndex);
-  }, [debugUtils, selectedIndex]);
-  
-  return (
-    <div>
-      <h3>アクション履歴 ({gameEngine.actions.length}件)</h3>
-      
-      <div>
-        <input
-          type="range"
-          min={0}
-          max={gameEngine.actions.length}
-          value={selectedIndex}
-          onChange={(e) => setSelectedIndex(Number(e.target.value))}
-        />
-        <span>ステップ: {selectedIndex} / {gameEngine.actions.length}</span>
-      </div>
-      
-      {gameEngine.actions.map((action, index) => (
-        <div 
-          key={index} 
-          onClick={() => setSelectedIndex(index + 1)}
-          style={{
-            backgroundColor: index < selectedIndex ? '#4CAF50' : '#666',
-            cursor: 'pointer',
-            padding: '4px',
-            margin: '2px'
-          }}
-        >
-          {index + 1}: {JSON.stringify(action)}
-        </div>
-      ))}
-      
-      <div>
-        <h4>ステップ {selectedIndex} の状態</h4>
-        <pre>{JSON.stringify(currentDisplayState, null, 2)}</pre>
-      </div>
-      
-      <div>
-        <h4>アクション列の妥当性</h4>
-        {(() => {
-          const validation = debugUtils.validateActionSequence(gameEngine.actions);
-          return validation.isValid ? (
-            <span style={{ color: 'green' }}>✓ 有効</span>
-          ) : (
-            <span style={{ color: 'red' }}>✗ エラー: {validation.error}</span>
-          );
-        })()}
-      </div>
-    </div>
-  );
-}
-```
-
 ## 期待される効果
 
 ### 1. 状態管理の改善
-- **予測可能性**: 同じアクション列は常に同じ結果
-- **再現性**: 任意の状態を確実に再現可能
-- **純粋性**: 副作用のない状態遷移
+- **予測可能性**: 同じアクション列は常に同じ結果を生む。
+- **再現性**: アクション列が同じであれば、任意の状態を確実に再現可能。
+- **純粋性**: 状態遷移ロジックが副作用から隔離される。
 
 ### 2. テスト容易性の向上
-- **Reducer テスト**: 純粋関数として独立テスト
-- **アクション列テスト**: 複雑なシナリオの組み合わせテスト
-- **妥当性検証**: 無効なアクション列の自動検出
-- **状態差分分析**: 変更前後の状態比較
+- **Reducer テスト**: 純粋関数として、入力と出力のみに注目したテストが可能。
+- **アクション列テスト**: 複雑なゲームシナリオをアクションの組み合わせとしてテストできる。
+- **妥当性検証**: `GameEngineDebugUtils`により、無効なアクション列を事前に検出できる。
+- **状態差分分析**: 変更前後の状態を比較し、意図しない変更を特定しやすくなる。
 
 ### 3. デバッグ支援の強化
-- **タイムトラベルデバッグ**: 任意の時点の状態を確認
-- **アクション履歴の可視化**: 操作の流れを追跡
-- **エラー原因の特定**: 無効なアクションの位置を特定
-- **状態遷移の検証**: 期待通りの状態変化かを確認
+- **アクション履歴の可視化**: 実行されたすべてのアクションを追跡できる。
+- **任意時点の状態計算**: 履歴の特定ポイントまでの状態を計算し、確認できる。
+- **エラー原因の特定**: 状態を変更しなかった無効なアクションの位置を特定できる。
+- **状態遷移の検証**: アクション実行後の状態が期待通りかを確認しやすくなる。
 
 ### 4. AI テスト支援への貢献
-- **詳細なエラー情報**: どのアクションで何が起きたかを明確化
+- **詳細なエラー情報**: どのアクションで何が起きたかをより明確に報告できる。
 - **状態の完全な可視性**: 内部状態の全てを確認可能
 - **再現可能なテストケース**: 失敗したケースを確実に再現
 - **段階的デバッグ**: ステップバイステップでの問題特定
