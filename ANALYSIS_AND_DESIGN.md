@@ -1,112 +1,172 @@
 # 状態管理アーキテクチャの分析と設計
 
-## 1. 現状アーキテクチャの分析
+## 1. 全体要件
 
-`src/core/hooks/useGameEngine.ts`、`src/games/tictactoe/useTicTacToe.ts`、`src/games/tictactoe/index.tsx` を分析した結果、本プロジェクトの状態管理アーキテクチャは以下の特徴を持つ。
+本プロジェクトにおける全ゲームを対象とした、汎用的な状態管理システムの最終目標を以下に定義する。
 
-### 1.1. アーキテクチャの概要
+### 1.1. 機能要件
 
-本プロジェクトは、Reactのカスタムフックを活用した、明確な3層構造の状態管理アーキテクチャを採用している。
+#### 1.1.1. タイムトラベル（履歴操作）機能
+すべてのゲームにおいて、以下の履歴操作を可能にすること。
 
-```mermaid
-graph TD
-    subgraph "UI Component Layer"
-        C[Game Component / index.tsx]
-    end
-    subgraph "Game-Specific Hook Layer"
-        H[useTicTacToe, useReversi, etc.]
-    end
-    subgraph "Generic Engine Layer"
-        E[useGameEngine]
-    end
-    subgraph "Core Logic Layer"
-        R[Reducer]
-        S[Initial State]
-    end
-    C --> H
-    H --> E
-    E --> R
-    E --> S
-```
+-   一手戻る（Undo） / 一手進む（Redo）
+-   最初の状態や最新の状態への移動
+-   履歴内の任意の位置の状態への移動
 
-1.  **Generic Engine Layer (`useGameEngine`)**:
-    *   状態管理の心臓部。
-    *   「初期状態」と「アクションの配列」から現在のゲーム状態を導出する、純粋な計算ロジックに特化している。
-    *   特定のゲームルールには依存せず、汎用的に利用可能。
+#### 1.1.2. 状態の再現（Reconstruction）
+任意のゲーム状態をインポートし、その状態からゲームを開始できる機能を設けること。
 
-2.  **Game-Specific Hook Layer (`useXxx`)**:
-    *   汎用的な `useGameEngine` をラップし、各ゲームに特化したインターフェースを提供する層。
-    *   UIコンポーネントに対し、`makeMove()` のような直感的な操作関数を公開する。
-    *   `gameState` から派生する表示用の情報（例：ステータステキスト）を計算する責務も担う。
+### 1.2. 非機能要件
 
-3.  **UI Component Layer (`index.tsx`)**:
-    *   Game-Specific Hookから状態と操作関数を受け取り、UIの描画に集中する。
-    *   勝敗判定後のダイアログ表示のような副作用は `useEffect` を用いて処理する。
+-   **関心の分離**: ゲーム固有のロジックと汎用的な状態管理エンジンを明確に分離する。
+-   **テスト容易性**: 状態遷移ロジックと状態管理エンジンを、それぞれ独立してテスト可能にする。
+-   **アクションベースの履歴管理**: 履歴を「初期状態」と「操作（Action）のリスト」として保持し、メモリ効率とロジックの純粋性を高める。
 
-### 1.2. 評価できる点 (Pros)
+---
+
+## 2. 現状アーキテクチャの分析 (Phase 1完了時点)
+
+現在のコードベースは、`useGameEngine`フックを中心とした、明確な責務分離を持つ優れたアーキテクチャを確立している。これは要件実現のための強力な基盤となる。
+
+### 2.1. 評価できる点 (Pros)
 
 -   **関心の分離の徹底**:
-    -   「状態計算」「ゲーム別ロジック」「UI描画」の責務が、それぞれ `useGameEngine`, `useXxx`, `index.tsx` に明確に分離されており、見通しが良くメンテナンス性が高い。
+    -   `useGameEngine`は汎用的な状態計算、各ゲームの`useXxx`フックはゲーム固有ロジック、UIコンポーネントは描画、という3層の責務分離が実現されている。
 -   **ロジックの純粋性と再利用性**:
-    -   ゲームのルールは純粋な `reducer` 関数として定義されるため、単体テストが容易。
-    -   `useGameEngine` は汎用的なため、新しいゲームを開発する際に再利用できる。
--   **UIとロジックの疎結合**:
-    -   UIコンポーネントは、`dispatch({ type: '...' })` のようなアクションの詳細を意識する必要がない。`makeMove()` のような意味のある関数を通じてロジックとやり取りするため、コードの可読性と保守性が向上している。
+    -   ゲームルールが純粋な`reducer`関数に凝縮されているため、テストが容易である。
+    -   `useGameEngine`は、新しいゲームを開発する際に容易に再利用可能である。
+-   **状態管理手法の統一**:
+    -   「初期状態 + アクション列」という統一されたアプローチにより、状態の予測可能性と再現性の基盤が整っている。リバーシのようなゲーム独自の状態管理が不要になる道筋が示されている。
 
-### 1.3. 現状の課題と今後の展望
+### 2.2. 課題と次フェーズへの展望 (Cons)
 
--   **履歴管理の単純化**:
-    -   現在の `useGameEngine` は、アクションを履歴の末尾に追加する機能のみを持つ。履歴の途中からの分岐や、過去の状態に戻る（Undo/Redo）といった高度なタイムトラベル機能は実装されていない。
+-   **履歴操作機能の不在**:
+    -   現在の`useGameEngine`は、アクションを履歴の末尾に追加するのみで、履歴を遡る（Undo/Redo）機能はない。
 -   **状態再現機能の不在**:
-    -   特定の盤面を外部から与えて、その状態からゲームを開始する汎用的な仕組みは存在しない。
+    -   任意の盤面をインポートしてゲームを開始する仕組みはまだない。
 
-## 2. 設計方針
+### 2.3. 総括
 
-現状の優れたアーキテクチャを基盤としつつ、段階的に機能を拡張していく。
+現状のアーキテクチャは、Phase 1として、状態管理の堅牢な基盤を構築することに成功している。次のステップは、この基盤の上に、当初の要件であったタイムトラベル機能と状態再現機能を構築することである。
 
-### 2.1. UIフィードバックの考え方
+---
 
-本プロジェクトでは、複雑な時系列アニメーション（例：`setTimeout` を利用したフェードイン）は採用しない。代わりに、**「状態駆動の視覚的フィードバック」** を基本方針とする。
+## 3. 設計提案 (Phase 2)
 
-これは、`useGameEngine` によって計算された `gameState` の変化に基づき、UIコンポーネントが即座に `style`（例: `backgroundColor`）を切り替えることで、ユーザーに応答を返すアプローチである。これにより、ロジックの純粋性を保ちながら、UIの応答性を高く維持することができる。
+現状の`useGameEngine`を拡張し、完全なタイムトラベル機能を実現する。
 
-### 2.2. 将来の展望 (Phase 2)
+### 3.1. 設計思想
 
-現状の基盤の上に、以下の機能を構築することを次なる目標とする。
+-   **単一責任の原則の維持**: `useGameEngine`の責務は状態管理に集中させ、ゲーム固有のロジックは引き続き`reducer`として外部から注入する。
+-   **履歴ポインタの導入**: アクション履歴 (`history`) に加え、履歴上の現在位置を示すポインタ (`currentIndex`) を導入する。これにより、Undo/Redoが可能になる。
 
-#### 2.2.1. タイムトラベル機能の導入
-`useGameEngine` を拡張し、完全なタイムトラベル機能を実現する。
+### 3.2. `useGameEngine`の拡張設計
 
--   **一手戻る (Undo)** / **一手進む (Redo)**
--   **履歴内の任意の位置への移動**
+#### 3.2.1. 拡張後のインターフェース (`GameEngine<TState, TAction>`)
+`useGameEngine`フックが返すコントローラーオブジェクトの目標インターフェース。
 
-これを実現するためには、`useGameEngine` 内部で「現在のアクション履歴上のポインタ」を管理する必要がある。`dispatch` の振る舞いも、ポインタが履歴の途中にある場合は、それ以降の履歴を破棄して新しい分岐を作成するように変更する。
-
-**拡張後の `GameEngine` インターフェース（案）:**
 ```typescript
 export interface GameEngine<TState, TAction> {
-  // ...既存のプロパティ...
+  // --- 基本機能 (実装済み) ---
+  gameState: TState;
+  reset: () => void;
 
-  // --- タイムトラベル機能 ---
+  // --- 拡張される機能 ---
+  dispatch: (action: TAction) => void; // 履歴の途中からの分岐に対応
+
+  // --- Phase 2で追加される機能 ---
+  reconstruct: (actions: TAction[]) => void; // アクション列から状態を復元
   undo: () => void;
   redo: () => void;
   goToIndex: (index: number) => void;
 
-  // --- 履歴情報 ---
-  history: readonly TAction[];
-  currentIndex: number;
-  canUndo: boolean;
-  canRedo: boolean;
+  // --- 読み取り専用のデバッグ情報 ---
+  readonly actions: readonly TAction[];
+  readonly currentIndex: number;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
 }
 ```
 
-#### 2.2.2. 状態再現機能の実装
-任意のゲーム状態をインポートし、盤面を再現する `reconstruct` 機能を追加する。これは、テストの効率化や、特定の問題を再現するデバッグ作業で極めて有用となる。
+#### 3.2.2. `useGameEngine` フックの実装方針
+`useState`で`actions`と`currentIndex`を管理する。
 
-### 2.3. 期待される効果
+**実装（擬似コード）:**
+```typescript
+function useGameEngine<TState, TAction>(
+  reducer: (state: TState, action: TAction) => TState,
+  initialState: TState
+): GameEngine<TState, TAction> {
 
-この段階的なアプローチにより、以下のメリットが期待される。
+  const [actions, setActions] = useState<TAction[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
--   **堅牢な基盤**: まず確立された3層アーキテクチャにより、コードの品質とメンテナンス性が高く保たれる。
--   **段階的な機能拡張**: プロジェクトの安定性を損なうことなく、タイムトラベルのような高度な機能を安全に追加していくことが可能になる。
--   **テスト容易性の維持**: 機能が追加されても、`reducer` や `useGameEngine` のテスト容易性は維持される。
+  // gameStateは、currentIndexまでのアクションを畳み込んで計算する
+  const gameState = useMemo(() => {
+    return actions.slice(0, currentIndex).reduce(reducer, initialState);
+  }, [actions, currentIndex, initialState, reducer]);
+
+  const dispatch = useCallback((action: TAction) => {
+    // 履歴の途中にいる場合、それ以降の履歴を破棄して新しいアクションを追加
+    const newActions = [...actions.slice(0, currentIndex), action];
+    setActions(newActions);
+    setCurrentIndex(newActions.length);
+  }, [actions, currentIndex]);
+
+  const undo = useCallback(() => {
+    setCurrentIndex(i => Math.max(0, i - 1));
+  }, []);
+
+  const redo = useCallback(() => {
+    setCurrentIndex(i => Math.min(actions.length, i + 1));
+  }, [actions]);
+
+  // ... reconstruct, goToIndexなどの実装 ...
+
+  return {
+    gameState,
+    dispatch,
+    undo,
+    redo,
+    // ...その他
+  };
+}
+```
+
+### 3.3. 既存ゲームのリファクタリング (`useReversi.ts`の例)
+
+`useReversi`に個別実装されている履歴管理ロジックを、拡張された`useGameEngine`に置き換える。これにより、リバーシは他のゲームと完全に同じ状態管理基盤に乗ることになる。
+
+**リファクタリング後のイメージ:**
+```typescript
+// src/games/reversi/useReversi.ts (リファクタリング後)
+import { useGameEngine } from '@/core/hooks/useGameEngine';
+import { reversiReducer, createInitialState } from './reducer'; // reducerを別途定義
+
+export function useReversi(): ReversiController {
+  const gameEngine = useGameEngine(reversiReducer, createInitialState());
+
+  // ゲーム固有の操作は、dispatchを呼び出すだけのシンプルな関数になる
+  const makeMove = (row: number, col: number) => {
+    gameEngine.dispatch({ type: 'MAKE_MOVE', payload: { row, col } });
+  };
+
+  // UIが必要とするコントローラーの形式に変換して返す
+  return {
+    gameState: gameEngine.gameState,
+    makeMove,
+    reset: gameEngine.reset,
+    undo: gameEngine.undo, // GameEngineの機能をそのまま公開
+    redo: gameEngine.redo,
+    // ... その他、必要な値をマッピング
+  };
+}
+```
+
+### 3.4. 期待される効果
+
+この拡張により、当初の要件がすべて満たされる。
+
+-   **汎用的なタイムトラベル**: すべてのゲームでUndo/Redoが共通の仕組みで実現される。
+-   **関心の完全な分離**: `useReversi`から履歴管理ロジックが完全に排除され、「ゲーム固有の操作を`dispatch`に変換する」という責務に集中できる。
+-   **テスト容易性の向上**: 拡張された`useGameEngine`の履歴操作ロジックも、独立してテスト可能である。
