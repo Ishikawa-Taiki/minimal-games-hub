@@ -1,4 +1,4 @@
-import StyleSheet from '@/app/styles/StyleSheet';
+import StyleSheet from '@/core/styles/StyleSheet';
 
 export const licensePageStyles = StyleSheet.create({
   container: {

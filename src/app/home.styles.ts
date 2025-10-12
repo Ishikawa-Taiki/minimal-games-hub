@@ -1,4 +1,4 @@
-import StyleSheet from '@/app/styles/StyleSheet';
+import StyleSheet from '@/core/styles/StyleSheet';
 
 export const homePageStyles = StyleSheet.create({
   main: {

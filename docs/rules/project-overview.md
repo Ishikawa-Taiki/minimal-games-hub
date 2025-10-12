@@ -32,13 +32,16 @@
 ├── src/          # アプリケーションのソースコード
 │   ├── app/      # UI統合・ルーティング層 (Next.js App Router)
 │   │   ├── components/ # 共通UIコンポーネント
+│   │   │   └── ui/       # 基本的なUI部品（ボタン、モーダルなど）
+│   │   ├── debug/      # UIコンポーネント等のデバッグページ
 │   │   ├── games/      # 各ゲームページのコンテナ
 │   │   ├── layout.tsx  # ルートレイアウト
 │   │   └── page.tsx    # トップページ
 │   ├── core/     # 汎用的な基盤部品層
+│   │   ├── debug/      # デバッグ用ユーティリティ
 │   │   ├── hooks/      # 共有カスタムフック
-│   │   ├── types/      # 共有の型定義
-│   │   └── debug/      # デバッグ用ユーティリティ
+│   │   ├── styles/     # 共通スタイル定義
+│   │   └── types/      # 共有の型定義
 │   └── games/    # ゲーム実装層（各ゲームのロジックとUI）
 ├── tests/        # E2Eテスト (Playwright)
 ├── .gitignore    # バージョン管理除外設定 (Git)
@@ -46,12 +49,14 @@
 ├── ANALYSIS_AND_DESIGN.md # システムの分析・設計ドキュメント
 ├── LICENSE       # プロジェクトのライセンス情報
 ├── README.md     # プロジェクトの概要とセットアップ手順
+├── eslint.config.mjs # ESLint設定ファイル
 ├── next.config.ts # 設定ファイル (Next.js)
 ├── package.json  # 依存関係とスクリプト定義 (npm)
 ├── package-lock.json # 依存関係バージョンロック (npm)
 ├── playwright.config.ts # E2Eテスト設定 (Playwright)
 ├── tsconfig.json # コンパイラ設定 (TypeScript)
-└── vitest.config.mts # ユニットテスト設定 (Vitest)
+├── vitest.config.mts # ユニットテスト設定 (Vitest)
+└── vitest.setup.ts   # Vitestセットアップスクリプト
 ```
 *NOTE: `node_modules`, `.next` のような、環境に依存する、あるいは自動生成されるディレクトリは意図的に除外しています。*
 
@@ -74,12 +79,14 @@
 - **`ANALYSIS_AND_DESIGN.md`**: システムの分析や設計に関する高レベルな思考プロセスを記録するドキュメントです。
 - **`LICENSE`**: プロジェクトのライセンスを記載したファイルです。
 - **`README.md`**: プロジェクトの概要、目的、技術スタック、基本的なセットアップ方法などを記述した、開発者が最初に読むべきドキュメントです。
+- **`eslint.config.mjs`**: [ESLint](https://eslint.org/) の設定ファイルです。
 - **`next.config.ts`**: [Next.js](https://nextjs.org/)のビルドや開発サーバーの挙動をカスタマイズするための設定ファイルです。
 - **`package.json`**: プロジェクト名、バージョン、依存パッケージ、開発用スクリプトなどを定義する[npm](https://www.npmjs.com/)の構成ファイルです。
 - **`package-lock.json`**: インストールされるパッケージの正確なバージョンを記録し、環境間での依存関係の一貫性を保証します。
 - **`playwright.config.ts`**: E2Eテストフレームワーク [Playwright](https://playwright.dev/) の設定ファイルです。
 - **`tsconfig.json`**: [TypeScript](https://www.typescriptlang.org/)コンパイラの設定ファイルです。
 - **`vitest.config.mts`**: ユニットテストフレームワーク [Vitest](https://vitest.dev/) の設定ファイルです。
+- **`vitest.setup.ts`**: [Vitest](https://vitest.dev/) のテスト実行前に読み込まれるセットアップスクリプトです。
 
 ### `src/` ディレクトリ
 
@@ -87,6 +94,8 @@
 
 - **`src/app/` (UI統合・ルーティング層)**
     - **役割**: [Next.js App Router](https://nextjs.org/docs/app)に基づき、アプリケーション全体のエンドポイントとUI統合を担当します。
+        - **`components/ui/`**: ボタンやモーダルなど、特定のアプリケーションコンテキストに依存しない、ごく基本的なUI部品を格納します。
+        - **`debug/`**: 開発中にUIコンポーネントなどを個別に確認するためのデバッグページを格納します。
     - **原則**: `games`層と`core`層に依存します。
 
 - **`src/games/` (ゲーム実装層)**
@@ -95,4 +104,8 @@
 
 - **`src/core/` (汎用基盤層)**
     - **役割**: プロジェクト全体で再利用可能な、特定のゲームロジックに依存しない基盤部品を格納します。
+        - **`debug/`**: UIに依存しない、純粋なデータやロジックをデバッグするためのユーティリティ関数などを格納します。
+        - **`hooks/`**: 複数のゲームやアプリケーション全体で共有されるカスタムフックを格納します。
+        - **`styles/`**: アプリケーション全体で利用されるスタイル定義やテーマなどを格納します。
+        - **`types/`**: プロジェクト全体で共有されるTypeScriptの型定義を格納します。
     - **原則**: 他のどのレイヤーにも依存しない、完全に自己完結したモジュールです。

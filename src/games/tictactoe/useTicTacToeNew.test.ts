@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useTicTacToe } from '../useTicTacToe';
+import { useTicTacToe } from './useTicTacToe';
 
 describe('useTicTacToe (新実装)', () => {
   describe('初期状態', () => {

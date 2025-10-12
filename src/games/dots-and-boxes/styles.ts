@@ -1,4 +1,4 @@
-import StyleSheet from '@/app/styles/StyleSheet';
+import StyleSheet from '@/core/styles/StyleSheet';
 
 // --- Color Palette ---
 const player1Color = '#ef4444'; // red-500
