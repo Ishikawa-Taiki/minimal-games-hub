@@ -5,6 +5,7 @@ import {
   PositiveButton,
   NegativeButton,
   SelectableButton,
+  DialogProvider,
   useDialog,
 } from '@/core/components/ui';
 
@@ -86,8 +87,6 @@ function DebugPageClient() {
   );
 }
 
-
-import { DialogProvider } from '@/core/components/ui';
 
 export default function DebugPage() {
   // DialogProviderでラップすることが必須

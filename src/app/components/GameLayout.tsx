@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useResponsive, isMobile } from '@/core/hooks/useResponsive';
 import { BaseGameState, BaseGameController, HintableGameController, HistoryGameController } from '@/core/types/game';
-import { FloatingActionButton, BottomSheet } from './ui';
+import { FloatingActionButton, BottomSheet } from '@/core/components/ui';
 import { GameStateDisplay } from './GameStateDisplay'; // ★ インポート
 import GameDebugger from './GameDebugger';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { gameLayoutStyles } from './styles';
 import MarkdownViewer from './MarkdownViewer';
-import { Button, NegativeButton, SelectableButton } from './ui';
-import { useDialog } from './ui';
+import { Button, NegativeButton, SelectableButton } from '@/core/components/ui';
+import { useDialog } from '@/core/components/ui';
 
 interface GameLayoutProps<TState extends BaseGameState, TAction> {
   gameName: string;
