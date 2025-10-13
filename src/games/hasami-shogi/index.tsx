@@ -3,9 +3,9 @@
 import React, { CSSProperties, useEffect, useState } from 'react';
 import { Player, WinCondition, Board } from './core';
 import { useHasamiShogi, HasamiShogiController } from './useHasamiShogi';
-import { PositiveButton } from '@/app/components/ui';
+import { PositiveButton } from '@/core/components/ui';
 import { styles } from './styles';
-import { useDialog } from '@/app/components/ui/DialogProvider';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 
 const CELL_SIZE = 40;
 const GAP = 2;

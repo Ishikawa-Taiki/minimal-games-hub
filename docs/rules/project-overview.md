@@ -32,12 +32,13 @@
 ├── src/          # アプリケーションのソースコード
 │   ├── app/      # UI統合・ルーティング層 (Next.js App Router)
 │   │   ├── components/ # 共通UIコンポーネント
-│   │   │   └── ui/       # 基本的なUI部品（ボタン、モーダルなど）
 │   │   ├── debug/      # UIコンポーネント等のデバッグページ
 │   │   ├── games/      # 各ゲームページのコンテナ
-│   │   ├── layout.tsx  # ルートレイアウト
-│   │   └── page.tsx    # トップページ
+│   │   ├── layout.tsx  # ルートレイアウト (Next.js)
+│   │   └── page.tsx    # トップページ (Next.js)
 │   ├── core/     # 汎用的な基盤部品層
+│   │   ├── components/ # 汎用UIコンポーネント
+│   │   │   └── ui/       # 基本的なUI部品（ボタン、モーダルなど）
 │   │   ├── debug/      # デバッグ用ユーティリティ
 │   │   ├── hooks/      # 共有カスタムフック
 │   │   ├── styles/     # 共通スタイル定義
@@ -49,14 +50,14 @@
 ├── ANALYSIS_AND_DESIGN.md # システムの分析・設計ドキュメント
 ├── LICENSE       # プロジェクトのライセンス情報
 ├── README.md     # プロジェクトの概要とセットアップ手順
-├── eslint.config.mjs # ESLint設定ファイル
+├── eslint.config.mjs # ESLint設定ファイル (ESLint)
 ├── next.config.ts # 設定ファイル (Next.js)
 ├── package.json  # 依存関係とスクリプト定義 (npm)
 ├── package-lock.json # 依存関係バージョンロック (npm)
 ├── playwright.config.ts # E2Eテスト設定 (Playwright)
 ├── tsconfig.json # コンパイラ設定 (TypeScript)
 ├── vitest.config.mts # ユニットテスト設定 (Vitest)
-└── vitest.setup.ts   # Vitestセットアップスクリプト
+└── vitest.setup.ts   # Vitestセットアップスクリプト (Vitest)
 ```
 *NOTE: `node_modules`, `.next` のような、環境に依存する、あるいは自動生成されるディレクトリは意図的に除外しています。*
 

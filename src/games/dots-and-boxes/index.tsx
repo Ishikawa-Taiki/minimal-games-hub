@@ -1,7 +1,7 @@
 import React, { memo, useState, useMemo } from 'react';
 import { useDotsAndBoxes, type DotsAndBoxesController } from './useDotsAndBoxes';
 import { styles } from './styles';
-import { PositiveButton } from '@/app/components/ui';
+import { PositiveButton } from '@/core/components/ui';
 import type { Player, Preview, Difficulty } from './core';
 
 // --- Prop Types ---

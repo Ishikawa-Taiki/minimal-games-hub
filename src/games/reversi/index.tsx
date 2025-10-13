@@ -8,7 +8,7 @@ import {
 import { useReversi, ReversiController } from './useReversi';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
 import { styles } from './styles';
-import { useDialog } from '@/app/components/ui/DialogProvider';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 
 // コマのアイコンコンポーネント
 const DiscIcon: React.FC<{ player: Player; style?: CSSProperties }> = ({ player, style }) => (

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/app/components/ui/Button';
-import { Modal } from '@/app/components/ui/Modal';
+import { Button } from '@/core/components/ui/Button';
+import { Modal } from '@/core/components/ui/Modal';
 
 // デモ用コンポーネント（開発時の動作確認用）
 export function UIDemo() {
