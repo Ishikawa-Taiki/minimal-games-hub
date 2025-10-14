@@ -5,8 +5,8 @@ import { BoardCard, Difficulty } from './core';
 import { styles } from './styles';
 import { useConcentration } from './useConcentration';
 import { useResponsive } from '@/core/hooks/useResponsive';
-import { PositiveButton } from '@/app/components/ui';
-import { useDialog } from '@/app/components/ui/DialogProvider';
+import { PositiveButton } from '@/core/components/ui';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 import { CardFaceContent } from './CardFaceContent';
 
 interface ConcentrationProps {

@@ -4,7 +4,7 @@ import {
   createInitialTicTacToeState, 
   TicTacToeAction,
   TicTacToeGameState 
-} from '../reducer';
+} from './reducer';
 
 describe('ticTacToeReducer', () => {
   let initialState: TicTacToeGameState;

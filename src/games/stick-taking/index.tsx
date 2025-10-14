@@ -4,7 +4,7 @@ import React, { useRef, useMemo } from 'react';
 import { Stick, Difficulty, Chunk } from './core';
 import { useStickTaking, StickTakingController } from './useStickTaking';
 import { styles } from './styles';
-import { PositiveButton } from '@/app/components/ui';
+import { PositiveButton } from '@/core/components/ui';
 
 // Define the structure for a visual group of sticks
 type StickGroupInfo = {

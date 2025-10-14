@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import StyleSheet from '@/app/styles/StyleSheet';
+import StyleSheet from '@/core/styles/StyleSheet';
 
 export interface BottomSheetProps {
   isOpen: boolean;

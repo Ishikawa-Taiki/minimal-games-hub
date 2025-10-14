@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
-import { useDialog } from '@/app/components/ui/DialogProvider';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 import {
   BaseGameController,
   HintableGameController,

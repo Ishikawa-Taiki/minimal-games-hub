@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { DialogProvider } from '@/app/components/ui/DialogProvider';
+import { DialogProvider } from '@/core/components/ui/DialogProvider';
 import { useStickTaking } from './useStickTaking';
 
 describe('useStickTaking', () => {

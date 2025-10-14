@@ -13,7 +13,7 @@ import {
 import type {
   HintableGameController,
 } from '@/core/types/game';
-import { useDialog } from '@/app/components/ui/DialogProvider';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 
 import { DisplayInfo } from '@/core/types/game';
 

@@ -1,6 +1,6 @@
 import AppLayout from './components/AppLayout';
 import React from 'react';
-import { DialogProvider } from './components/ui/DialogProvider';
+import { DialogProvider } from '@/core/components/ui/DialogProvider';
 
 const bodyStyle: React.CSSProperties = {
   font: '14px "Century Gothic", Futura, sans-serif',

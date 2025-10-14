@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import StyleSheet from '@/app/styles/StyleSheet';
+import StyleSheet from '@/core/styles/StyleSheet';
 
 // --- Start of Debounce Hook ---
 // A simple debounce hook to prevent rapid clicks.
