@@ -1,5 +1,14 @@
 {
   "context": {
     "fileName": "AGENTS.md"
+  },
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless"
+      ]
+    }
   }
 }
