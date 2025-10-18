@@ -367,7 +367,6 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
     // 何も選択していない状態で、空のマスか相手の駒をクリックした場合
     return { ...state, lastMove: null };
 }
-
 export function handleCaptureClick(state: GameState, player: Player, index: number): GameState {
     if (state.status !== 'playing' || player !== state.currentPlayer) {
         return { ...state, lastMove: null };
