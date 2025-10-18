@@ -112,22 +112,13 @@ test("持ちコマを配置できること", async ({ page }) => {
 });
 
 test.describe("ゲーム終了とダイアログ", () => {
-  test.skip("ライオンを捕獲して勝利する（キャッチ）", async ({ page }) => {
-    // A simpler, valid sequence to capture the lion
-    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
-    await page.locator('[data-testid="cell-1-1"]').click(); // -> P2 Chick
-    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
-    await page.locator('[data-testid="cell-1-1"]').click(); // -> P1 Chick
-    await page.locator('[data-testid="cell-3-2"]').click(); // P1 Elephant
-    await page.locator('[data-testid="cell-2-2"]').click();
-    await page.locator('[data-testid="cell-1-1"]').click(); // P2 Lion
-    await page.locator('[data-testid="cell-2-1"]').click();
-    await page.locator('[data-testid="cell-3-0"]').click(); // P1 Giraffe
+  test("ライオンを捕獲して勝利する（キャッチ）", async ({ page }) => {
+    await page.locator('[data-testid="cell-3-1"]').click(); // P1 Lion
     await page.locator('[data-testid="cell-2-0"]').click();
-    await page.locator('[data-testid="cell-2-1"]').click(); // P2 Lion
-    await page.locator('[data-testid="cell-3-1"]').click();
-    await page.locator('[data-testid="cell-2-2"]').click(); // P1 Elephant
-    await page.locator('[data-testid="cell-3-1"]').click(); // -> P2 Lion (WIN)
+    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
+    await page.locator('[data-testid="cell-1-0"]').click();
+    await page.locator('[data-testid="cell-2-0"]').click(); // P1 Lion
+    await page.locator('[data-testid="cell-1-0"]').click(); // -> P2 Lion (WIN)
 
     const dialog = page.getByRole("dialog", { name: "おかしチームのかち！" });
     await expect(dialog).toBeVisible();
@@ -135,20 +126,15 @@ test.describe("ゲーム終了とダイアログ", () => {
   });
 
   test("ライオンが最終ラインに到達して勝利する（トライ）", async ({ page }) => {
-    // A valid sequence of moves leading to a "Try" win
-    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
-    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Chick moves & captures
-    await page.locator('[data-testid="cell-0-0"]').click(); // P2 Elephant
-    await page.locator('[data-testid="cell-1-1"]').click(); // P2 Elephant moves & captures
     await page.locator('[data-testid="cell-3-1"]').click(); // P1 Lion
-    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Lion moves
-    await page.locator('[data-testid="cell-1-1"]').click(); // P2 Elephant
-    await page.locator('[data-testid="cell-2-2"]').click(); // P2 Elephant moves
-    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Lion
-    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Lion moves
-    await page.locator('[data-testid="cell-0-2"]').click(); // P2 Giraffe
-    await page.locator('[data-testid="cell-1-2"]').click(); // P2 Giraffe moves
-    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Lion
+    await page.locator('[data-testid="cell-2-2"]').click();
+    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
+    await page.locator('[data-testid="cell-1-0"]').click();
+    await page.locator('[data-testid="cell-2-2"]').click(); // P1 Lion
+    await page.locator('[data-testid="cell-1-2"]').click();
+    await page.locator('[data-testid="cell-1-0"]').click(); // P2 Lion
+    await page.locator('[data-testid="cell-2-0"]').click();
+    await page.locator('[data-testid="cell-1-2"]').click(); // P1 Lion
     await page.locator('[data-testid="cell-0-1"]').click(); // P1 Lion moves to the final rank
 
     const dialog = page.getByRole("dialog", { name: "おかしチームのかち！" });
