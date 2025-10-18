@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useState } from 'react';
 import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState, Position } from '@/core/types/game';
 import { 
   GameState, 
@@ -17,6 +17,7 @@ interface ConcentrationGameState extends BaseGameState {
   flippedIndices: GameState['flippedIndices'];
   revealedIndices: GameState['revealedIndices'];
   hintedIndices: GameState['hintedIndices'];
+  newlyMatchedIndices: number[]; // For match animation
   gameStatus: GameState['status'];
   difficulty: Difficulty;
   // ヒント関連
@@ -28,7 +29,8 @@ type ConcentrationAction =
   | { type: 'CLEAR_NON_MATCHING' }
   | { type: 'RESET_GAME'; difficulty?: Difficulty }
   | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
-  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty };
+  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
+  | { type: 'CLEAR_NEWLY_MATCHED' };
 
 function createInitialConcentrationState(difficulty: Difficulty = 'easy'): ConcentrationGameState {
   const coreState = createInitialState(difficulty);
@@ -39,6 +41,7 @@ function createInitialConcentrationState(difficulty: Difficulty = 'easy'): Conce
     flippedIndices: coreState.flippedIndices,
     revealedIndices: coreState.revealedIndices,
     hintedIndices: coreState.hintedIndices,
+    newlyMatchedIndices: [],
     gameStatus: coreState.status,
     difficulty,
     // BaseGameState required fields
@@ -67,8 +70,12 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
                 state.winner === 'player2' ? 2 : null,
       };
       
+      const previousScores = { ...coreState.scores };
       const newCoreState = handleCardClickCore(coreState, action.index);
       
+      const currentPlayerId = state.currentPlayer as keyof typeof state.scores;
+      const wasMatched = newCoreState.scores[currentPlayerId] > previousScores[currentPlayerId];
+
       return {
         ...state,
         board: newCoreState.board,
@@ -77,8 +84,8 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
         flippedIndices: newCoreState.flippedIndices,
         revealedIndices: newCoreState.revealedIndices,
         hintedIndices: newCoreState.hintedIndices,
+        newlyMatchedIndices: wasMatched ? state.flippedIndices.concat(action.index) : [],
         gameStatus: newCoreState.status,
-        // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'game_over' ? 'ended' : 'playing',
         winner: newCoreState.winner === 'draw' ? 'DRAW' : 
                 newCoreState.winner === 1 ? 'player1' :
@@ -111,7 +118,6 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
         revealedIndices: newCoreState.revealedIndices,
         hintedIndices: newCoreState.hintedIndices,
         gameStatus: newCoreState.status,
-        // BaseGameState必須フィールドを明示的に更新
         status: newCoreState.status === 'game_over' ? 'ended' : 'playing',
         winner: newCoreState.winner === 'draw' ? 'DRAW' : 
                 newCoreState.winner === 1 ? 'player1' :
@@ -135,6 +141,12 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
         status: 'playing' as GameStatus,
       };
     }
+
+    case 'CLEAR_NEWLY_MATCHED':
+      return {
+        ...state,
+        newlyMatchedIndices: [],
+      };
     
     default:
       return state;
@@ -155,15 +167,18 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     getFlippedIndices: () => number[];
     getRevealedIndices: () => number[];
     getHintedIndices: () => number[];
+    getNewlyMatchedIndices: () => number[];
     getBoard: () => GameState['board'];
     getDifficulty: () => Difficulty;
     // ゲーム状態チェック
+    isAnimating: () => boolean;
     isGameStarted: () => boolean;
     isEvaluating: () => boolean;
   };
 
 export function useConcentration(initialDifficulty: Difficulty = 'easy'): ConcentrationController {
   const [gameState, dispatch] = useReducer(concentrationReducer, createInitialConcentrationState(initialDifficulty));
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // ログ機能
   const logger = useGameStateLogger('useConcentration', gameState, {
@@ -180,11 +195,25 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     if (gameState.gameStatus === 'evaluating') {
       const timeoutId = setTimeout(() => {
         logger.log('AUTO_CLEAR_NON_MATCHING', { flippedIndices: gameState.flippedIndices });
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), 600); // フリップバックアニメーションの時間
         dispatch({ type: 'CLEAR_NON_MATCHING' });
       }, 1200); // 1.2秒待ってからカードを裏返す
       return () => clearTimeout(timeoutId);
     }
   }, [gameState.gameStatus, gameState.flippedIndices, logger]);
+
+  // マッチしたカードのハイライトを自動で消す
+  useEffect(() => {
+    if (gameState.newlyMatchedIndices.length > 0) {
+      setIsAnimating(true);
+      const timeoutId = setTimeout(() => {
+        dispatch({ type: 'CLEAR_NEWLY_MATCHED' });
+        setIsAnimating(false);
+      }, 500); // 0.5秒後にハイライトを消す
+      return () => clearTimeout(timeoutId);
+    }
+  }, [gameState.newlyMatchedIndices]);
 
   const resetGame = useCallback((difficulty?: Difficulty) => {
     try {
@@ -196,30 +225,24 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   }, [gameState.difficulty, logger]);
 
   const handleCardClick = useCallback((index: number) => {
-    // 評価中はクリックを無視
-    if (gameState.gameStatus === 'evaluating') {
-      try {
-        logger.log('CARD_CLICK_IGNORED_EVALUATING', { index });
-      } catch (error) {
-        console.warn('Logger error:', error);
-      }
+    if (isAnimating || gameState.gameStatus === 'evaluating') {
+      logger.log('CARD_CLICK_IGNORED_ANIMATING', { index, isAnimating, gameStatus: gameState.gameStatus });
       return;
     }
     
-    try {
-      logger.log('CARD_CLICK_CALLED', { 
-        index, 
-        currentPlayer: gameState.currentPlayer, 
-        hintsEnabled: gameState.hintsEnabled,
-        flippedCount: gameState.flippedIndices.length,
-        isCardFlipped: gameState.board[index]?.isFlipped,
-        isCardMatched: gameState.board[index]?.isMatched
-      });
-    } catch (error) {
-      console.warn('Logger error:', error);
-    }
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 600); // Flip animation duration
+
+    logger.log('CARD_CLICK_CALLED', {
+      index,
+      currentPlayer: gameState.currentPlayer,
+      hintsEnabled: gameState.hintsEnabled,
+      flippedCount: gameState.flippedIndices.length,
+      isCardFlipped: gameState.board[index]?.isFlipped,
+      isCardMatched: gameState.board[index]?.isMatched
+    });
     dispatch({ type: 'CARD_CLICK', index });
-  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.flippedIndices.length, gameState.gameStatus, gameState.board, logger]);
+  }, [isAnimating, gameState, logger]);
 
   const clearNonMatchingCards = useCallback(() => {
     logger.log('CLEAR_NON_MATCHING_CALLED', {});
@@ -266,6 +289,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   const getFlippedIndices = useCallback(() => gameState.flippedIndices, [gameState.flippedIndices]);
   const getRevealedIndices = useCallback(() => gameState.revealedIndices, [gameState.revealedIndices]);
   const getHintedIndices = useCallback(() => gameState.hintedIndices, [gameState.hintedIndices]);
+  const getNewlyMatchedIndices = useCallback(() => gameState.newlyMatchedIndices, [gameState.newlyMatchedIndices]);
   const getBoard = useCallback(() => gameState.board, [gameState.board]);
   const getDifficulty = useCallback(() => gameState.difficulty, [gameState.difficulty]);
 
@@ -280,6 +304,8 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     return gameState.gameStatus === 'evaluating';
   }, [gameState.gameStatus]);
 
+  const isAnimatingAccessor = useCallback(() => isAnimating, [isAnimating]);
+
   return {
     gameState,
     dispatch,
@@ -292,8 +318,10 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getFlippedIndices,
     getRevealedIndices,
     getHintedIndices,
+    getNewlyMatchedIndices,
     getBoard,
     getDifficulty,
+    isAnimating: isAnimatingAccessor,
     isGameStarted,
     isEvaluating,
     // HintableGameController
