@@ -38,3 +38,89 @@
     *   AIが生成したシーケンスが期待通りに動作しない場合、AIがデバッグ情報を提示し、人間がその情報に基づいて次のヒントや修正指示を与える、というインタラクティブなデバッグサイクルを確立する。
 
 これらの改善は、AIがゲームのような複雑なロジックを持つアプリケーションのテストをより効率的かつ正確に自動化するために不可欠です。特に、視覚的なデバッグ情報と、ゲームロジックから提供される「有効な手」の情報をAIが活用できるようになれば、自律的なテストシーケンスの構築能力が大きく向上するでしょう。
+
+#### 参考情報: ブラウザで発生させたコンソールエラーについて、PlaywrightのE2Eテスト実行中に検出するために必要だった作業メモ
+
+  作業手順：ブラウザのコンソールエラーを確認する
+
+  このタスクにおいて、PlaywrightのE2Eテスト実行中に発生するブラウザのコンソールエラー（特にconsole.err
+  or）を捕捉し、テスト出力に表示させるために以下の作業が必要でした。
+
+  問題点:
+  Playwrightのデフォルト設定では、テスト対象アプリケーションのブラウザコンソールで発生したconsole.erro
+  rが、Playwrightのテスト実行ログに直接表示されない場合があります。また、Next.jsアプリケーションの場合
+  、サーバーサイドで発生したログはwebserver.logにリダイレクトしない限り、Playwrightのテスト出力には表
+  示されません。
+
+  対応手順:
+
+   1. `playwright.config.ts` の `webServer` 設定の変更:
+       * テスト対象のNext.jsアプリケーションが起動する際の標準出力・標準エラー出力をファイルにリダイレク
+         トするように設定を変更しました。
+       * これにより、サーバーサイドで発生するログ（console.log,
+         console.errorなど）をファイルで確認できるようになります。
+
+    1     // playwright.config.ts
+    2     import { defineConfig, devices } from '@playwright/test';
+    3 
+    4     export default defineConfig({
+    5       // ...その他の設定
+    6       webServer: {
+    7         command: 'npm run dev > webserver.log 2>&1', // ここを変更
+    8         url: 'http://localhost:3000',
+    9         reuseExistingServer: false,
+   10       },
+   11     });
+
+   2. テストファイル (`.spec.ts`) にコンソールエラーリスナーを追加:
+       * Playwrightの page.on('console', ...) イベントリスナーを使用して、ブラウザコンソールで発生するメ
+         ッセージ（特にエラー）を捕捉し、テスト実行ログに明示的に出力するようにしました。
+       * これにより、クライアントサイドで発生する console.error をテスト出力で確認できるようになります。
+
+    1     // 例: src/games/animal-chess/e2e/animal-chess.spec.ts
+    2     test.beforeEach(async ({ page }) => {
+    3       page.on('console', msg => {
+    4         if (msg.type() === 'error') {
+    5           console.error(`Browser console error: ${msg.text()}`);
+    6         }
+    7       });
+    8       await page.goto("/games/animal-chess");
+    9       await expect(page).toHaveTitle(/アニマルチェス/);
+   10     });
+
+   3. アプリケーションコード (`.ts` / `.tsx`) にデバッグログを追加:
+       * ゲームロジックや状態管理のコード（例: src/games/animal-chess/core.ts,
+         src/games/animal-chess/useAnimalChess.ts）に、問題発生箇所を特定するための console.log や
+         console.error を追加しました。
+       * 特に、無効な操作が発生した際に、その理由を示すエラーメッセージを lastMove
+         オブジェクトに含めるように core.ts を一時的に変更し、useAnimalChess.ts でそのエラーを
+         console.error で出力するようにしました。
+
+    1     // 例: src/games/animal-chess/core.ts (変更箇所の一部)
+    2     export function movePiece(state: GameState, from: { row: number, col: number }, to: {
+      row: number, col: number }): GameState {
+    3         // ...
+    4         if (!isValidMove) {
+    5             return { ...state, lastMove: { piece: pieceToMove, from, to, error: `Invalid 
+      move for ${pieceToMove.type}` } };
+    6         }
+    7         // ...
+    8     }
+    9 
+   10     // 例: src/games/animal-chess/useAnimalChess.ts (変更箇所の一部)
+   11     function animalChessReducer(state: AnimalChessGameState, action: AnimalChessAction):
+      AnimalChessGameState {
+   12       // ...
+   13       case 'CELL_CLICK': {
+   14         // ...
+   15         const newCoreState = handleCellClickCore(coreState, action.row, action.col);
+   16         if (newCoreState.lastMove?.error) {
+   17           console.error('[Debug] Invalid move:', newCoreState.lastMove.error);
+   18         }
+   19         // ...
+   20       }
+   21       // ...
+   22     }
+
+  これらの作業により、Playwrightのテスト出力や webserver.log を通じて、ブラウザのコンソールエラーやア
+  プリケーション内部のエラーメッセージを詳細に確認できるようになり、問題の特定と解決に繋がりました。
