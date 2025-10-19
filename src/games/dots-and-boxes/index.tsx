@@ -132,7 +132,7 @@ const Line = memo(function Line({
   return (
     <div
       style={lineStyle}
-      onClick={owner ? undefined : onSelect}
+      onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       data-testid={`${type}-line-${r}-${c}`}

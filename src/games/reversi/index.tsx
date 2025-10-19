@@ -71,6 +71,13 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
   const handleCellClick = async (r: number, c: number) => {
     const moveKey = `${r},${c}`;
     const stonesToFlip = controller.gameState.validMoves.get(moveKey);
+
+    // If the move is invalid, just call the controller and return.
+    if (!stonesToFlip) {
+      controller.makeMove(r, c);
+      return;
+    }
+
     if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
 
     logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.hintState.enabled, hasValidMove: !!stonesToFlip });

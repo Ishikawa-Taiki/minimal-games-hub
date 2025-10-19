@@ -82,6 +82,7 @@ export const selectLine = (
 
   const line = type === 'h' ? hLines[r][c] : vLines[r][c];
   if (line.owner) {
+    console.error(`Invalid action: Line (${type}, ${r}, ${c}) has already been selected.`);
     return state; // 既に引かれた線は選択不可
   }
 

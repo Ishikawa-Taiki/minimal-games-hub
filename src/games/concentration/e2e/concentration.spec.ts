@@ -49,4 +49,26 @@ test.describe("神経衰弱ゲーム", () => {
     expect(newBoundingBox.width).toBe(initialBoundingBox.width);
     expect(newBoundingBox.height).toBe(initialBoundingBox.height);
   });
+
+  test("無効な操作（3枚目のカードをクリック）でコンソールエラーが出力される", async ({ page }) => {
+    // 難易度を選択してゲーム開始
+    await page.getByTestId("difficulty-easy").click();
+
+    const consoleMessagePromise = new Promise<string>((resolve) => {
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          resolve(msg.text());
+        }
+      });
+    });
+
+    // 1枚目、2枚目のカードをクリック
+    await page.locator('[data-testid="card-0"]').click();
+    await page.locator('[data-testid="card-1"]').click();
+    // 3枚目のカードをクリック
+    await page.locator('[data-testid="card-2"]').click();
+
+    const errorMessage = await consoleMessagePromise;
+    expect(errorMessage).toBe('Invalid action: Cannot flip more than two cards at a time.');
+  });
 });

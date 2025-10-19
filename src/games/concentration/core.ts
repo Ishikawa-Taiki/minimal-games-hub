@@ -127,12 +127,16 @@ export function createInitialState(difficulty: Difficulty = 'easy'): GameState {
 }
 
 export function handleCardClick(currentState: GameState, cardIndex: number): GameState {
-  // 不正な操作は無視
-  if (
-    currentState.flippedIndices.length >= 2 ||
-    currentState.board[cardIndex].isFlipped ||
-    currentState.board[cardIndex].isMatched
-  ) {
+  if (currentState.flippedIndices.length >= 2) {
+    console.error('Invalid action: Cannot flip more than two cards at a time.');
+    return currentState;
+  }
+  if (currentState.board[cardIndex].isFlipped) {
+    console.error('Invalid action: Cannot click a card that is already flipped.');
+    return currentState;
+  }
+  if (currentState.board[cardIndex].isMatched) {
+    console.error('Invalid action: Cannot click a card that is already matched.');
     return currentState;
   }
 

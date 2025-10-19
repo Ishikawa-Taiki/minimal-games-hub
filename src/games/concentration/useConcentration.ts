@@ -196,16 +196,6 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
   }, [gameState.difficulty, logger]);
 
   const handleCardClick = useCallback((index: number) => {
-    // 評価中はクリックを無視
-    if (gameState.gameStatus === 'evaluating') {
-      try {
-        logger.log('CARD_CLICK_IGNORED_EVALUATING', { index });
-      } catch (error) {
-        console.warn('Logger error:', error);
-      }
-      return;
-    }
-    
     try {
       logger.log('CARD_CLICK_CALLED', { 
         index, 
@@ -219,7 +209,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
       console.warn('Logger error:', error);
     }
     dispatch({ type: 'CARD_CLICK', index });
-  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.flippedIndices.length, gameState.gameStatus, gameState.board, logger]);
+  }, [gameState.currentPlayer, gameState.hintsEnabled, gameState.flippedIndices.length, gameState.board, logger]);
 
   const clearNonMatchingCards = useCallback(() => {
     logger.log('CLEAR_NON_MATCHING_CALLED', {});
