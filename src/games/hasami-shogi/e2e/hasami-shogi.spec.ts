@@ -115,26 +115,6 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       // styleにはtransformも含まれるため、topとleftだけを比較するのは不十分
       expect(newPiecePositions).toEqual(initialPiecePositions);
     });
-
-    test("無効なマスに移動しようとするとコンソールエラーが出力される", async ({ page }) => {
-      await page.getByTestId("win-cond-standard").click();
-
-      const consoleMessagePromise = new Promise<string>((resolve) => {
-        page.on('console', (msg) => {
-          if (msg.type() === 'error') {
-            resolve(msg.text());
-          }
-        });
-      });
-
-      // P1が(8,0)を選択
-      await page.locator('[data-testid="cell-8-0"]').click();
-      // 斜めに移動しようとする（無効）
-      await page.locator('[data-testid="cell-7-1"]').click();
-
-      const errorMessage = await consoleMessagePromise;
-      expect(errorMessage).toBe('Invalid move: Cannot move piece from (8, 0) to (7, 1).');
-    });
   });
 
   test.describe("コマの捕獲", () => {

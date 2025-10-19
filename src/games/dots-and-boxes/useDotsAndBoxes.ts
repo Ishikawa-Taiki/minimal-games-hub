@@ -129,6 +129,9 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
 
   const handleLineSelection = useCallback(
     (r: number, c: number, type: 'h' | 'v') => {
+      const line = type === 'h' ? gameState.hLines[r][c] : gameState.vLines[r][c];
+      if (line.owner) return;
+
       if (!gameState.hintsEnabled) {
         dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
         return;

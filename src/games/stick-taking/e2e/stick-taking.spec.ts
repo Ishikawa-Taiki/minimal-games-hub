@@ -114,22 +114,4 @@ test.describe("棒消しゲーム", () => {
     await expect(row4.getByText("5")).not.toBeVisible();
     await expect(groups.nth(0).getByText("2")).not.toBeVisible();
   });
-
-  test("無効な操作（棒を選ばずに取る）でコンソールエラーが出力される", async ({ page }) => {
-    await page.getByRole("button", { name: "かんたん (3だん)" }).click();
-
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
-      });
-    });
-
-    // 棒を選ばずに「とる」ボタンをクリック
-    await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
-
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid action: Cannot take 0 sticks.');
-  });
 });

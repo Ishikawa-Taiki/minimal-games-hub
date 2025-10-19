@@ -192,20 +192,4 @@ test.describe("リバーシゲームのE2Eテスト", () => {
       .textContent();
     expect(historyCounter5).toBe("3 / 3");
   });
-
-  test("無効なセルをクリックするとコンソールエラーが出力される", async ({ page }) => {
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
-      });
-    });
-
-    // (0,0)は初期状態では置けない
-    await page.locator('[data-testid="cell-0-0"]').click();
-
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid move: Cannot place a stone at (0, 0).');
-  });
 });

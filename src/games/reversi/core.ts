@@ -67,16 +67,7 @@ export function createInitialState(): GameState {
 }
 
 export function handleCellClick(currentState: GameState, r: number, c: number): GameState | null {
-  if (currentState.gameStatus === 'GAME_OVER') {
-    console.error('Invalid action: The game is already over.');
-    return null;
-  }
-  if (currentState.board[r][c] !== null) {
-    console.error(`Invalid action: Cell (${r}, ${c}) is already occupied.`);
-    return null;
-  }
-  if (!currentState.validMoves.has(`${r},${c}`)) {
-    console.error(`Invalid move: Cannot place a stone at (${r}, ${c}).`);
+  if (currentState.gameStatus === 'GAME_OVER' || !currentState.validMoves.has(`${r},${c}`)) {
     return null;
   }
 

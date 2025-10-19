@@ -97,6 +97,7 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
                 ...getPlayerMarkStyle(cell),
               }}
               onClick={() => handleClick(row, col)}
+              disabled={!!cell || !!gameState.winner || gameState.isDraw}
             >
               {cell ? (cell === 'O' ? '○' : '×') : (
                 hintState.enabled && potentialLines !== null && (

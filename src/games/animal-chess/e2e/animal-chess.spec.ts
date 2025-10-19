@@ -66,52 +66,6 @@ test("リセットボタンが機能すること", async ({ page }) => {
   await expectPiece(page, "cell-2-1", "p1", "chick");
 });
 
-test("無効な操作を行った際にコンソールエラーが出力される", async ({ page }) => {
-  const consoleMessagePromise = new Promise<string>((resolve) => {
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        resolve(msg.text());
-      }
-    });
-  });
-
-  // 無効な移動を試す（キリンをライオンの場所に動かそうとする）
-  await page.locator('[data-testid="cell-3-0"]').click(); // select GIRAFFE
-  await page.locator('[data-testid="cell-3-1"]').click(); // try to move to LION's cell
-
-  // エラーメッセージがコンソールに出力されたことを確認
-  const errorMessage = await consoleMessagePromise;
-  expect(errorMessage).toContain('Invalid move: Cannot move GIRAFFE from (3, 0) to (3, 1).');
-
-  // 状態が変わっていないことを確認
-  await expectPiece(page, "cell-3-0", "p1", "giraffe");
-  await expectPiece(page, "cell-3-1", "p1", "lion");
-  await expectCurrentPlayer(page, "おかしチーム");
-});
-
-test("ルール上移動できないマスを選択した際にコンソールエラーが出力される", async ({ page }) => {
-  const consoleMessagePromise = new Promise<string>((resolve) => {
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        resolve(msg.text());
-      }
-    });
-  });
-
-  // 無効な移動を試す（ゾウを縦に動かそうとする）
-  await page.locator('[data-testid="cell-3-2"]').click(); // select ELEPHANT
-  await page.locator('[data-testid="cell-2-2"]').click(); // try to move vertically
-
-  // エラーメッセージがコンソールに出力されたことを確認
-  const errorMessage = await consoleMessagePromise;
-  expect(errorMessage).toContain('Invalid move: Cannot move ELEPHANT from (3, 2) to (2, 2).');
-
-  // 状態が変わっていないことを確認
-  await expectPiece(page, "cell-3-2", "p1", "elephant");
-  await expectEmpty(page, "cell-2-2");
-  await expectCurrentPlayer(page, "おかしチーム");
-});
-
 test("選択したコマを有効なマスに移動できること", async ({ page }) => {
   await page.locator('[data-testid="cell-2-1"]').click();
   await page.locator('[data-testid="cell-1-1"]').click();

@@ -106,12 +106,7 @@ export function selectStick(
   const stick = rows[rowIndex]?.find(s => s.id === stickId);
 
   // 選択されたスティックが存在しない、または既に取られている場合は何もしない
-  if (!stick) {
-    console.error(`Invalid action: Stick with id ${stickId} at row ${rowIndex} does not exist.`);
-    return currentState;
-  }
-  if (stick.isTaken) {
-    console.error(`Invalid action: Stick at row ${rowIndex}, id ${stickId} has already been taken.`);
+  if (!stick || stick.isTaken) {
     return currentState;
   }
 
@@ -186,7 +181,6 @@ export function handleTakeSticks(currentState: GameState): GameState {
   const { rows, currentPlayer, selectedSticks } = currentState;
 
   if (selectedSticks.length === 0) {
-    console.error('Invalid action: Cannot take 0 sticks.');
     return currentState; // No move made
   }
 
