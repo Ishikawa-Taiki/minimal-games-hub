@@ -50,6 +50,32 @@ test.describe("Tic-Tac-Toe Game", () => {
     expect(status2).toBe("○のばん");
   });
 
+  test("should log an error when clicking on a marked cell", async ({ page }) => {
+    await page.getByTestId("cell-0-0").click(); // O's turn
+
+    const consoleMessagePromise = new Promise<string>((resolve) => {
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+          resolve(msg.text());
+        }
+      });
+    });
+
+    await page.getByTestId("cell-0-0").click(); // X's turn, invalid move
+
+    const errorMessage = await consoleMessagePromise;
+    expect(errorMessage).toBe('Invalid action: Cell (0, 0) is already marked.');
+
+    // Ensure the game state hasn't changed incorrectly
+    const cell00 = await page.getByTestId("cell-0-0").textContent();
+    expect(cell00).toBe("○");
+    const status = await page
+      .getByTestId("game-state-display")
+      .locator("p")
+      .textContent();
+    expect(status).toBe("×のばん");
+  });
+
   test("should declare a winner", async ({ page }) => {
     await page.getByTestId("cell-0-0").waitFor();
     await page.getByTestId("cell-0-0").click(); // O

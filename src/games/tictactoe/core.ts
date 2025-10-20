@@ -85,8 +85,13 @@ export function checkAllReachingLines(board: Board): { index: number, player: Pl
 }
 
 export function handleCellClick(currentState: GameState, row: number, col: number): GameState | null {
-  if (currentState.board[row][col] !== null || currentState.winner || currentState.isDraw) {
-    return null; // Invalid move
+  if (currentState.winner || currentState.isDraw) {
+    console.error('Invalid action: The game is already over.');
+    return null;
+  }
+  if (currentState.board[row][col] !== null) {
+    console.error(`Invalid action: Cell (${row}, ${col}) is already marked.`);
+    return null;
   }
 
   const newBoard = currentState.board.map((r) => [...r]);

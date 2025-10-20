@@ -288,7 +288,10 @@ function checkWinCondition(
 
 export function handleCellClick(currentState: GameState, r: number, c: number): GameState {
   const { board, currentPlayer, gameStatus, selectedPiece } = currentState;
-  if (gameStatus === 'GAME_OVER') return currentState;
+  if (gameStatus === 'GAME_OVER') {
+    console.error('Invalid action: The game is already over.');
+    return currentState;
+  }
 
   if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
     return { ...currentState, selectedPiece: null, validMoves: new Map(), potentialCaptures: [], lastMove: null, justCapturedPieces: [] };
@@ -347,6 +350,8 @@ export function handleCellClick(currentState: GameState, r: number, c: number): 
         justCapturedPieces: captured,
       };
       return nextState;
+    } else {
+      console.error(`Invalid move: Cannot move piece from (${selectedPiece.r}, ${selectedPiece.c}) to (${r}, ${c}).`);
     }
   }
 

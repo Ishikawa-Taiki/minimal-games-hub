@@ -225,15 +225,17 @@ function checkWinner(board: Board, mover: Player): WinResult {
     return { status: 'playing', reason: null };
 }
 
-export function movePiece(state: GameState, from: { row: number, col: number }, to: { row: number, col: number }): GameState {
+export function movePiece(state: GameState, from: { row: number, col: number }, to: { row: number, col: number }): GameState | null {
     const pieceToMove = state.board[from.row][from.col];
     if (!pieceToMove || pieceToMove.owner !== state.currentPlayer) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid move: No movable piece at (${from.row}, ${from.col}).`);
+        return null;
     }
 
     const isValidMove = getValidMoves(state, from.row, from.col).some(m => m.row === to.row && m.col === to.col);
     if (!isValidMove) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid move: Cannot move ${pieceToMove.type} from (${from.row}, ${from.col}) to (${to.row}, ${to.col}).`);
+        return null;
     }
 
     const newBoard = state.board.map(row => [...row]);
@@ -274,20 +276,23 @@ export function movePiece(state: GameState, from: { row: number, col: number }, 
 }
 
 
-export function dropPiece(state: GameState, player: Player, pieceType: PieceType, to: { row: number, col: number }): GameState {
+export function dropPiece(state: GameState, player: Player, pieceType: PieceType, to: { row: number, col: number }): GameState | null {
     if (state.board[to.row][to.col] !== null) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid drop: Cell (${to.row}, ${to.col}) is already occupied.`);
+        return null;
     }
 
     const captureIndex = state.capturedPieces[player].indexOf(pieceType);
     if (captureIndex === -1) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid drop: Player ${player} does not have a captured ${pieceType}.`);
+        return null;
     }
 
     // ひよこは相手の最終段に置くことはできない。
     const finalRank = player === OKASHI_TEAM ? 0 : BOARD_ROWS - 1;
     if (pieceType === CHICK && to.row === finalRank) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid drop: CHICK cannot be dropped on the final rank.`);
+        return null;
     }
 
     const newBoard = state.board.map(row => [...row]);
@@ -318,7 +323,8 @@ export function dropPiece(state: GameState, player: Player, pieceType: PieceType
 
 export function handleCellClick(state: GameState, row: number, col: number): GameState {
     if (state.status !== 'playing') {
-        return { ...state, lastMove: null };
+        console.error('Invalid action: The game is already over.');
+        return state;
     }
 
     const { selectedCell, selectedCaptureIndex, currentPlayer } = state;
@@ -338,7 +344,8 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
         }
 
         const pieceType = state.capturedPieces[selectedCaptureIndex.player][selectedCaptureIndex.index];
-        return dropPiece(state, currentPlayer, pieceType, { row, col });
+        const newState = dropPiece(state, currentPlayer, pieceType, { row, col });
+        return newState ?? state;
     }
 
     // 2. 盤上の駒を選択中の場合：駒を移動させるか、選択を変更する
@@ -348,14 +355,17 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
             return { ...state, selectedCell: null, selectedCaptureIndex: null, lastMove: null };
         }
 
-        const clickedPiece = state.board[row][col];
-        // 別の自分の駒をクリックした場合、選択対象をそちらに変更する
-        if (clickedPiece && clickedPiece.owner === currentPlayer) {
-            return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
-        }
-
         // 駒の移動を試みる
-        return movePiece(state, selectedCell, { row, col });
+        const newState = movePiece(state, selectedCell, { row, col });
+
+        if (newState === null) {
+          const clickedPiece = state.board[row][col];
+          // 別の自分の駒をクリックした場合、選択対象をそちらに変更する
+          if (clickedPiece && clickedPiece.owner === currentPlayer) {
+              return { ...state, selectedCell: { row, col }, selectedCaptureIndex: null, lastMove: null };
+          }
+        }
+        return newState ?? state;
     }
 
     // 3. 何も選択していない場合：盤上の駒を選択する
@@ -365,11 +375,13 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
     }
 
     // 何も選択していない状態で、空のマスか相手の駒をクリックした場合
-    return { ...state, lastMove: null };
+    console.error(`Invalid selection: Cannot select cell (${row}, ${col}) as it is empty or belongs to the opponent.`);
+    return state;
 }
 export function handleCaptureClick(state: GameState, player: Player, index: number): GameState {
     if (state.status !== 'playing' || player !== state.currentPlayer) {
-        return { ...state, lastMove: null };
+        console.error(`Invalid action: Cannot select captured piece when game is over or it is not your turn.`);
+        return state;
     }
 
     // すでに選択されている持ち駒を再度クリックした場合は選択を解除する
