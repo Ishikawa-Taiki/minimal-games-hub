@@ -36,13 +36,13 @@
 5.  **手番の交代:**
     -   勝利が確定しなかった場合、手番を相手プレイヤーに交代します。
 
-## 4. 不正な操作への対応
-プレイヤーがルール上許可されていない操作を行った場合、システムはその操作を無視してゲームの状態を一切変更せず、ブラウザのコンソールに`console.error`を出力します。
-- **例:**
-  - 自分の手番ではないときにコマを動かそうとする (`[Action] Invalid piece selected: piece is not owned by current player`)
-  - 斜めに動かそうとしたり、他のコマを飛び越えようとする (`[Action] Invalid move`)
-  - コマのないマスを選択する (`[Action] Invalid cell selected: cell is empty`)
-  - 自分のコマが選択されていない状態で、空のマスや相手のコマがあるマスを選択する (`[Action] Invalid cell selected: no piece is selected`)
+## 4. 無効な操作とコンソールエラー
+プレイヤーがルール上許可されていない操作を行った場合、システムはその操作を無視してゲームの状態を変更せず、開発者コンソールにエラーメッセージを出力します。
+
+| シナリオ | コンソールエラーメッセージ |
+| :--- | :--- |
+| ゲームが終了した後に操作しようとする | `Invalid action: The game is already over.` |
+| 選択した駒を、ルール上移動できないマス（他の駒を飛び越える、斜めに移動するなど）に移動しようとする | `Invalid move: Cannot move piece from (<from_r>, <from_c>) to (<to_r>, <to_c>).` |
 
 ---
 ## 本資料で定義すべきこと
