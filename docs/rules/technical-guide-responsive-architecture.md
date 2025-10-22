@@ -108,7 +108,7 @@
 -   **`BaseGameController`:** すべてのゲームコントローラーが準拠すべき共通インターフェース。`gameState`, `resetGame`, `getDisplayStatus`, `getScoreInfo`などが定義されています。
 -   **`ScoreInfo`:** `getScoreInfo`メソッドが返すスコア/統計情報のデータ構造。
 
-新しいゲームを実装する際は、これらの共通型を継承し、ゲーム固有の状態やアクションを追加します。詳細は`technical-guide-application-architecture.md`を参照してください。
+新しいゲームを実装する際は、これらの共通型を継承し、ゲーム固有の状態やアクションを追加します。詳細は`technical-guide-architecture.md`を参照してください。
 
 ## 5. 実装ガイドライン
 

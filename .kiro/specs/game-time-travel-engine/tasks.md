@@ -158,7 +158,7 @@
 ### 7. ドキュメント更新と最終検証
 
 - [ ] 7.1 技術ドキュメントの更新
-  - technical-guide-application-architecture.md の更新
+  - technical-guide-architecture.md の更新
   - 新しい状態管理パターンの説明追加
   - 移行ガイドの作成
   - _要件: 3.1_

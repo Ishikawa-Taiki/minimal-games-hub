@@ -94,7 +94,7 @@ interface YourGameProps {
 ## 関連ドキュメント
 
 - `docs/rules/technical-guide-common-components.md` - 新規作成
-- `docs/rules/technical-guide-application-architecture.md` - 更新
+- `docs/rules/technical-guide-architecture.md` - 更新
 - `GEMINI.md` - 参照トリガー追加
 
 ## 今後のアクション
