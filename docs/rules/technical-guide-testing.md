@@ -2,7 +2,7 @@
 
 ## 概要
 
-このプロジェクトでは、品質保証のために3層のテスト戦略を採用しています。
+このプロジェクトでは、品質保証のために3層のテスト戦略を採用しています。また、ドキュメントを仕様書として活用する仕様駆動開発 (TDD) を推奨し、テスト・実装・ドキュメントの一貫性を保証します。
 
 ## テスト構成
 
@@ -26,20 +26,6 @@ npm run test:unit -- <path>    # 特定ファイルのテスト実行
 - `*.test.ts` または `*.test.tsx`
 - テスト対象ファイルと同じディレクトリに配置
 
-**例**:
-```typescript
-// games/reversi/useReversi.test.ts
-import { renderHook, act } from '@testing-library/react';
-import { useReversi } from './useReversi';
-
-describe('useReversi Hook', () => {
-  it('初期状態が正しく設定される', () => {
-    const { result } = renderHook(() => useReversi());
-    expect(result.current.gameState.currentPlayer).toBe('BLACK');
-  });
-});
-```
-
 ### 2. E2Eテスト (Playwright)
 
 **目的**: 実際のユーザー操作フローの統合動作保証
@@ -47,6 +33,7 @@ describe('useReversi Hook', () => {
 **対象**:
 - ページ全体の動作
 - ユーザーインタラクション
+- 無効な操作に対するコンソールエラーの検証
 - レスポンシブデザイン
 - ブラウザ間の互換性
 
@@ -65,18 +52,6 @@ npm run test:e2e -- <spec>     # 特定specファイルの実行
   - `tests/*.spec.ts`
   - 特定のゲームに依存しない、共通機能（ナビゲーション等）のテストを配置します。
 
-**例**:
-```typescript
-// src/games/reversi/e2e/reversi.spec.ts
-test('履歴機能が正しく動作する', async ({ page }) => {
-  await page.goto('/games/reversi');
-  await page.locator('[data-testid="cell-2-3"]').click();
-
-  const counter = await page.locator('[data-testid="history-counter"]').textContent();
-  expect(counter).toBe('2 / 2');
-});
-```
-
 ### 3. 静的解析・品質チェック
 
 **目的**: コード品質とライセンス適合性の保証
@@ -92,6 +67,139 @@ npm run test:lint              # ESLint実行
 npm run test:license           # ライセンスチェック
 npm test                       # 全テスト実行
 ```
+
+## 仕様駆動開発 (TDD) による品質保証
+
+ゲームの安定性とデバッグ容易性を向上させるため、特にユーザーによる無効な操作は、仕様書駆動（ドキュメント駆動）のテストファーストアプローチで開発します。
+
+1.  **仕様定義 (`spec-action.md`)**:
+    -   新機能や修正に着手する前に、まず各ゲームの`spec-action.md`に、無効な操作の仕様を定義します。
+    -   仕様には、どのような操作が無効であり、その際にどのような`console.error`メッセージが出力されるべきかを、以下の表形式で明記します。
+
+| シナリオ | コンソールエラーメッセージ |
+| :--- | :--- |
+| （ここに具体的な操作シナリオを記述） | `（ここに出力されるエラーメッセージを記述）` |
+
+2.  **E2Eテストによる仕様の検証**:
+    -   次に、`spec-action.md`に定義した仕様を検証するためのE2Eテストを先行して実装します。
+    -   Playwrightの`page.on('console', ...)`を用いてコンソール出力を監視し、仕様書通りのエラーメッセージが出力されることをアサートします。この時点では、実装がまだなのでテストは失敗します。
+
+3.  **コアロジックとUIの実装**:
+    - 失敗するE2Eテストを成功させるために、コアロジック(`core.ts`)を実装します。
+        - コアロジックは、無効な操作を検知した場合、状態を変更せずに仕様書通りの`console.error`メッセージを出力します。
+    - UI層（コンポーネントやフック）は、ユーザーの入力をブロックせず、常にコアロジックに伝達します。UI上での`disabled`属性の使用などは原則として行いません。
+    - 実装後、E2Eテストが成功することを確認します。
+
+この「仕様書 → E2Eテスト → 実装」というサイクルにより、ドキュメント、テスト、実装の三者が常に一致する状態を維持します。
+
+## テスト作成ガイドライン
+
+### ユニットテスト
+
+**コアロジックテスト**:
+```typescript
+// games/reversi/core.test.ts
+describe('Reversi Core Logic', () => {
+  it('ゲームが正しく初期化されることを確認', () => {
+    const gameState = createInitialState();
+    expect(gameState.currentPlayer).toBe('BLACK');
+    expect(gameState.scores.BLACK).toBe(2);
+  });
+});
+```
+
+**カスタムフックテスト**:
+```typescript
+// games/reversi/useReversi.test.ts
+describe('useReversi Hook', () => {
+  it('履歴機能が動作する', () => {
+    const { result } = renderHook(() => useReversi());
+
+    act(() => {
+      result.current.makeMove(2, 3);
+    });
+
+    expect(result.current.gameHistory.length).toBe(2);
+  });
+});
+```
+
+### 機能別テスト要件
+
+#### 履歴機能のテスト要件
+E2Eテストで以下の項目を検証します。
+1. **初期状態**: 履歴カウンターが「1 / 1」であり、履歴操作ボタンが無効化されている。
+2. **手番実行**: 手番を実行すると、履歴カウンターが更新され、「戻る」ボタンが有効化される。
+3. **履歴操作**:
+   - 「戻る」「進む」機能が正しく動作する。
+   - 「最初へ」「最後へ」機能が正しく動作する。
+   - 履歴カウンターの表示が正確に更新される。
+4. **状態復元**: 履歴を移動した際に、盤面・スコア・手番などのゲーム状態が正確に復元される。
+
+#### ヒント機能のテスト要件
+E2Eテストで以下の項目を検証します。
+1. **ヒントレベル切り替え**: ヒントボタンクリックで、ヒントレベルが `none` → `placeable` → `full` → `none` の順に切り替わる。
+2. **ヒント表示**: 各レベルで、仕様書通りの適切なヒントが表示される。
+3. **フルヒントモードでの操作**: フルヒントモードで駒を2回タップすると、駒が移動する。
+
+### E2Eテストの安定性
+
+- **`data-testid`属性の使用**: E2Eテストの安定性を確保するため、要素の特定には `data-testid` 属性を必ず使用します。
+  ```typescript
+  // 推奨: data-testid属性を使用
+  await page.locator('[data-testid="reset-button"]').click();
+
+  // 非推奨: テキストやCSSセレクタに依存
+  await page.locator('button:has-text("リセット")').click();
+  ```
+- **待機処理**: アニメーションや非同期処理が原因でテストが不安定になる場合は、`waitFor` 系のAPIを適切に使用して、アプリケーションの状態が安定するのを待ってからアサーションを実行します。
+
+### テストカバレッジ
+- **方針**: 新機能を追加する際は、既存の機能と同等のテストカバレッジを維持することを目標とします。
+
+## CI/CD統合
+
+### pre-pushフック
+
+`husky`によるpre-pushフックで、以下のコマンドが自動実行されます。
+```bash
+npm run test:lint              # ESLint
+npm run test:license           # ライセンスチェック
+npm run test:unit              # ユニットテスト
+npm run test:e2e               # E2Eテスト
+npm run build                  # ビルド確認
+```
+
+### テスト実行順序
+
+CI/CDパイプラインでは、以下の順序でテストが実行されます。
+1. **静的解析**: 高速で基本的な問題を検出
+2. **ユニットテスト**: 個別機能の動作確認
+3. **E2Eテスト**: 統合動作の確認
+4. **ビルド**: 本番環境での動作確認
+
+## 新機能開発時のテスト要件
+
+### 1. ゲーム追加時
+
+**必須テスト**:
+- コアロジックのユニットテスト
+- 基本操作と主要機能（履歴、ヒント等）のE2Eテスト
+- レスポンシブ対応の確認
+
+### 2. 共通コンポーネント追加時
+
+**必須テスト**:
+- コンポーネントのユニットテスト
+- プロップス変化に対する動作のテスト
+- コンポーネントを使用している主要箇所でのE2Eテスト
+
+### 3. カスタムフック追加時
+
+**必須テスト**:
+- フックのユニットテスト
+- 状態変化のテスト
+- 副作用のテスト
 
 ## テスト環境設定
 
@@ -118,131 +226,6 @@ import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 ```
 
-## テスト作成ガイドライン
-
-### ユニットテスト
-
-**コアロジックテスト**:
-```typescript
-describe('Reversi Core Logic', () => {
-  it('ゲームが正しく初期化されることを確認', () => {
-    const gameState = createInitialState();
-    expect(gameState.currentPlayer).toBe('BLACK');
-    expect(gameState.scores.BLACK).toBe(2);
-  });
-});
-```
-
-**カスタムフックテスト**:
-```typescript
-describe('useReversi Hook', () => {
-  it('履歴機能が動作する', () => {
-    const { result } = renderHook(() => useReversi());
-
-    act(() => {
-      result.current.makeMove(2, 3);
-    });
-
-    expect(result.current.gameHistory.length).toBe(2);
-  });
-});
-```
-
-### ヒント機能のテスト (`spec-hint.md`)
-
-**注: 以下の内容は現在実装に反映中です。今後のリファクタリングで適用される方針です。**
-
-ヒント機能のテストは、`spec-hint.md`で定義された各ヒントの動作を個別に保証することを目的とします。
-
--   **テスト対象**: `spec-hint.md`に記載された、IDを持つ各ヒント機能。
--   **テストの単位**: 各ヒントID（例: `capture-squares`）を1つのテスト単位とします。
--   **テスト内容**: 特定のゲーム状況において、ヒントが仕様書通りに正しく表示・計算されることを検証します。これには、E2Eテストで視覚的な表示を確認するケースや、ユニットテストでヒントを計算するロジックを検証するケースが含まれます。
--   **テストファイルの責務**: ヒント関連のテストは、そのヒントが定義されているゲームのテストファイル（ユニットテストまたはE2Eテスト）内に、IDごとに明確に区別できる形で記述します。
-
-### E2Eテスト
-
-**基本パターン**:
-```typescript
-describe('ゲーム名のE2Eテスト', () => {
-  beforeEach(async ({ page }) => {
-    await page.goto('/games/game-name');
-    await page.waitForLoadState('networkidle');
-  });
-
-  test('機能名が正しく動作する', async ({ page }) => {
-    // テスト実装
-  });
-});
-```
-
-**data-testid属性の使用**:
-```typescript
-// 推奨: data-testid属性を使用
-await page.locator('[data-testid="reset-button"]').click();
-
-// 非推奨: テキストやCSSセレクタに依存
-await page.locator('button:has-text("リセット")').click();
-```
-
-## CI/CD統合
-
-### pre-pushフック
-
-```bash
-npm run test:lint              # ESLint
-npm run test:license           # ライセンスチェック
-npm run test:unit              # ユニットテスト
-npm run test:e2e               # E2Eテスト
-npm run build                  # ビルド確認
-```
-
-### テスト実行順序
-
-1. **静的解析**: 高速で基本的な問題を検出
-2. **ユニットテスト**: 個別機能の動作確認
-3. **E2Eテスト**: 統合動作の確認
-4. **ビルド**: 本番環境での動作確認
-
-## 新機能開発時のテスト要件
-
-### 1. ゲーム追加時
-
-**必須テスト**:
-- コアロジックのユニットテスト
-- 基本操作のE2Eテスト
-- レスポンシブ対応の確認
-
-**テンプレート**:
-```typescript
-// games/new-game/core.test.ts
-describe('New Game Core Logic', () => {
-  it('ゲームが正しく初期化される', () => {
-    // テスト実装
-  });
-});
-
-// src/games/new-game/e2e/new-game.spec.ts
-describe('New GameのE2Eテスト', () => {
-  test('基本操作が動作する', async ({ page }) => {
-    // テスト実装
-  });
-});
-```
-
-### 2. 共通コンポーネント追加時
-
-**必須テスト**:
-- コンポーネントのユニットテスト
-- プロップス変化のテスト
-- 使用箇所でのE2Eテスト
-
-### 3. カスタムフック追加時
-
-**必須テスト**:
-- フックのユニットテスト
-- 状態変化のテスト
-- 副作用のテスト
-
 ## トラブルシューティング
 
 ### よくある問題
@@ -250,8 +233,8 @@ describe('New GameのE2Eテスト', () => {
 **1. テストが不安定**
 ```typescript
 // 解決策: 適切な待機処理
-await page.waitForTimeout(500);
-await page.waitForLoadState('networkidle');
+await page.waitForTimeout(500); // 最終手段としての固定待機
+await page.waitForLoadState('networkidle'); // ネットワークが安定するのを待つ
 ```
 
 **2. 型エラー**
@@ -283,4 +266,3 @@ expect(result.current.gameState.winner as Player).toBe('BLACK');
 - [Vitest公式ドキュメント](https://vitest.dev/)
 - [Testing Library公式ドキュメント](https://testing-library.com/)
 - [Playwright公式ドキュメント](https://playwright.dev/)
-- [プロジェクトのテスト戦略](./testing-strategy.md)
