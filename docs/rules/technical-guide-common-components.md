@@ -411,7 +411,7 @@ logger.log('EVENT_NAME', eventData);
 
 ## 7. 参考資料
 
-- **アプリケーションアーキテクチャ**: `docs/rules/technical-guide-application-architecture.md`
-- **開発ワークフロー**: `docs/rules/technical-guide-development-workflow.md`
+- **アプリケーションアーキテクチャ**: `docs/rules/technical-guide-architecture.md`
+- **開発ワークフロー**: `docs/rules/technical-guide-development.md`
 - **型定義**: `types/game.ts`
 - **実装例**: `games/tictactoe/`, `games/reversi/`

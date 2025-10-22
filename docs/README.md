@@ -11,10 +11,10 @@
 -   **[プロジェクト憲法](./rules/project-manifest.md)**
 -   **[人間向けガイド](./rules/human-developer-guide.md)**
 -   **技術ガイド**
-    -   [アプリケーションアーキテクチャ](./rules/technical-guide-application-architecture.md)
+    -   [アーキテクチャ](./rules/technical-guide-architecture.md)
     -   [共通コンポーネント](./rules/technical-guide-common-components.md)
-    -   [開発ワークフロー](./rules/technical-guide-development-workflow.md)
-    -   [ドキュメント標準](./rules/technical-guide-documentation-standards.md)
+    -   [開発](./rules/technical-guide-development.md)
+    -   [ドキュメント](./rules/technical-guide-documentation.md)
     -   [ログ管理](./rules/technical-guide-log-management.md)
     -   [プロジェクトアセット所有権](./rules/technical-guide-project-asset-ownership.md)
     -   [リポジトリ構造](./rules/technical-guide-repository-structure.md)
