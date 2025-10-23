@@ -181,6 +181,7 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
           <PositiveButton
             size="large"
             onClick={takeSticks}
+            disabled={!gameState.selectedSticks || gameState.selectedSticks.length === 0}
           >
             えらんだぼうをとる
           </PositiveButton>

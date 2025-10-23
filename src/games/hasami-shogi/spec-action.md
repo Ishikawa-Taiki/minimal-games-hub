@@ -41,7 +41,6 @@
 
 | シナリオ | コンソールエラーメッセージ |
 | :--- | :--- |
-| ゲームが終了した後に操作しようとする | `Invalid action: The game is already over.` |
 | 選択した駒を、ルール上移動できないマス（他の駒を飛び越える、斜めに移動するなど）に移動しようとする | `Invalid move: Cannot move piece from (<from_r>, <from_c>) to (<to_r>, <to_c>).` |
 
 ---

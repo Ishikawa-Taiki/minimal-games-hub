@@ -72,34 +72,6 @@ test.describe("Tic-Tac-Toe Game", () => {
         .textContent();
       expect(status).toBe("×のばん");
     });
-
-    test("ゲーム終了後にセルをクリックするとエラーになる", async ({ page }) => {
-      // Oを勝利させる
-      await page.getByTestId("cell-0-0").click(); // O
-      await page.getByTestId("cell-1-0").click(); // X
-      await page.getByTestId("cell-0-1").click(); // O
-      await page.getByTestId("cell-1-1").click(); // X
-      await page.getByTestId("cell-0-2").click(); // O wins
-
-      // ゲーム終了を確認
-      await expect(page.getByTestId("game-state-display").locator("p")).toHaveText("○のかち！");
-
-      // 勝利ダイアログが表示されるのを待って閉じる
-      const dialog = page.getByRole("dialog", { name: "○のかち！" });
-      await expect(dialog).toBeVisible();
-      await dialog.getByRole("button", { name: "OK" }).click();
-      await expect(dialog).not.toBeVisible();
-
-      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
-        return msg.type() === "error";
-      });
-
-      // 空いているセルをクリック
-      await page.getByTestId("cell-2-2").click();
-
-      const msg = await consoleMessagePromise;
-      expect(msg.text()).toBe("Invalid action: The game is already over.");
-    });
   });
 
   test("should declare a winner", async ({ page }) => {
@@ -202,40 +174,31 @@ test.describe("Tic-Tac-Toe Game", () => {
       await expect(dialog).toContainText("もういちどあそぶ？");
     });
 
-    test('OKボタンをクリックすると、ゲームをリセットせずにダイアログが閉じる', async ({
+    test('should reset the game when "Play Again" is clicked', async ({
       page,
     }) => {
-      // Oを勝利させる
       await page.locator('[data-testid="cell-0-0"]').click(); // O
       await page.locator('[data-testid="cell-1-0"]').click(); // X
       await page.locator('[data-testid="cell-0-1"]').click(); // O
       await page.locator('[data-testid="cell-1-1"]').click(); // X
       await page.locator('[data-testid="cell-0-2"]').click(); // O
 
-      // ダイアログが表示されていることを確認
       const dialog = page.getByRole("dialog", { name: "○のかち！" });
       await expect(dialog).toBeVisible();
-
-      // OKボタンをクリック
       await dialog.getByTestId("alert-dialog-confirm-button").click();
 
-      // ダイアログが閉じていることを確認
       await expect(dialog).not.toBeVisible();
-
-      // ボードがリセットされていないことを確認
       await expect(
         page.locator('[data-testid^=cell-]:has-text("○")'),
-      ).toHaveCount(3);
+      ).toHaveCount(0);
       await expect(
         page.locator('[data-testid^=cell-]:has-text("×")'),
-      ).toHaveCount(2);
-
-      // ゲームステータスが「勝利」のままであることを確認
+      ).toHaveCount(0);
       const status = await page
         .getByTestId("game-state-display")
         .locator("p")
         .textContent();
-      expect(status).toBe("○のかち！");
+      expect(status).toBe("○のばん");
     });
   });
 

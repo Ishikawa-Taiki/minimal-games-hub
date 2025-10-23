@@ -41,7 +41,6 @@
 
 | シナリオ | コンソールエラーメッセージ |
 | :--- | :--- |
-| ゲームが終了した後に操作しようとする | `Invalid action: The game is already over.` |
 | 既に石が置かれているマスを選択する | `Invalid action: Cell (<r>, <c>) is already occupied.` |
 | ルール上、石を置くことができないマスを選択する | `Invalid move: Cannot place a stone at (<r>, <c>).` |
 

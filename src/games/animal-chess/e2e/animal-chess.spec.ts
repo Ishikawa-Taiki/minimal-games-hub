@@ -187,29 +187,6 @@ test.describe("無効な操作", () => {
     await expectCurrentPlayer(page, "おかしチーム");
   });
 
-  test("ゲーム終了後に盤面や持ち駒を操作しようとする", async ({ page }) => {
-    // 準備：ゲームを終了させる
-    await page.locator('[data-testid="cell-3-1"]').click(); // P1 Lion
-    await page.locator('[data-testid="cell-2-0"]').click();
-    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
-    await page.locator('[data-testid="cell-1-0"]').click();
-    await page.locator('[data-testid="cell-2-0"]').click(); // P1 Lion
-    await page.locator('[data-testid="cell-1-0"]').click(); // -> P2 Lion (WIN)
-    await expect(page.getByRole("dialog", { name: "おかしチームのかち！" })).toBeVisible();
-
-    // ダイアログを閉じる
-    await page.getByRole('button', { name: 'OK' }).click();
-
-    // イベント待機とアクションを同時に実行
-    const [msg] = await Promise.all([
-      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
-      page.locator('[data-testid="cell-0-0"]').click(),
-    ]);
-
-    const errorMessage = msg.text();
-    expect(errorMessage).toContain('Invalid action: The game is already over.');
-  });
-
   test("自分の手番ではない時に持ち駒を選択しようとする", async ({ page }) => {
     // 準備：持ち駒を得て、相手のターンにする
     await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick

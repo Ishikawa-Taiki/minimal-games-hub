@@ -50,11 +50,15 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         alert({
           title: 'ひきわけ',
           message: `くろいしも しろいしも ${scores.BLACK}こだったよ！`,
+        }).then(() => {
+          controller.resetGame();
         });
       } else {
         alert({
           title: `${winnerText}のかち`,
           message: `くろいしが${scores.BLACK}こ、しろいしが${scores.WHITE}こだったよ！`,
+        }).then(() => {
+          controller.resetGame();
         });
       }
     }

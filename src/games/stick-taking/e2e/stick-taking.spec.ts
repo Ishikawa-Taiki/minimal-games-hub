@@ -116,18 +116,22 @@ test.describe("棒消しゲーム", () => {
   });
 
   test.describe("無効な操作", () => {
-    test("棒を選ばずに取るとエラーになる", async ({ page }) => {
+    test("棒が未選択の場合、「棒を取る」ボタンは無効化される", async ({ page }) => {
       await page.getByRole("button", { name: "かんたん (3だん)" }).click();
 
-      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
-        return msg.type() === "error";
-      });
+      const takeButton = page.getByRole("button", { name: "えらんだぼうをとる" });
 
-      // 棒を選ばずに「とる」ボタンをクリック
-      await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
+      // 初期状態ではボタンは無効
+      await expect(takeButton).toBeDisabled();
 
-      const msg = await consoleMessagePromise;
-      expect(msg.text()).toBe('Invalid action: Cannot take 0 sticks.');
+      // 棒を1本選択すると有効になる
+      const firstStick = page.locator('[data-testid="row-0"] [data-testid^="stick-"]').nth(0);
+      await firstStick.click();
+      await expect(takeButton).toBeEnabled();
+
+      // 選択を解除すると再び無効になる
+      await firstStick.click();
+      await expect(takeButton).toBeDisabled();
     });
 
     test("既に取られた棒を選択しようとするとエラーになる", async ({ page }) => {

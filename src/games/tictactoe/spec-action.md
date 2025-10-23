@@ -39,7 +39,6 @@
 
 | シナリオ | コンソールエラーメッセージ |
 | :--- | :--- |
-| ゲームが終了した後に操作しようとする | `Invalid action: The game is already over.` |
 | 既にマークが置かれているマスを選択する | `Invalid action: Cell (<row>, <col>) is already marked.` |
 
 ---

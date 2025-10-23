@@ -142,6 +142,8 @@ interface TestWindow extends Window {
       alert({
         title: `${winnerText}のかち！`,
         message: `${winnerText}が${capturedCount}こコマをとったよ！`,
+      }).then(() => {
+        resetGame();
       });
     }
   }, [gameState.winner, gameState.capturedPieces, alert, resetGame]);

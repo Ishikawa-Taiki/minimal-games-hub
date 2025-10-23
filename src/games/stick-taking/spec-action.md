@@ -41,7 +41,6 @@
 | :--- | :--- |
 | 存在しない棒を選択しようとする（内部エラー） | `Invalid action: Stick with id <stickId> at row <rowIndex> does not exist.` |
 | 既に取られている棒を選択しようとする | `Invalid action: Stick at row <rowIndex>, id <stickId> has already been taken.` |
-| 1本も棒を選択せずに「棒を消す」操作をしようとする | `Invalid action: Cannot take 0 sticks.` |
 
 また、コンソールエラーは出力されませんが、以下の操作は無効なアクションとして扱われます。
 - 複数の段にまたがって棒を選択しようとする。

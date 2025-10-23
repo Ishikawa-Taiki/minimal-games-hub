@@ -223,48 +223,5 @@ test.describe("リバーシゲームのE2Eテスト", () => {
       const msg = await consoleMessagePromise;
       expect(msg.text()).toBe("Invalid action: Cell (3, 3) is already occupied.");
     });
-
-    test("ゲーム終了後に操作しようとするとエラーになる", async ({ page }) => {
-      // ゲーム終了状態を注入
-      const gameOverState = {
-        board: Array(8).fill(Array(8).fill("BLACK")),
-        currentPlayer: "BLACK",
-        scores: { BLACK: 64, WHITE: 0 },
-        gameStatus: "GAME_OVER",
-        validMoves: [], // シリアライズ可能な形式
-        status: "ended",
-        winner: "BLACK",
-        hintsEnabled: false,
-        selectedHintCell: null,
-      };
-
-      // ページに状態を注入する準備ができるまで待つ
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await page.waitForFunction(() => (window as any).isReversiReadyForTest);
-
-      await page.evaluate((state) => {
-        window.postMessage({ type: "SET_REVERSI_STATE_FOR_TEST", state }, "*");
-      }, gameOverState);
-
-      // 状態が反映されるのを待つ
-      await expect(page.getByTestId("game-state-display")).toHaveText(
-        "くろのかち",
-      );
-
-      // 勝利ダイアログが表示されるのを待って閉じる
-      await expect(page.getByRole("dialog")).toBeVisible();
-      await page.getByRole("button", { name: "OK" }).click();
-      await expect(page.getByRole("dialog")).not.toBeVisible();
-
-      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
-        return msg.type() === "error";
-      });
-
-      // (0,0)をクリック
-      await page.locator('[data-testid="cell-0-0"]').click();
-
-      const msg = await consoleMessagePromise;
-      expect(msg.text()).toBe("Invalid action: The game is already over.");
-    });
   });
 });

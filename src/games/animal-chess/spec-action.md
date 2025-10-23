@@ -61,8 +61,6 @@
 | 持ち駒を、既に駒が存在するマスに置こうとする | `Invalid drop: Cell (<to_row>, <to_col>) is already occupied.` |
 | プレイヤーが保持していない持ち駒を置こうとする（内部エラー） | `Invalid drop: Player <PLAYER> does not have a captured <PIECE_TYPE>.` |
 | 持ち駒の「ヒヨコ」を相手の最終段に置こうとする | `Invalid drop: CHICK cannot be dropped on the final rank.` |
-| ゲームが終了した後に盤面のセルをクリックする | `Invalid action: The game is already over.` |
-| 自分の手番ではない、またはゲームが終了した後に持ち駒を選択しようとする | `Invalid action: Cannot select captured piece when game is over or it is not your turn.` |
 | 自分の手番で、相手の駒や空のセルを選択しようとする | `Invalid selection: Cannot select cell (<row>, <col>) as it is empty or belongs to the opponent.` |
 
 ---
