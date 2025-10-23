@@ -40,19 +40,16 @@ test.describe('ドット＆ボックス E2Eテスト', () => {
     await page.goto('/games/dots-and-boxes');
     await page.getByRole('button', { name: 'かんたん' }).click();
 
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
-      });
-    });
-
     const firstLine = page.locator('[data-testid="h-line-0-0"]');
     await firstLine.click(); // 1回目のクリック
-    await firstLine.click(); // 2回目のクリック（無効）
 
-    const errorMessage = await consoleMessagePromise;
+    // イベント待機とアクションを同時に実行
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      firstLine.click(), // 2回目のクリック（無効）
+    ]);
+
+    const errorMessage = msg.text();
     expect(errorMessage).toBe('Invalid action: Line (h, 0, 0) has already been selected.');
   });
 });

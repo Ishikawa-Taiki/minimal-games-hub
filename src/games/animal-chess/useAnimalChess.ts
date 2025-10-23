@@ -195,9 +195,9 @@ export function useAnimalChess(): AnimalChessController {
       alert({
         title: `${winnerName}のかち！`,
         message: reasonText,
-      }).then(resetGame);
+      });
     }
-  }, [gameState.winner, gameState.winReason, alert, resetGame]);
+  }, [gameState.winner, gameState.winReason, alert]);
 
   // 駒の移動アニメーションが終わった後にlastMoveをクリアする
   useEffect(() => {

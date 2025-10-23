@@ -66,50 +66,168 @@ test("リセットボタンが機能すること", async ({ page }) => {
   await expectPiece(page, "cell-2-1", "p1", "chick");
 });
 
-test("無効な操作を行った際にコンソールエラーが出力される", async ({ page }) => {
-  const consoleMessagePromise = new Promise<string>((resolve) => {
+test.describe("無効な操作", () => {
+  test("自分の手番でない駒や空のセルを選択する", async ({ page }) => {
+    const errorMessages: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
-        resolve(msg.text());
+        errorMessages.push(msg.text());
       }
     });
+
+    // 空のセルを選択
+    await page.locator('[data-testid="cell-1-1"]').click();
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Invalid selection: Cannot select cell (1, 1) as it is empty or belongs to the opponent.')
+      ])
+    );
+
+    // 相手の駒を選択
+    await page.locator('[data-testid="cell-0-1"]').click();
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Invalid selection: Cannot select cell (0, 1) as it is empty or belongs to the opponent.')
+      ])
+    );
+
+    // 状態が変わっていないことを確認
+    await expectCurrentPlayer(page, "おかしチーム");
   });
 
-  // 無効な移動を試す（キリンをライオンの場所に動かそうとする）
-  await page.locator('[data-testid="cell-3-0"]').click(); // select GIRAFFE
-  await page.locator('[data-testid="cell-3-1"]').click(); // try to move to LION's cell
-
-  // エラーメッセージがコンソールに出力されたことを確認
-  const errorMessage = await consoleMessagePromise;
-  expect(errorMessage).toContain('Invalid move: Cannot move GIRAFFE from (3, 0) to (3, 1).');
-
-  // 状態が変わっていないことを確認
-  await expectPiece(page, "cell-3-0", "p1", "giraffe");
-  await expectPiece(page, "cell-3-1", "p1", "lion");
-  await expectCurrentPlayer(page, "おかしチーム");
-});
-
-test("ルール上移動できないマスを選択した際にコンソールエラーが出力される", async ({ page }) => {
-  const consoleMessagePromise = new Promise<string>((resolve) => {
+  test("ルール上移動できないマスや味方の駒がいるマスに移動しようとする", async ({ page }) => {
+    const errorMessages: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
-        resolve(msg.text());
+        errorMessages.push(msg.text());
       }
     });
+
+    // 味方の駒がいるマスに移動
+    await page.locator('[data-testid="cell-3-0"]').click(); // select GIRAFFE
+    await page.locator('[data-testid="cell-3-1"]').click(); // try to move to LION's cell
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Invalid move: Cannot move GIRAFFE from (3, 0) to (3, 1).')
+      ])
+    );
+
+    // ルール上移動できないマスに移動
+    await page.locator('[data-testid="cell-3-2"]').click(); // select ELEPHANT
+    await page.locator('[data-testid="cell-2-2"]').click(); // try to move vertically
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Invalid move: Cannot move ELEPHANT from (3, 2) to (2, 2).')
+      ])
+    );
+
+    // 状態が変わっていないことを確認
+    await expectPiece(page, "cell-3-0", "p1", "giraffe");
+    await expectPiece(page, "cell-3-1", "p1", "lion");
+    await expectPiece(page, "cell-3-2", "p1", "elephant");
+    await expectEmpty(page, "cell-2-2");
+    await expectCurrentPlayer(page, "おかしチーム");
   });
 
-  // 無効な移動を試す（ゾウを縦に動かそうとする）
-  await page.locator('[data-testid="cell-3-2"]').click(); // select ELEPHANT
-  await page.locator('[data-testid="cell-2-2"]').click(); // try to move vertically
+  test("持ち駒を既に駒が存在するマスに置こうとする", async ({ page }) => {
+    // 準備：持ち駒を得る
+    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
+    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Chick captures P2 Chick
+    await page.locator('[data-testid="cell-0-2"]').click(); // P2 Giraffe
+    await page.locator('[data-testid="cell-1-2"]').click();
 
-  // エラーメッセージがコンソールに出力されたことを確認
-  const errorMessage = await consoleMessagePromise;
-  expect(errorMessage).toContain('Invalid move: Cannot move ELEPHANT from (3, 2) to (2, 2).');
+    // 持ち駒を選択する
+    const capturedPieceButton = page.locator('[data-testid="captured-piece-OKASHI-CHICK"]');
+    await capturedPieceButton.click();
 
-  // 状態が変わっていないことを確認
-  await expectPiece(page, "cell-3-2", "p1", "elephant");
-  await expectEmpty(page, "cell-2-2");
-  await expectCurrentPlayer(page, "おかしチーム");
+    // 選択が反映され、スタイルが変わるのを待つ
+    await expect(capturedPieceButton).toHaveCSS('background-color', 'rgb(191, 219, 254)');
+
+    // イベント待機とアクションを同時に実行
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      page.locator('[data-testid="cell-3-1"]').click(), // try to drop on own LION
+    ]);
+
+    const errorMessage = msg.text();
+    expect(errorMessage).toContain('Invalid drop: Cell (3, 1) is already occupied.');
+
+    // 状態が変わっていないことを確認
+    await expectPiece(page, "cell-3-1", "p1", "lion");
+    await expect(capturedPieceButton).toBeVisible();
+    await expectCurrentPlayer(page, "おかしチーム");
+  });
+
+  test("持ち駒の「ヒヨコ」を相手の最終段に置こうとする", async ({ page }) => {
+    // 準備：持ち駒を得て、最終段を空ける
+    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
+    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Chick captures P2 Chick
+    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
+    await page.locator('[data-testid="cell-1-1"]').click(); // P2 Lion moves
+
+    // 持ち駒のヒヨコを選択
+    const capturedPieceButton = page.locator('[data-testid="captured-piece-OKASHI-CHICK"]');
+    await capturedPieceButton.click();
+
+    // 選択が反映され、スタイルが変わるのを待つ
+    await expect(capturedPieceButton).toHaveCSS('background-color', 'rgb(191, 219, 254)');
+
+    // イベント待機とアクションを同時に実行
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      page.locator('[data-testid="cell-0-1"]').click(), // try to drop on the final rank (empty cell)
+    ]);
+
+    const errorMessage = msg.text();
+    expect(errorMessage).toContain('Invalid drop: CHICK cannot be dropped on the final rank.');
+
+    // 状態が変わっていないことを確認
+    await expectEmpty(page, "cell-0-1");
+    await expect(capturedPieceButton).toBeVisible();
+    await expectCurrentPlayer(page, "おかしチーム");
+  });
+
+  test("ゲーム終了後に盤面や持ち駒を操作しようとする", async ({ page }) => {
+    // 準備：ゲームを終了させる
+    await page.locator('[data-testid="cell-3-1"]').click(); // P1 Lion
+    await page.locator('[data-testid="cell-2-0"]').click();
+    await page.locator('[data-testid="cell-0-1"]').click(); // P2 Lion
+    await page.locator('[data-testid="cell-1-0"]').click();
+    await page.locator('[data-testid="cell-2-0"]').click(); // P1 Lion
+    await page.locator('[data-testid="cell-1-0"]').click(); // -> P2 Lion (WIN)
+    await expect(page.getByRole("dialog", { name: "おかしチームのかち！" })).toBeVisible();
+
+    // ダイアログを閉じる
+    await page.getByRole('button', { name: 'OK' }).click();
+
+    // イベント待機とアクションを同時に実行
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      page.locator('[data-testid="cell-0-0"]').click(),
+    ]);
+
+    const errorMessage = msg.text();
+    expect(errorMessage).toContain('Invalid action: The game is already over.');
+  });
+
+  test("自分の手番ではない時に持ち駒を選択しようとする", async ({ page }) => {
+    // 準備：持ち駒を得て、相手のターンにする
+    await page.locator('[data-testid="cell-2-1"]').click(); // P1 Chick
+    await page.locator('[data-testid="cell-1-1"]').click(); // P1 Chick captures P2 Chick
+    // ここでP2(おはなチーム)のターンになる
+
+    // イベント待機とアクションを同時に実行
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      page.locator('[data-testid="captured-piece-OKASHI-CHICK"]').click(),
+    ]);
+
+    const errorMessage = msg.text();
+    expect(errorMessage).toContain('Invalid action: Cannot select captured piece when game is over or it is not your turn.');
+
+    // 状態が変わっていないことを確認
+    await expectCurrentPlayer(page, "おはなチーム");
+  });
 });
 
 test("選択したコマを有効なマスに移動できること", async ({ page }) => {

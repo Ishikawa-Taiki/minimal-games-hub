@@ -50,25 +50,88 @@ test.describe("神経衰弱ゲーム", () => {
     expect(newBoundingBox.height).toBe(initialBoundingBox.height);
   });
 
-  test("無効な操作（3枚目のカードをクリック）でコンソールエラーが出力される", async ({ page }) => {
-    // 難易度を選択してゲーム開始
-    await page.getByTestId("difficulty-easy").click();
+  test.describe("無効な操作", () => {
+    test("既に2枚のカードが表になっている状態で、3枚目のカードをクリックする", async ({ page }) => {
+      // 難易度を選択してゲーム開始
+      await page.getByTestId("difficulty-easy").click();
 
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
-      });
+      const consoleErrorPromise = page.waitForEvent('console', (msg) => msg.type() === 'error');
+
+      // 1枚目、2枚目のカードをクリック
+      await page.locator('[data-testid="card-0"]').click();
+      await page.locator('[data-testid="card-1"]').click();
+
+      // 3枚目のカードをクリック
+      await page.locator('[data-testid="card-2"]').click();
+
+      const msg = await consoleErrorPromise;
+      const errorMessage = msg.text();
+      expect(errorMessage).toBe('Invalid action: Cannot flip more than two cards at a time.');
     });
 
-    // 1枚目、2枚目のカードをクリック
-    await page.locator('[data-testid="card-0"]').click();
-    await page.locator('[data-testid="card-1"]').click();
-    // 3枚目のカードをクリック
-    await page.locator('[data-testid="card-2"]').click();
+    test("既に表になっているカードを再度クリックする", async ({ page }) => {
+      await page.getByTestId("difficulty-easy").click();
 
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid action: Cannot flip more than two cards at a time.');
+      const consoleErrorPromise = page.waitForEvent('console', (msg) => msg.type() === 'error');
+
+      // 1枚目のカードをクリック
+      await page.locator('[data-testid="card-0"]').click();
+      // 同じカードを再度クリック
+      await page.locator('[data-testid="card-0"]').click();
+
+      const msg = await consoleErrorPromise;
+      const errorMessage = msg.text();
+      expect(errorMessage).toBe('Invalid action: Cannot click a card that is already flipped.');
+    });
+
+    test("既にマッチが成立しているカードをクリックする", async ({ page }) => {
+      await page.getByTestId("difficulty-easy").click();
+
+      // 準備が整うのを待ってから状態を注入する
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await page.waitForFunction(() => (window as any).isConcentrationReadyForTest);
+
+      // `spec-action.md`をテストするため、完全なゲームの状態を直接操作する
+      await page.evaluate(() => {
+        window.postMessage({
+          type: 'SET_GAME_STATE_FOR_TEST',
+          state: {
+            difficulty: 'easy',
+            board: [
+              { id: 0, rank: 'A', suit: 'H', isMatched: true, matchedBy: 1 },
+              { id: 1, rank: 'A', suit: 'D', isMatched: true, matchedBy: 1 },
+              { id: 2, rank: '2', suit: 'H', isMatched: false },
+              { id: 3, rank: '2', suit: 'D', isMatched: false },
+              // Note: This is a partial board for testing purposes.
+            ],
+            currentPlayer: 'player1',
+            scores: { player1: 1, player2: 0 },
+            flippedIndices: [],
+            revealedIndices: [],
+            hintedIndices: [],
+            gameStatus: 'playing',
+            hintsEnabled: false,
+            status: 'playing',
+            winner: null,
+          }
+        }, '*');
+      });
+
+      // 状態がUIに反映されるのを待つ
+      await expect(page.locator('[data-testid="card-0"]')).toHaveCSS(
+        'background-color',
+        'rgba(255, 182, 193, 0.5)',
+        { timeout: 1000 }
+      );
+
+      const consoleErrorPromise = page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' });
+
+      // マッチ済みのカードをクリック
+      await page.locator('[data-testid="card-0"]').click();
+
+      const msg = await consoleErrorPromise;
+      const errorMessage = msg.text();
+      expect(errorMessage).toBe('Invalid action: Cannot click a card that is already matched.');
+    });
   });
 });

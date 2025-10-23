@@ -25,15 +25,11 @@ const TicTacToe = ({ controller: externalController }: TicTacToeProps = {}) => {
       alert({
         title: `${winnerMark}のかち！`,
         message: `${winnerMark}がそろったので、${winnerMark}のかち！`,
-      }).then(() => {
-        resetGame();
       });
     } else if (isDraw) {
       alert({
         title: 'ひきわけ！',
         message: 'もういちどあそぶ？',
-      }).then(() => {
-        resetGame();
       });
     }
   }, [gameState, alert, resetGame]);

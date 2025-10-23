@@ -164,12 +164,10 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
   }, [gameState.lastMove]);
 
   const onCellClick = (row: number, col: number) => {
-    if (!isGameInProgress) return;
     handleCellClick(row, col);
   };
 
   const onCaptureClick = (player: Player, index: number) => {
-    if (!isGameInProgress) return;
     handleCaptureClick(player, index);
   };
 
@@ -213,7 +211,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                 }}
                 data-testid={`captured-piece-${OHANA_TEAM}-${pieceType}`}
                 onClick={() => onCaptureClick(OHANA_TEAM, index)}
-                disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: OHANA_TEAM }} showIndicators={false} />
               </button>
@@ -241,7 +238,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                     cursor: isGameInProgress ? 'pointer' : 'default',
                   }}
                   onClick={() => onCellClick(rowIndex, colIndex)}
-                  disabled={!isGameInProgress}
                 >
                   {showOverlay && <div style={styles.cellOverlay} />}
                   {cell && !isAnimatingToHere && <PieceDisplay piece={cell} showIndicators={true} isGrayedOut={showOverlay} />}
@@ -265,7 +261,6 @@ const AnimalChessPage = ({ controller: externalController }: AnimalChessProps = 
                 }}
                 data-testid={`captured-piece-${OKASHI_TEAM}-${pieceType}`}
                 onClick={() => onCaptureClick(OKASHI_TEAM, index)}
-                disabled={!isGameInProgress}
               >
                 <PieceDisplay piece={{ type: pieceType, owner: OKASHI_TEAM }} showIndicators={false} />
               </button>

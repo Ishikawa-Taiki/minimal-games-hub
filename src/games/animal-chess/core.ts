@@ -331,21 +331,27 @@ export function handleCellClick(state: GameState, row: number, col: number): Gam
 
     // 1. 持ち駒を選択中の場合：駒を盤面に置くか、選択を変更する
     if (selectedCaptureIndex !== null) {
-        const clickedPiece = state.board[row][col];
-
-        // 自分の駒をクリックした場合、選択対象をそちらに変更する
-        if (clickedPiece && clickedPiece.owner === currentPlayer) {
-            return {
-                ...state,
-                selectedCell: { row, col },
-                selectedCaptureIndex: null,
-                lastMove: null,
-            };
-        }
-
         const pieceType = state.capturedPieces[selectedCaptureIndex.player][selectedCaptureIndex.index];
         const newState = dropPiece(state, currentPlayer, pieceType, { row, col });
-        return newState ?? state;
+
+        // dropが失敗した場合（nullが返された場合）
+        if (newState === null) {
+            const clickedPiece = state.board[row][col];
+            // 自分の駒をクリックしていたら、選択対象をそちらに変更する
+            if (clickedPiece && clickedPiece.owner === currentPlayer) {
+                return {
+                    ...state,
+                    selectedCell: { row, col },
+                    selectedCaptureIndex: null,
+                    lastMove: null,
+                };
+            }
+            // それ以外（相手の駒や、ルール上置けない場所）なら、元のstateを返す
+            return state;
+        }
+
+        // dropが成功した場合
+        return newState;
     }
 
     // 2. 盤上の駒を選択中の場合：駒を移動させるか、選択を変更する

@@ -34,10 +34,12 @@ const StickTakingGame = ({ controller: externalController }: StickTakingGameProp
   const handleStickInteractionStart = (rowIndex: number, stickId: number) => {
     isDragging.current = true;
     const stick = gameState?.rows?.[rowIndex]?.find(s => s.id === stickId);
-    if (!stick || stick.isTaken) return;
 
-    const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
-    dragAction.current = isSelected ? 'deselect' : 'select';
+    // UIガードを削除し、常にcoreに処理を委譲
+    if (stick && !stick.isTaken) {
+      const isSelected = gameState?.selectedSticks?.some(s => s.row === rowIndex && s.stickId === stickId);
+      dragAction.current = isSelected ? 'deselect' : 'select';
+    }
     selectStick(rowIndex, stickId);
   };
 

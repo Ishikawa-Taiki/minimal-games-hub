@@ -50,15 +50,11 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
         alert({
           title: 'ひきわけ',
           message: `くろいしも しろいしも ${scores.BLACK}こだったよ！`,
-        }).then(() => {
-          controller.resetGame();
         });
       } else {
         alert({
           title: `${winnerText}のかち`,
           message: `くろいしが${scores.BLACK}こ、しろいしが${scores.WHITE}こだったよ！`,
-        }).then(() => {
-          controller.resetGame();
         });
       }
     }
@@ -78,7 +74,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       return;
     }
 
-    if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
+    if (isFlipping) return;
 
     logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.hintState.enabled, hasValidMove: !!stonesToFlip });
 

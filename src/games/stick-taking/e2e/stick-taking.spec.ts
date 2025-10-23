@@ -115,21 +115,41 @@ test.describe("棒消しゲーム", () => {
     await expect(groups.nth(0).getByText("2")).not.toBeVisible();
   });
 
-  test("無効な操作（棒を選ばずに取る）でコンソールエラーが出力される", async ({ page }) => {
-    await page.getByRole("button", { name: "かんたん (3だん)" }).click();
+  test.describe("無効な操作", () => {
+    test("棒を選ばずに取るとエラーになる", async ({ page }) => {
+      await page.getByRole("button", { name: "かんたん (3だん)" }).click();
 
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
+      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
+        return msg.type() === "error";
       });
+
+      // 棒を選ばずに「とる」ボタンをクリック
+      await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
+
+      const msg = await consoleMessagePromise;
+      expect(msg.text()).toBe('Invalid action: Cannot take 0 sticks.');
     });
 
-    // 棒を選ばずに「とる」ボタンをクリック
-    await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
+    test("既に取られた棒を選択しようとするとエラーになる", async ({ page }) => {
+      await page.getByRole("button", { name: "かんたん (3だん)" }).click();
 
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid action: Cannot take 0 sticks.');
+      // 1段目の棒を1本取る
+      const firstStick = page.locator('[data-testid="row-0"] [data-testid^="stick-"]').nth(0);
+      await firstStick.click();
+      await page.getByRole("button", { name: "えらんだぼうをとる" }).click();
+
+      // ターンが交代するのを待つ
+      await expectCurrentPlayer(page, "プレイヤー2");
+
+      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
+        return msg.type() === "error";
+      });
+
+      // 再度同じ棒をクリック
+      await firstStick.click();
+
+      const msg = await consoleMessagePromise;
+      expect(msg.text()).toBe('Invalid action: Stick at row 0, id 0 has already been taken.');
+    });
   });
 });

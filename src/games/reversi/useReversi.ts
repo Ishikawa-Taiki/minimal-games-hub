@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { BaseGameController, HintableGameController, HistoryGameController, BaseGameState, GameStatus } from '@/core/types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
@@ -21,7 +21,8 @@ type ReversiAction =
   | { type: 'RESET_GAME' }
   | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
   | { type: 'SET_SELECTED_HINT_CELL'; cell: [number, number] | null }
-  | { type: 'HISTORY_GOTO'; index: number };
+  | { type: 'HISTORY_GOTO'; index: number }
+  | { type: 'SET_GAME_STATE_FOR_TEST'; state: ReversiGameState };
 
 function createInitialReversiState(): ReversiGameState {
   const coreState = createInitialState();
@@ -91,6 +92,9 @@ function reversiReducer(state: ReversiGameState, action: ReversiAction): Reversi
       // 履歴からの状態復元は外部で処理されるため、現在の状態を返す
       return state;
     }
+
+    case 'SET_GAME_STATE_FOR_TEST':
+      return action.state;
     
     default:
       return state;
@@ -125,6 +129,39 @@ export function useReversi(): ReversiController {
     hintsEnabled: gameState.hintsEnabled,
     validMovesCount: gameState.validMoves.size
   });
+
+  // E2Eテスト用の状態注入
+  useEffect(() => {
+    const handleSetStateForTest = (event: MessageEvent) => {
+      if (event.data.type === 'SET_REVERSI_STATE_FOR_TEST') {
+        logger.log('SET_REVERSI_STATE_FOR_TEST', { state: event.data.state });
+        // テストから送られた状態はMapがシリアライズされてしまうため、
+        // Mapオブジェクトに復元する
+        const receivedState = event.data.state;
+        const reconstructedState = {
+          ...receivedState,
+          validMoves: new Map(receivedState.validMoves || []),
+        };
+        const newState = reversiReducer(gameState, {
+          type: 'SET_GAME_STATE_FOR_TEST',
+          state: reconstructedState,
+        });
+        setGameHistory([newState]);
+        setCurrentHistoryIndex(0);
+      }
+    };
+    window.addEventListener('message', handleSetStateForTest);
+
+    // テストコードに準備完了を通知
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).isReversiReadyForTest = true;
+
+    return () => {
+      window.removeEventListener('message', handleSetStateForTest);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).isReversiReadyForTest;
+    };
+  }, [gameState, logger]);
 
   const resetGame = useCallback(() => {
     logger.log('RESET_GAME_CALLED', {});
