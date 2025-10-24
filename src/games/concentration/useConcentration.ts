@@ -23,6 +23,9 @@ interface ConcentrationGameState extends BaseGameState {
   hintsEnabled: boolean;
 }
 
+// E2Eテストから任意の状態を注入するためのアクション。
+// このアクションはテストコードからの`window.postMessage`でのみ使用されるべきです。
+// アプリケーションロジック内で直接使用しないでください。
 type ConcentrationAction = 
   | { type: 'CARD_CLICK'; index: number }
   | { type: 'CLEAR_NON_MATCHING' }

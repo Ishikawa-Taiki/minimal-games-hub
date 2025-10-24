@@ -21,6 +21,9 @@ interface HasamiShogiGameState extends BaseGameState {
   hintsEnabled: boolean;
 }
 
+// E2Eテストから任意の盤面状態を注入するためのアクション。
+// このアクションはテストコードから`resetGameWithBoard`ヘルパー関数経由でのみ使用されるべきです。
+// アプリケーションロジック内で直接使用しないでください。
 type HasamiShogiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }

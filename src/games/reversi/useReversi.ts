@@ -16,6 +16,9 @@ interface ReversiGameState extends BaseGameState {
   selectedHintCell: [number, number] | null;
 }
 
+// E2Eテストから任意の状態を注入するためのアクション。
+// このアクションはテストコードからの`window.postMessage`でのみ使用されるべきです。
+// アプリケーションロジック内で直接使用しないでください。
 type ReversiAction =
   | { type: 'MAKE_MOVE'; row: number; col: number }
   | { type: 'RESET_GAME' }
