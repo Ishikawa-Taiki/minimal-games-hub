@@ -1,4 +1,5 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useDialog } from '@/core/components/ui/DialogProvider';
 import { BaseGameController, HintableGameController, BaseGameState, GameStatus, HintState } from '@/core/types/game';
 import { GameState, createInitialState, handleCellClick as handleCellClickCore, Player, WinCondition, setWinCondition, Board } from './core';
 import { useGameStateLogger } from '@/core/hooks/useGameStateLogger';
@@ -129,6 +130,7 @@ export type HasamiShogiController = BaseGameController<HasamiShogiGameState, Has
 
 export function useHasamiShogi(): HasamiShogiController {
   const [gameState, dispatch] = useReducer(hasamiShogiReducer, createInitialHasamiShogiState());
+  const { alert } = useDialog();
   
   const logger = useGameStateLogger('useHasamiShogi', gameState, {
     hintsEnabled: gameState.hintsEnabled,
@@ -143,6 +145,21 @@ export function useHasamiShogi(): HasamiShogiController {
     logger.log('RESET_GAME_CALLED', {});
     dispatch({ type: 'RESET_GAME' });
   }, [logger]);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      const winnerText = gameState.winner === 'PLAYER1' ? '「歩」チーム' : '「と」チーム';
+      const capturedCount = gameState.winner === 'PLAYER1' ? gameState.capturedPieces.PLAYER2 : gameState.capturedPieces.PLAYER1;
+      const opponentCapturedCount = gameState.winner === 'PLAYER1' ? gameState.capturedPieces.PLAYER1 : gameState.capturedPieces.PLAYER2;
+
+      alert({
+        title: `${winnerText}のかち！`,
+        message: `とったこまの数: ${capturedCount}対${opponentCapturedCount}`,
+      }).then(() => {
+        resetGame();
+      });
+    }
+  }, [gameState.winner, gameState.capturedPieces, alert, resetGame]);
 
   const makeMove = useCallback((row: number, col: number) => {
     logger.log('MAKE_MOVE_CALLED', { row, col });
