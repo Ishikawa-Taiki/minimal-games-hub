@@ -52,4 +52,30 @@ test.describe('ドット＆ボックス E2Eテスト', () => {
     const errorMessage = msg.text();
     expect(errorMessage).toBe('Invalid action: Line (h, 0, 0) has already been selected.');
   });
+
+  test('ヒントモードで無効な操作をするとコンソールエラーが出力される', async ({ page }) => {
+    await page.goto('/games/dots-and-boxes');
+    await page.getByRole('button', { name: 'かんたん' }).click();
+
+    // ヒントモードを有効にする
+    await page.getByTestId('control-panel-hint-button').click();
+
+    const firstLine = page.locator('[data-testid="h-line-0-0"]');
+    // 1回クリックしてプレビュー
+    await firstLine.click();
+    // 2回クリックして確定
+    await firstLine.click();
+
+    // 確定済みの線を再度クリック
+    const [msg] = await Promise.all([
+      page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+      firstLine.click(),
+    ]);
+
+    const errorMessage = msg.text();
+    expect(errorMessage).toBe('Invalid action: Line (h, 0, 0) has already been selected.');
+
+    // プレイヤーが交代していないことを確認
+    await expect(page.getByTestId('game-state-display')).toHaveText('「プレイヤー2」のばん');
+  });
 });
