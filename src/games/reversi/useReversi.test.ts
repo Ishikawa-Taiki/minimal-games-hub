@@ -90,7 +90,7 @@ describe('useReversi Hook', () => {
       result.current.makeMove(2, 2); // 2手目
     });
     act(() => {
-      result.current.makeMove(2, 4); // 3手目
+      result.current.makeMove(5, 4); // 3手目（有効な手）
     });
     
     expect(result.current.gameHistory.length).toBe(4);
