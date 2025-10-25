@@ -185,9 +185,11 @@ export function useReversi(): ReversiController {
         logger.log('EXECUTING_FULL_HINT_MOVE', { row, col });
 
         const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
-        const newHistory = [...gameHistory.slice(0, currentHistoryIndex + 1), newState];
-        setGameHistory(newHistory);
-        setCurrentHistoryIndex(newHistory.length - 1);
+        if (newState !== gameState) {
+          const newHistory = [...gameHistory.slice(0, currentHistoryIndex + 1), newState];
+          setGameHistory(newHistory);
+          setCurrentHistoryIndex(newHistory.length - 1);
+        }
       } else {
         // 1回目のタップ: セルを選択
         const newState = reversiReducer(gameState, { type: 'SET_SELECTED_HINT_CELL', cell: [row, col] });
@@ -201,9 +203,12 @@ export function useReversi(): ReversiController {
       logger.log('EXECUTING_NORMAL_MOVE', { row, col });
 
       const newState = reversiReducer(gameState, { type: 'MAKE_MOVE', row, col });
-      const newHistory = [...gameHistory.slice(0, currentHistoryIndex + 1), newState];
-      setGameHistory(newHistory);
-      setCurrentHistoryIndex(newHistory.length - 1);
+      // 状態が実際に変化した場合のみ履歴を更新する
+      if (newState !== gameState) {
+        const newHistory = [...gameHistory.slice(0, currentHistoryIndex + 1), newState];
+        setGameHistory(newHistory);
+        setCurrentHistoryIndex(newHistory.length - 1);
+      }
     }
   }, [gameState, currentHistoryIndex, gameHistory, logger]);
 
