@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../lib/fixtures/hook';
 
 test.describe('UIコンポーネントのデバッグページ', () => {
   test.beforeEach(async ({ page }) => {
