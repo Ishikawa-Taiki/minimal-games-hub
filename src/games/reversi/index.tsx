@@ -78,7 +78,7 @@ const Reversi: React.FC<ReversiProps> = ({ controller: externalController }) => 
       return;
     }
 
-    if (controller.gameState.gameStatus === 'GAME_OVER' || isFlipping) return;
+    if (isFlipping) return;
 
     logger.log('CELL_CLICK', { row: r, col: c, hintsEnabled: controller.hintState.enabled, hasValidMove: !!stonesToFlip });
 

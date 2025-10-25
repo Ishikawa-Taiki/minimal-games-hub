@@ -195,7 +195,9 @@ export function useAnimalChess(): AnimalChessController {
       alert({
         title: `${winnerName}のかち！`,
         message: reasonText,
-      }).then(resetGame);
+      }).then(() => {
+        resetGame();
+      });
     }
   }, [gameState.winner, gameState.winReason, alert, resetGame]);
 

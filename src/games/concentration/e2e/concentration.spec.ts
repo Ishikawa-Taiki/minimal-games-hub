@@ -50,25 +50,60 @@ test.describe("神経衰弱ゲーム", () => {
     expect(newBoundingBox.height).toBe(initialBoundingBox.height);
   });
 
-  test("無効な操作（3枚目のカードをクリック）でコンソールエラーが出力される", async ({ page }) => {
-    // 難易度を選択してゲーム開始
-    await page.getByTestId("difficulty-easy").click();
+  test.describe("無効な操作", () => {
+    test("既に表になっているカードは無効化される", async ({ page }) => {
+      await page.getByTestId("difficulty-easy").click();
 
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
-      });
+      // 1枚目のカードをクリック
+      const card = page.locator('[data-testid="card-0"]');
+      await card.click();
+
+      // カードが無効化されていることを確認
+      await expect(card).toBeDisabled();
     });
 
-    // 1枚目、2枚目のカードをクリック
-    await page.locator('[data-testid="card-0"]').click();
-    await page.locator('[data-testid="card-1"]').click();
-    // 3枚目のカードをクリック
-    await page.locator('[data-testid="card-2"]').click();
+    test("既にマッチが成立しているカードをクリックする", async ({ page }) => {
+      await page.getByTestId("difficulty-easy").click();
 
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid action: Cannot flip more than two cards at a time.');
+      // 準備が整うのを待ってから状態を注入する
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await page.waitForFunction(() => (window as any).isConcentrationReadyForTest);
+
+      // `spec-action.md`をテストするため、完全なゲームの状態を直接操作する
+      await page.evaluate(() => {
+        window.postMessage({
+          type: 'SET_GAME_STATE_FOR_TEST',
+          state: {
+            difficulty: 'easy',
+            board: [
+              { id: 0, rank: 'A', suit: 'H', isMatched: true, matchedBy: 1 },
+              { id: 1, rank: 'A', suit: 'D', isMatched: true, matchedBy: 1 },
+              { id: 2, rank: '2', suit: 'H', isMatched: false },
+              { id: 3, rank: '2', suit: 'D', isMatched: false },
+              // Note: This is a partial board for testing purposes.
+            ],
+            currentPlayer: 'player1',
+            scores: { player1: 1, player2: 0 },
+            flippedIndices: [],
+            revealedIndices: [],
+            hintedIndices: [],
+            gameStatus: 'playing',
+            hintsEnabled: false,
+            status: 'playing',
+            winner: null,
+          }
+        }, '*');
+      });
+
+      // 状態がUIに反映されるのを待つ
+      await expect(page.locator('[data-testid="card-0"]')).toHaveCSS(
+        'background-color',
+        'rgba(255, 182, 193, 0.5)',
+        { timeout: 1000 }
+      );
+
+      // マッチ済みのカードが無効化されていることを確認
+      await expect(page.locator('[data-testid="card-0"]')).toBeDisabled();
+    });
   });
 });

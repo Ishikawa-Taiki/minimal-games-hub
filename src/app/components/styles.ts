@@ -49,7 +49,7 @@ export const gameLayoutStyles = StyleSheet.create({
   desktopContainer: {
     display: 'flex',
     height: '100vh',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'rgb(243, 244, 246)',
   },
   sidebar: {
     width: '300px',
@@ -83,7 +83,7 @@ export const gameLayoutStyles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'rgb(243, 244, 246)',
     position: 'relative',
   },
   mobileHeader: {

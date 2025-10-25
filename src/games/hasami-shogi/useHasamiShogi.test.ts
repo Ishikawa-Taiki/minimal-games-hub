@@ -1,12 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHasamiShogi } from './useHasamiShogi';
+
+vi.mock('@/core/components/ui/DialogProvider', () => ({
+  useDialog: () => ({
+    alert: vi.fn(),
+    confirm: vi.fn(),
+  }),
+}));
 
 describe('useHasamiShogi', () => {
   describe('初期状態', () => {
     it('初期状態が正しく設定される', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       expect(result.current.gameState.status).toBe('waiting');
       expect(result.current.gameState.currentPlayer).toBe('PLAYER1');
       expect(result.current.gameState.winner).toBeNull();
@@ -17,9 +24,9 @@ describe('useHasamiShogi', () => {
 
     it('初期ボード状態が正しい', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       const board = result.current.gameState.board;
-      
+
       // 上段（0行目）はPLAYER2のコマ
       for (let c = 0; c < 9; c++) {
         expect(board[0][c]).toBe('PLAYER2');
@@ -42,7 +49,7 @@ describe('useHasamiShogi', () => {
   describe('ゲームリセット', () => {
     it('resetGameで初期状態に戻る', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       act(() => {
         result.current.setWinCondition('five_captures');
       });
@@ -70,7 +77,7 @@ describe('useHasamiShogi', () => {
   describe('「おしえて！」機能', () => {
     it('ON/OFFで切り替わる', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       expect(result.current.gameState.hintsEnabled).toBe(false);
       expect(result.current.hintState.enabled).toBe(false);
       
@@ -91,7 +98,7 @@ describe('useHasamiShogi', () => {
 
     it('コマを選択するとヒント情報が更新される', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       // ヒントをオンにする
       act(() => {
         result.current.setHints(true);
@@ -117,9 +124,9 @@ describe('useHasamiShogi', () => {
   describe('勝利条件設定', () => {
     it('setWinConditionで勝利条件が変更される', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       expect(result.current.getWinCondition()).toBe('standard');
-      
+
       act(() => {
         result.current.setWinCondition('five_captures');
       });
@@ -137,7 +144,7 @@ describe('useHasamiShogi', () => {
   describe('移動処理', () => {
     it('有効な移動が実行される', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       // PLAYER1のコマを選択
       act(() => {
         result.current.makeMove(8, 0);
@@ -162,9 +169,9 @@ describe('useHasamiShogi', () => {
 
     it('無効な移動は実行されない', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       const initialPlayer = result.current.gameState.currentPlayer;
-      
+
       // 空のセルをクリック（無効な操作）
       act(() => {
         result.current.makeMove(4, 4);
@@ -179,7 +186,7 @@ describe('useHasamiShogi', () => {
   describe('アクセサーメソッド', () => {
     it('各アクセサーメソッドが正しい値を返す', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       expect(result.current.getCurrentPlayer()).toBe('PLAYER1');
       expect(result.current.getCapturedPieces()).toEqual({ PLAYER1: 0, PLAYER2: 0 });
       expect(result.current.getWinCondition()).toBe('standard');
@@ -190,7 +197,7 @@ describe('useHasamiShogi', () => {
 
     it('getCurrentPlayerが正しいプレイヤーを返す', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       // 初期状態
       expect(result.current.getCurrentPlayer()).toBe('PLAYER1');
       
@@ -211,7 +218,7 @@ describe('useHasamiShogi', () => {
   describe('GameControllerインターフェース準拠', () => {
     it('BaseGameControllerの必須プロパティが存在する', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       // BaseGameController必須プロパティ
       expect(result.current.gameState).toBeDefined();
       expect(result.current.dispatch).toBeDefined();
@@ -225,7 +232,7 @@ describe('useHasamiShogi', () => {
 
     it('HintableGameControllerの必須プロパティが存在する', () => {
       const { result } = renderHook(() => useHasamiShogi());
-      
+
       // HintableGameController必須プロパティ
       expect(result.current.hintState).toBeDefined();
       expect(result.current.setHints).toBeDefined();

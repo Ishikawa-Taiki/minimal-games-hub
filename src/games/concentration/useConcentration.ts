@@ -23,12 +23,16 @@ interface ConcentrationGameState extends BaseGameState {
   hintsEnabled: boolean;
 }
 
+// E2Eテストから任意の状態を注入するためのアクション。
+// このアクションはテストコードからの`window.postMessage`でのみ使用されるべきです。
+// アプリケーションロジック内で直接使用しないでください。
 type ConcentrationAction = 
   | { type: 'CARD_CLICK'; index: number }
   | { type: 'CLEAR_NON_MATCHING' }
   | { type: 'RESET_GAME'; difficulty?: Difficulty }
   | { type: 'SET_HINTS_ENABLED'; enabled: boolean }
-  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty };
+  | { type: 'SET_DIFFICULTY'; difficulty: Difficulty }
+  | { type: 'SET_GAME_STATE_FOR_TEST'; state: ConcentrationGameState };
 
 function createInitialConcentrationState(difficulty: Difficulty = 'easy'): ConcentrationGameState {
   const coreState = createInitialState(difficulty);
@@ -135,6 +139,9 @@ function concentrationReducer(state: ConcentrationGameState, action: Concentrati
         status: 'playing' as GameStatus,
       };
     }
+
+    case 'SET_GAME_STATE_FOR_TEST':
+      return action.state;
     
     default:
       return state;
@@ -160,6 +167,7 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     // ゲーム状態チェック
     isGameStarted: () => boolean;
     isEvaluating: () => boolean;
+    isCardClickable: (index: number) => boolean;
   };
 
 export function useConcentration(initialDifficulty: Difficulty = 'easy'): ConcentrationController {
@@ -174,6 +182,23 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     hintedCount: gameState.hintedIndices.length,
     scores: gameState.scores
   });
+
+  // E2Eテスト用の状態設定
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'SET_GAME_STATE_FOR_TEST') {
+        dispatch({ type: 'SET_GAME_STATE_FOR_TEST', state: event.data.state });
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).isConcentrationReadyForTest = true;
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).isConcentrationReadyForTest;
+    };
+  }, []);
 
   // 評価中の自動処理
   useEffect(() => {
@@ -270,6 +295,13 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     return gameState.gameStatus === 'evaluating';
   }, [gameState.gameStatus]);
 
+  const isCardClickable = useCallback((index: number) => {
+    if (isEvaluating()) return false;
+    const card = gameState.board[index];
+    if (!card) return false;
+    return !card.isFlipped && !card.isMatched;
+  }, [isEvaluating, gameState.board]);
+
   return {
     gameState,
     dispatch,
@@ -286,6 +318,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getDifficulty,
     isGameStarted,
     isEvaluating,
+    isCardClickable,
     // HintableGameController
     hintState,
     setHints,

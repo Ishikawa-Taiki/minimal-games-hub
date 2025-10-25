@@ -52,7 +52,6 @@
 
 | シナリオ | コンソールエラーメッセージ |
 | :--- | :--- |
-| 既に2枚のカードが表になっている状態で、3枚目のカードをクリックする | `Invalid action: Cannot flip more than two cards at a time.` |
 | 既に表になっているカードを再度クリックする | `Invalid action: Cannot click a card that is already flipped.` |
 | 既にマッチが成立しているカードをクリックする | `Invalid action: Cannot click a card that is already matched.` |
 

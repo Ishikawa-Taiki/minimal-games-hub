@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 interface TestWindow extends Window {
   gameController: {
     getInitialBoard: () => (string | null)[][];
-    resetGameWithBoard: (board: (string | null)[][]) => void;
+    resetGameWithBoard: (board: (string | null)[][], capturedPieces?: { PLAYER1: number; PLAYER2: number }) => void;
   };
 }
 
@@ -79,61 +79,43 @@ test.describe("はさみ将棋ゲームのE2Eテスト", () => {
       await expect(opponentCell).toHaveCSS("box-shadow", /rgb\(255, 215, 0\)/);
     });
 
-    test("他のコマを飛び越えて移動することはできない", async ({ page }) => {
-      await page.getByTestId("win-cond-standard").click();
-      // (8,1)にP1、(7,1)にP2のコマを配置
-      await page.evaluate(() => {
-        const controller = (window as TestWindow).gameController;
-        const board = controller.getInitialBoard();
-        board[7][1] = 'PLAYER2';
-        controller.resetGameWithBoard(board);
-      });
-
-      // P1が(8,1)を選択
-      await page.locator('[data-testid="cell-8-1"]').click();
-
-      // 移動前の駒の位置を取得
-      const initialPiecePositions = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('[data-testid^="piece-"]')).map(p => ({
-          id: p.getAttribute('data-testid'),
-          style: (p as HTMLElement).style.cssText
-        }));
-      });
-
-      // P2のコマがある(7,1)を飛び越えた(6,1)はクリックしても何も起きない
-      await page.locator('[data-testid="cell-6-1"]').click();
-
-      // 移動後の駒の位置を取得
-      const newPiecePositions = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('[data-testid^="piece-"]')).map(p => ({
-          id: p.getAttribute('data-testid'),
-          style: (p as HTMLElement).style.cssText
-        }));
-      });
-
-      // セルの選択状態によるスタイルの違いは無視し、駒の位置が変わっていないことを確認
-      // styleにはtransformも含まれるため、topとleftだけを比較するのは不十分
-      expect(newPiecePositions).toEqual(initialPiecePositions);
-    });
-
-    test("無効なマスに移動しようとするとコンソールエラーが出力される", async ({ page }) => {
-      await page.getByTestId("win-cond-standard").click();
-
-      const consoleMessagePromise = new Promise<string>((resolve) => {
-        page.on('console', (msg) => {
-          if (msg.type() === 'error') {
-            resolve(msg.text());
-          }
+    test.describe("無効な操作", () => {
+      test("他のコマを飛び越えて移動しようとするとエラーが出力される", async ({ page }) => {
+        await page.getByTestId("win-cond-standard").click();
+        // (8,1)にP1、(7,1)にP2のコマを配置
+        await page.evaluate(() => {
+          const controller = (window as TestWindow).gameController;
+          const board = controller.getInitialBoard();
+          board[7][1] = 'PLAYER2';
+          controller.resetGameWithBoard(board);
         });
+
+        // P1が(8,1)を選択
+        await page.locator('[data-testid="cell-8-1"]').click();
+
+        const [msg] = await Promise.all([
+          page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+          page.locator('[data-testid="cell-6-1"]').click(),
+        ]);
+
+        const errorMessage = msg.text();
+        expect(errorMessage).toBe('Invalid move: Cannot move piece from (8, 1) to (6, 1).');
       });
 
-      // P1が(8,0)を選択
-      await page.locator('[data-testid="cell-8-0"]').click();
-      // 斜めに移動しようとする（無効）
-      await page.locator('[data-testid="cell-7-1"]').click();
+      test("斜めに移動しようとするとエラーが出力される", async ({ page }) => {
+        await page.getByTestId("win-cond-standard").click();
 
-      const errorMessage = await consoleMessagePromise;
-      expect(errorMessage).toBe('Invalid move: Cannot move piece from (8, 0) to (7, 1).');
+        // P1が(8,0)を選択
+        await page.locator('[data-testid="cell-8-0"]').click();
+
+        const [msg] = await Promise.all([
+          page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' }),
+          page.locator('[data-testid="cell-7-1"]').click(),
+        ]);
+
+        const errorMessage = msg.text();
+        expect(errorMessage).toBe('Invalid move: Cannot move piece from (8, 0) to (7, 1).');
+      });
     });
   });
 

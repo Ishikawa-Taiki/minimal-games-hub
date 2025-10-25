@@ -54,7 +54,7 @@ const PreGameScreen = ({ onSelect }: { onSelect: (condition: WinCondition) => vo
       <PositiveButton onClick={() => onSelect('standard')} data-testid="win-cond-standard">
         5こ とるか 3こ さをつける
       </PositiveButton>
-      <PositiveButton onClick={() => onSelect('five_captures')} data-testid="win-cond-five">
+      <PositiveButton onClick={() => onSelect('five_captures')} data-testid="win-cond-five_captures">
         5こ さきどり
       </PositiveButton>
       <PositiveButton onClick={() => onSelect('total_capture')} data-testid="win-cond-total">
@@ -213,7 +213,6 @@ interface TestWindow extends Window {
 
 
   const onCellClick = (r: number, c: number) => {
-    if (gameState.gameStatus === 'GAME_OVER' || gameState.isAnimating) return;
     makeMove(r, c);
   };
 

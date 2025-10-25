@@ -193,19 +193,35 @@ test.describe("リバーシゲームのE2Eテスト", () => {
     expect(historyCounter5).toBe("3 / 3");
   });
 
-  test("無効なセルをクリックするとコンソールエラーが出力される", async ({ page }) => {
-    const consoleMessagePromise = new Promise<string>((resolve) => {
-      page.on('console', (msg) => {
-        if (msg.type() === 'error') {
-          resolve(msg.text());
-        }
+  test.describe("無効な操作", () => {
+    test("ルール上、石を置けないマスをクリックするとエラーになる", async ({
+      page,
+    }) => {
+      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
+        return msg.type() === "error";
       });
+
+      // (0,0)は初期状態では置けない
+      await page.locator('[data-testid="cell-0-0"]').click();
+
+      const msg = await consoleMessagePromise;
+      expect(msg.text()).toBe(
+        "Invalid move: Cannot place a stone at (0, 0).",
+      );
     });
 
-    // (0,0)は初期状態では置けない
-    await page.locator('[data-testid="cell-0-0"]').click();
+    test("既に石が置かれているマスをクリックするとエラーになる", async ({
+      page,
+    }) => {
+      const consoleMessagePromise = page.waitForEvent("console", (msg) => {
+        return msg.type() === "error";
+      });
 
-    const errorMessage = await consoleMessagePromise;
-    expect(errorMessage).toBe('Invalid move: Cannot place a stone at (0, 0).');
+      // (3,3)には既に石が置かれている
+      await page.locator('[data-testid="cell-3-3"]').click();
+
+      const msg = await consoleMessagePromise;
+      expect(msg.text()).toBe("Invalid action: Cell (3, 3) is already occupied.");
+    });
   });
 });
