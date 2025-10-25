@@ -110,6 +110,11 @@ E2Eテストで以下の項目を検証します。
 
 - **`data-testid`属性の使用**: 要素の特定には、テキストやCSSセレクタではなく`data-testid`属性を必ず使用します。
 - **待機処理**: アニメーションや非同期処理が原因でテストが不安定になる場合は、`page.waitFor...` 系のAPIを適切に使用し、アプリケーションの状態が安定するのを待ってからアサーションを実行します。
+- **デバッグと結果確認**:
+  - **スクリーンショット**: 各E2Eテストの実行後、自動的にスクリーンショットが撮影されます。テスト結果の視覚的な確認や、失敗時のデバッグに役立ちます。
+    - **保存先**: `test-results/screenshots/` (このディレクトリはテスト実行前に自動でクリーンアップされます)
+    - **ファイル名**: Playwrightが生成するユニークなディレクトリ内に、テストのタイトルと実行結果（`passed`/`failed`）を組み合わせた名前で保存されます。（例: `.../src-games-tictactoe-e2e-ti-f9b4c--when-Play-Again-is-clicked-chromium/src-games-tictactoe-e2e-tictactoe-Tic-Tac-Toe-Game-Game-Over-Modal-should-reset-the-game-when--Play-Again--is-clicked-passed.png`）
+  - **HTMLレポート**: `npx playwright show-report test-results/reports` を実行すると、詳細なテストレポートをブラウザで確認できます。
 
 ### テストカバレッジ
 - **方針**: 新機能を追加する際は、既存の機能と同等のテストカバレッジを維持することを目標とします。
