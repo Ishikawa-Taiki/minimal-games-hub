@@ -51,37 +51,15 @@ test.describe("神経衰弱ゲーム", () => {
   });
 
   test.describe("無効な操作", () => {
-    test("既に2枚のカードが表になっている状態で、3枚目のカードをクリックする", async ({ page }) => {
-      // 難易度を選択してゲーム開始
+    test("既に表になっているカードは無効化される", async ({ page }) => {
       await page.getByTestId("difficulty-easy").click();
-
-      const consoleErrorPromise = page.waitForEvent('console', (msg) => msg.type() === 'error');
-
-      // 1枚目、2枚目のカードをクリック
-      await page.locator('[data-testid="card-0"]').click();
-      await page.locator('[data-testid="card-1"]').click();
-
-      // 3枚目のカードをクリック
-      await page.locator('[data-testid="card-2"]').click();
-
-      const msg = await consoleErrorPromise;
-      const errorMessage = msg.text();
-      expect(errorMessage).toBe('Invalid action: Cannot flip more than two cards at a time.');
-    });
-
-    test("既に表になっているカードを再度クリックする", async ({ page }) => {
-      await page.getByTestId("difficulty-easy").click();
-
-      const consoleErrorPromise = page.waitForEvent('console', (msg) => msg.type() === 'error');
 
       // 1枚目のカードをクリック
-      await page.locator('[data-testid="card-0"]').click();
-      // 同じカードを再度クリック
-      await page.locator('[data-testid="card-0"]').click();
+      const card = page.locator('[data-testid="card-0"]');
+      await card.click();
 
-      const msg = await consoleErrorPromise;
-      const errorMessage = msg.text();
-      expect(errorMessage).toBe('Invalid action: Cannot click a card that is already flipped.');
+      // カードが無効化されていることを確認
+      await expect(card).toBeDisabled();
     });
 
     test("既にマッチが成立しているカードをクリックする", async ({ page }) => {
@@ -124,14 +102,8 @@ test.describe("神経衰弱ゲーム", () => {
         { timeout: 1000 }
       );
 
-      const consoleErrorPromise = page.waitForEvent('console', { predicate: (msg) => msg.type() === 'error' });
-
-      // マッチ済みのカードをクリック
-      await page.locator('[data-testid="card-0"]').click();
-
-      const msg = await consoleErrorPromise;
-      const errorMessage = msg.text();
-      expect(errorMessage).toBe('Invalid action: Cannot click a card that is already matched.');
+      // マッチ済みのカードが無効化されていることを確認
+      await expect(page.locator('[data-testid="card-0"]')).toBeDisabled();
     });
   });
 });

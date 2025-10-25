@@ -167,6 +167,7 @@ export type ConcentrationController = BaseGameController<ConcentrationGameState,
     // ゲーム状態チェック
     isGameStarted: () => boolean;
     isEvaluating: () => boolean;
+    isCardClickable: (index: number) => boolean;
   };
 
 export function useConcentration(initialDifficulty: Difficulty = 'easy'): ConcentrationController {
@@ -294,6 +295,13 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     return gameState.gameStatus === 'evaluating';
   }, [gameState.gameStatus]);
 
+  const isCardClickable = useCallback((index: number) => {
+    if (isEvaluating()) return false;
+    const card = gameState.board[index];
+    if (!card) return false;
+    return !card.isFlipped && !card.isMatched;
+  }, [isEvaluating, gameState.board]);
+
   return {
     gameState,
     dispatch,
@@ -310,6 +318,7 @@ export function useConcentration(initialDifficulty: Difficulty = 'easy'): Concen
     getDifficulty,
     isGameStarted,
     isEvaluating,
+    isCardClickable,
     // HintableGameController
     hintState,
     setHints,

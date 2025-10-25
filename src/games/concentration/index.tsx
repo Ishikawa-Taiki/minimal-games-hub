@@ -89,6 +89,7 @@ const Concentration = ({ controller }: ConcentrationProps) => {
     <button
       style={getCardStyle(card, index)}
       onClick={() => onCardClick(index)}
+      disabled={!gameController.isCardClickable(index)}
       data-testid={`card-${index}`}
     >
       {card.isFlipped && <CardFaceContent suit={card.suit} rank={card.rank} />}
