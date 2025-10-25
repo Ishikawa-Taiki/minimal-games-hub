@@ -54,3 +54,4 @@
 | シナリオ | コンソールエラーメッセージ |
 | :--- | :--- |
 | 既に引かれている辺（ライン）を再度クリックする | `Invalid action: Line (<type>, <r>, <c>) has already been selected.` |
+| 「おしえて！」機能が有効な時に、既に引かれているラインをプレビュー対象としてクリックする | `Invalid action: Line (<type>, <r>, <c>) has already been selected.` |

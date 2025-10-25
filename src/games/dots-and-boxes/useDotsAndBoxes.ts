@@ -134,8 +134,21 @@ export const useDotsAndBoxes = (): DotsAndBoxesController => {
         return;
       }
 
+      const line = type === 'h' ? gameState.hLines[r][c] : gameState.vLines[r][c];
+      if (line.owner) {
+        console.error(
+          `Invalid action: Line (${type}, ${r}, ${c}) has already been selected.`
+        );
+        return;
+      }
+
       const newPreview = getPreview(gameState, r, c, type);
-      if (preview && preview.line.r === r && preview.line.c === c && preview.line.type === type) {
+      if (
+        preview &&
+        preview.line.r === r &&
+        preview.line.c === c &&
+        preview.line.type === type
+      ) {
         dispatch({ type: 'SELECT_LINE', payload: { r, c, type } });
         setPreview(null);
       } else {
