@@ -113,7 +113,7 @@ E2Eテストで以下の項目を検証します。
 - **デバッグと結果確認**:
   - **スクリーンショット**: 各E2Eテストの実行後、自動的にスクリーンショットが撮影されます。テスト結果の視覚的な確認や、失敗時のデバッグに役立ちます。
     - **保存先**: `test-results/screenshots/` (このディレクトリはテスト実行前に自動でクリーンアップされます)
-    - **ファイル名**: Playwrightが生成するユニークなディレクトリ内に、テストのタイトルと実行結果（`passed`/`failed`）を組み合わせた名前で保存されます。（例: `.../src-games-tictactoe-e2e-ti-f9b4c--when-Play-Again-is-clicked-chromium/src-games-tictactoe-e2e-tictactoe-Tic-Tac-Toe-Game-Game-Over-Modal-should-reset-the-game-when--Play-Again--is-clicked-passed.png`）
+    - **ファイル名**: テストのタイトル、実行結果(`passed`/`failed`)、ユニークIDを組み合わせた名前で、ディレクトリ直下に保存されます。（例: `src-games-tictactoe-e2e-tictactoe-Tic-Tac-Toe-Game-should-allow-players-to-take-turns-passed-xxxxxxxx.png`）
   - **HTMLレポート**: `npx playwright show-report test-results/reports` を実行すると、詳細なテストレポートをブラウザで確認できます。
 
 ### テストカバレッジ
