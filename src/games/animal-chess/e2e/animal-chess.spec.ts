@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page } from "../../../../lib/fixtures/hook";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/games/animal-chess");

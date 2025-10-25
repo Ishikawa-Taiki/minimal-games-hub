@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page } from "../../../../lib/fixtures/hook";
 
 const expectCurrentPlayer = async (page: Page, player: "プレイヤー1" | "プレイヤー2") => {
   const locator = page.getByTestId("game-state-display").locator("p");

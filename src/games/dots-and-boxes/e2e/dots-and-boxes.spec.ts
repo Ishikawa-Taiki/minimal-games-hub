@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../../lib/fixtures/hook';
 
 test.describe('ドット＆ボックス E2Eテスト', () => {
   test('難易度を選択してゲームを開始し、基本的な操作ができる', async ({ page }) => {

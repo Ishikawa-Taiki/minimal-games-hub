@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test } from '../lib/fixtures/hook';
 
 test('レイアウト構造のデバッグ', async ({ page }) => {
   // 1. デスクトップサイズに設定

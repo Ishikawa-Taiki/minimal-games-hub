@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../../lib/fixtures/hook";
 
 test.describe("神経衰弱ゲーム", () => {
   test.beforeEach(async ({ page }) => {

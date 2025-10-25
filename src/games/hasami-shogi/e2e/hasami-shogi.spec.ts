@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../../lib/fixtures/hook";
 
 interface TestWindow extends Window {
   gameController: {
