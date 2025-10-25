@@ -194,27 +194,37 @@ test.describe("リバーシゲームのE2Eテスト", () => {
   });
 
   test.describe("無効な操作", () => {
-    test("ルール上、石を置けないマスをクリックするとエラーになる", async ({
+    test("ルール上、石を置けないマスをクリックしても履歴は進まない", async ({
       page,
     }) => {
+      // 履歴の初期状態を確認
+      const initialHistory = await page.locator('[data-testid="history-counter"]').textContent();
+      expect(initialHistory).toBe("1 / 1");
+
       const consoleMessagePromise = page.waitForEvent("console", (msg) => {
-        return msg.type() === "error";
+        return msg.type() === "error" && msg.text().startsWith("Invalid move");
       });
 
       // (0,0)は初期状態では置けない
       await page.locator('[data-testid="cell-0-0"]').click();
 
       const msg = await consoleMessagePromise;
-      expect(msg.text()).toBe(
-        "Invalid move: Cannot place a stone at (0, 0).",
-      );
+      expect(msg.text()).toBe("Invalid move: Cannot place a stone at (0, 0).");
+
+      // 履歴が進んでいないことを確認
+      const afterClickHistory = await page.locator('[data-testid="history-counter"]').textContent();
+      expect(afterClickHistory).toBe("1 / 1");
     });
 
-    test("既に石が置かれているマスをクリックするとエラーになる", async ({
+    test("既に石が置かれているマスをクリックしても履歴は進まない", async ({
       page,
     }) => {
+      // 履歴の初期状態を確認
+      const initialHistory = await page.locator('[data-testid="history-counter"]').textContent();
+      expect(initialHistory).toBe("1 / 1");
+
       const consoleMessagePromise = page.waitForEvent("console", (msg) => {
-        return msg.type() === "error";
+        return msg.type() === "error" && msg.text().startsWith("Invalid action");
       });
 
       // (3,3)には既に石が置かれている
@@ -222,6 +232,10 @@ test.describe("リバーシゲームのE2Eテスト", () => {
 
       const msg = await consoleMessagePromise;
       expect(msg.text()).toBe("Invalid action: Cell (3, 3) is already occupied.");
+
+      // 履歴が進んでいないことを確認
+      const afterClickHistory = await page.locator('[data-testid="history-counter"]').textContent();
+      expect(afterClickHistory).toBe("1 / 1");
     });
   });
 });
