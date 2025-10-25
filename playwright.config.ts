@@ -17,11 +17,9 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], headless: true },
     },
   ],
-  timeout: 180000,
   webServer: {
     command: 'npm run dev > webserver.log 2>&1',
     url: 'http://localhost:3000',
     reuseExistingServer: false,
-    timeout: 120000,
   },
 });
