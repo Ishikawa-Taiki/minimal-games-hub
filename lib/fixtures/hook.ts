@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { test as base } from '@playwright/test';
 import * as path from 'path';
-import * as crypto from 'crypto';
+import * as fs from 'fs';
 
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
@@ -13,16 +13,21 @@ export const test = base.extend({
 
     await use(page);
 
-    // Keep the test title for readability, but sanitize it.
-    const testTitle = testInfo.titlePath[testInfo.titlePath.length - 1];
-    const sanitizedTitle = testTitle.replace(/[\s<>:"/\\|?*]/g, '_');
+    const testFileName = path.basename(testInfo.file).replace(/\.spec\.ts$/, '');
+    const testFileDir = path.join(testInfo.project.outputDir, testFileName);
+    fs.mkdirSync(testFileDir, { recursive: true });
 
-    // Create a short, unique hash from the full test path to ensure uniqueness.
-    const fullTestPath = testInfo.titlePath.join(' > ');
-    const hash = crypto.createHash('md5').update(fullTestPath).digest('hex').slice(0, 8);
+    const statusMap = {
+      passed: 'S',
+      failed: 'F',
+      timedout: 'T',
+      interrupted: 'I',
+    };
+    const shortStatus = statusMap[testInfo.status || 'unknown'] || 'U';
 
-    const uniqueFileName = `${sanitizedTitle}-${hash}-${testInfo.status}.png`;
-    const screenshotPath = path.join(testInfo.project.outputDir, uniqueFileName);
+    const screenshotFileName = `${testInfo.testId}-${shortStatus}.png`;
+    const screenshotPath = path.join(testFileDir, screenshotFileName);
+
     await page.screenshot({ path: screenshotPath });
   },
 });
