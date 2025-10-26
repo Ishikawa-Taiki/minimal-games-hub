@@ -26,7 +26,7 @@ export const test = base.extend({
     };
     const shortStatus = statusMap[testInfo.status || ''] || 'U';
 
-    const screenshotFileName = `${shortStatus}-${testInfo.testId}.png`;
+    const screenshotFileName = `${testInfo.testId}-${shortStatus}.png`;
     const screenshotPath = path.join(testFileDir, screenshotFileName);
 
     await page.screenshot({ path: screenshotPath });
