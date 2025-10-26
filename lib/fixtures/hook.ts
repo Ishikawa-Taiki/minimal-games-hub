@@ -17,15 +17,16 @@ export const test = base.extend({
     const testFileDir = path.join(testInfo.project.outputDir, testFileName);
     fs.mkdirSync(testFileDir, { recursive: true });
 
-    const statusMap = {
+    const statusMap: { [key: string]: string } = {
       passed: 'S',
       failed: 'F',
-      timedout: 'T',
+      timedOut: 'T',
       interrupted: 'I',
+      skipped: 'K',
     };
-    const shortStatus = statusMap[testInfo.status || 'unknown'] || 'U';
+    const shortStatus = statusMap[testInfo.status || ''] || 'U';
 
-    const screenshotFileName = `${testInfo.testId}-${shortStatus}.png`;
+    const screenshotFileName = `${shortStatus}-${testInfo.testId}.png`;
     const screenshotPath = path.join(testFileDir, screenshotFileName);
 
     await page.screenshot({ path: screenshotPath });
