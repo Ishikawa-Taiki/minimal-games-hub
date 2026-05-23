@@ -7,7 +7,7 @@
     "build": "next build",
     "test": "npm run test:lint && npm run test:license && npm run test:unit && npm run test:e2e",
     "test:lint": "eslint . --max-warnings 0",
-    "test:license": "npx license-checker --production --summary --failOn \"GPL, AGPL\"",
+    "test:license": "npx license-checker --production --summary --failOn \"GPL; AGPL\"",
     "test:unit": "vitest run",
     "test:unit-ui": "vitest --ui",
     "test:e2e": "npx playwright test",
@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@google/gemini-cli": "^0.16.0",
+    "@google/gemini-cli": "^0.42.0",
     "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
